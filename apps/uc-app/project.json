@@ -16,7 +16,10 @@
         "tsConfig": "apps/uc-app/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": ["apps/uc-app/src/favicon.ico", "apps/uc-app/src/assets"],
-        "styles": ["apps/uc-app/src/styles.scss"],
+        "styles": [
+          "apps/uc-app/src/styles.scss",
+          "node_modules/bootstrap/dist/css/bootstrap.min.css"
+        ],
         "scripts": []
       },
       "configurations": {
