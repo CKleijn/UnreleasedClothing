@@ -1,0 +1,25 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Picture</th>
+            <th scope="col">Price</th>
+            <th scope="col">Description</th>
+            <th scope="col">Brand</th>
+            <th scope="col" colspan="2">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngIf="product$ | async as product">
+            <th>{{ product._id }}</th>
+            <td>{{ product.name }}</td>
+            <td><img src="{{ product.picture }}" width="100" /></td>
+            <td>{{ product.price }}</td>
+            <td>{{ product.description }}</td>
+            <td>{{ product.brand }}</td>
+            <td><button class="btn btn-primary" routerLink="edit">Edit</button></td>
+            <td><button class="btn btn-danger" (click)="delete()">Delete</button></td>
+        </tr>
+    </tbody>
+</table>
