@@ -1,25 +1,23 @@
-<table class="table">
-    <thead>
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Name</th>
-            <th scope="col">Picture</th>
-            <th scope="col">Price</th>
-            <th scope="col">Description</th>
-            <th scope="col">Brand</th>
-            <th scope="col" colspan="2">Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngIf="product$ | async as product">
-            <th>{{ product._id }}</th>
-            <td>{{ product.name }}</td>
-            <td><img src="{{ product.picture }}" width="100" /></td>
-            <td>{{ product.price }}</td>
-            <td>{{ product.description }}</td>
-            <td>{{ product.brand }}</td>
-            <td><button class="btn btn-primary" routerLink="edit">Edit</button></td>
-            <td><button class="btn btn-danger" (click)="delete()">Delete</button></td>
-        </tr>
-    </tbody>
-</table>
+<h1>({{ product?.brand }}) {{ product?.name }}</h1>
+
+<div class="row">
+    <div class="col-6 mb-4">
+        <div class="card">
+            <img class="card-img-top" src="{{ product?.picture }}" alt="{{ product?.name }}">
+        </div>
+    </div>
+    <div class="col-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="card-title"><b>{{ product?.brand }}</b></h6>
+                <h5 class="card-title">{{ product?.name }}</h5>
+                <p class="card-text">€{{ product?.price }}</p>
+                <p class="card-text">{{ product?.description }}</p>
+                <p class="card-text" *ngIf="product?.isActive === true">Active product <i class="bi bi-check2"></i></p>
+                <p class="card-text" *ngIf="product?.isActive === false">Inactive product <i class="bi bi-x"></i></p>
+                <button class="btn" routerLink="edit">Edit <i class="bi bi-pencil"></i></button>
+                <button class="btn mx-2" (click)="delete()">Delete <i class="bi bi-trash"></i></button>
+            </div>
+        </div>
+    </div>
+</div>

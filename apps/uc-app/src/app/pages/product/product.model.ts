@@ -5,6 +5,7 @@ export interface IProduct {
     price: number;
     description: string;
     brand: string;
+    isActive: boolean;
 }
 
 export class Product implements IProduct {
@@ -14,4 +15,5 @@ export class Product implements IProduct {
     price: number = 0.00;
     description: string = '';
     brand: string = '';
+    isActive: boolean = true;
 }
