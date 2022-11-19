@@ -1,24 +1,22 @@
-<button class="btn btn-primary m-2" routerLink="create">Add</button>
+<div class="row my-2">
+    <div class="col-8">
+        <h1>All products</h1>
+    </div>
+    <div class="col-4">
+        <button class="btn pull-right" routerLink="create">Add product <i class="bi bi-plus-lg"></i></button>
+    </div>
+</div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Name</th>
-            <th scope="col">Picture</th>
-            <th scope="col">Price</th>
-            <th scope="col">Description</th>
-            <th scope="col">Brand</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr *ngFor="let product of products$ | async">
-            <th><a routerLink="{{ product._id }}">{{ product._id }}</a></th>
-            <td>{{ product.name }}</td>
-            <td><img src="{{ product.picture }}" width="100" /></td>
-            <td>{{ product.price }}</td>
-            <td>{{ product.description }}</td>
-            <td>{{ product.brand }}</td>
-        </tr>
-    </tbody>
-</table>
+<div class="row">
+    <div class="col-4 mb-4" *ngFor="let product of products">
+        <div class="card">
+            <img class="card-img-top" src="{{ product.picture }}" alt="{{ product.name }}">
+            <div class="card-body">
+                <h6 class="card-title"><b>{{ product.brand }}</b></h6>
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text">€{{ product.price }}</p>
+                <a routerLink="{{ product._id }}" class="btn">Details <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>

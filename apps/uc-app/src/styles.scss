@@ -1,1 +1,49 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
+
+$primary-color: #fe6b02;
+$secondary-color: #272c48;
+$tertiary-color: #ffffff;
+
+body {
+    font-family: 'Roboto', sans-serif !important;
+}
+
+h1, h2, h3, h4, h5 {
+    color: $secondary-color;
+}
+
+h6 {
+    color: $primary-color;
+}
+
+.pull-right {
+    float: right !important;
+}
+
+.card {
+    border-radius: 0px !important;
+}
+
+.btn {
+    background-color: $tertiary-color !important;
+    border-color: $primary-color !important;
+    border-width: 3px !important;
+    border-radius: 0px !important;
+    color: $primary-color !important;
+    font-weight: 700 !important;
+}
+
+.btn:hover {
+    background-color: $primary-color !important;
+    color: $tertiary-color !important;
+}
+
+.form-control {
+    padding: 10px;
+    border: 2px solid $primary-color !important;
+}
+
+.form-control:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
