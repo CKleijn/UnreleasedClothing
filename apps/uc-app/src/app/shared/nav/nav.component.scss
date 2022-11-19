@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
+
+$primary-color: #fe6b02;
+$secondary-color: #272c48;
+$tertiary-color: #ffffff;
+
+.navbar {
+    font-family: 'Roboto', sans-serif;
+    background-color: $secondary-color !important;
+    border-bottom: 5px solid $primary-color;
+    padding: 10px;
+}
+
+.nav {
+    &-link {
+        font-weight: 600;
+        color: $primary-color !important;
+        text-transform: uppercase;
+    }
+
+    &-link:hover {
+        color: $tertiary-color !important;
+    }
+}
