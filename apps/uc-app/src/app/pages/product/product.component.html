@@ -1,14 +1,14 @@
 <div class="row my-2">
-    <div class="col-8">
+    <div class="col-md-8 col-sm-12">
         <h1>All products</h1>
     </div>
-    <div class="col-4">
+    <div class="col-md-4 col-sm-12">
         <button class="btn pull-right" routerLink="create">Add product <i class="bi bi-plus-lg"></i></button>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-4 mb-4" *ngFor="let product of products">
+    <div class="col-md-4 col-sm-12 mb-4" *ngFor="let product of products">
         <div class="card">
             <img class="card-img-top" src="{{ product.picture }}" alt="{{ product.name }}">
             <div class="card-body">

@@ -2,11 +2,11 @@
 <h1 *ngIf="productExists === false">Create new product</h1>
 
 <div class="row mb-4">
-    <div class="col-6">
+    <div class="col-md-6 col-sm-12">
         <form #productForm="ngForm" class="my-5" (ngSubmit)="onSubmit()">
             <div class="row mb-3">
-                <label class="form-label col-4 col-form-label">Name</label>
-                <div class="col-8">
+                <label class="form-label col-md-4 col-sm-12 col-form-label">Name</label>
+                <div class="col-md-8 col-sm-12">
                     <input type="text" class="form-control" name="name" #name="ngModel" [(ngModel)]="product!.name" required [ngClass]="{'is-invalid': name.invalid && name.touched}">
                     <div *ngIf="name.invalid && name.touched" class="invalid-feedback">
                         <div *ngIf="name.errors!['required']">
@@ -16,8 +16,8 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label class="form-label col-4 col-form-label">Picture URL</label>
-                <div class="col-8">
+                <label class="form-label col-md-4 col-sm-12 col-form-label">Picture URL</label>
+                <div class="col-md-8 col-sm-12">
                     <input type="text" class="form-control" name="picture" #picture="ngModel" [(ngModel)]="product!.picture" required [ngClass]="{'is-invalid': picture.invalid && picture.touched}">
                     <div *ngIf="picture.invalid && picture.touched" class="invalid-feedback">
                         <div *ngIf="picture.errors!['required']">
@@ -27,8 +27,8 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label class="form-label col-4 col-form-label">Price</label>
-                <div class="col-8">
+                <label class="form-label col-md-4 col-sm-12 col-form-label">Price</label>
+                <div class="col-md-8 col-sm-12">
                     <input type="number" step="0.01" class="form-control" name="price" #price="ngModel" [(ngModel)]="product!.price" required min="0" [ngClass]="{'is-invalid': price.invalid && price.touched}">
                     <div *ngIf="price.invalid && price.touched" class="invalid-feedback">
                         <div *ngIf="price.errors!['required']">
@@ -41,8 +41,8 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label class="form-label col-4 col-form-label">Description</label>
-                <div class="col-8">
+                <label class="form-label col-md-4 col-sm-12 col-form-label">Description</label>
+                <div class="col-md-8 col-sm-12">
                     <textarea type="text" class="form-control" name="description" #description="ngModel" [(ngModel)]="product!.description" rows="5" required [ngClass]="{'is-invalid': description.invalid && description.touched}"></textarea>
                     <div *ngIf="description.invalid && description.touched" class="invalid-feedback">
                         <div *ngIf="description.errors!['required']">
@@ -52,8 +52,8 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label class="form-label col-4 col-form-label">Brand</label>
-                <div class="col-8">
+                <label class="form-label col-md-4 col-sm-12 col-form-label">Brand</label>
+                <div class="col-md-8 col-sm-12">
                     <input type="text" class="form-control" name="brand" #brand="ngModel" [(ngModel)]="product!.brand" required [ngClass]="{'is-invalid': brand.invalid && brand.touched}">
                     <div *ngIf="brand.invalid && brand.touched" class="invalid-feedback">
                         <div *ngIf="brand.errors!['required']">
@@ -66,7 +66,7 @@
             <button *ngIf="productExists === true" type="submit" [disabled]="!productForm.valid" class="btn pull-right">Update</button>
         </form>
     </div>
-    <div class="col-6">
+    <div class="col-md-6 col-sm-12">
         <pre class="m-5">{{ product | json }}</pre>
     </div>
 </div>
