@@ -99,28 +99,60 @@ let ProductController = class ProductController {
     }
     getAllProducts() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.productService.getAllProducts();
+            return yield this.productService.getAllProducts();
         });
     }
     getProductById(productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.productService.getProductById(productId);
+            try {
+                return yield this.productService.getProductById(productId);
+            }
+            catch (error) {
+                this.generateProductExceptions(error);
+            }
         });
     }
     createProduct(productDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.productService.createProduct(productDto);
+            try {
+                return yield this.productService.createProduct(productDto);
+            }
+            catch (error) {
+                this.generateProductExceptions(error);
+            }
         });
     }
     updateProduct(productId, newProduct) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.productService.updateProduct(productId, newProduct);
+            try {
+                return yield this.productService.updateProduct(productId, newProduct);
+            }
+            catch (error) {
+                this.generateProductExceptions(error);
+            }
         });
     }
     deleteProduct(productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.productService.deleteProduct(productId);
+            try {
+                return yield this.productService.deleteProduct(productId);
+            }
+            catch (error) {
+                this.generateProductExceptions(error);
+            }
         });
+    }
+    generateProductExceptions(error) {
+        if (error.name === 'CastError')
+            throw new common_1.HttpException('This ObjectId doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+        if (error.errors.name)
+            throw new common_1.HttpException(error.errors.name.message, common_1.HttpStatus.CONFLICT);
+        if (error.errors.picture)
+            throw new common_1.HttpException(error.errors.picture.message, common_1.HttpStatus.CONFLICT);
+        if (error.errors.price)
+            throw new common_1.HttpException(error.errors.price.message, common_1.HttpStatus.CONFLICT);
+        if (error.errors.description)
+            throw new common_1.HttpException(error.errors.description.message, common_1.HttpStatus.CONFLICT);
     }
 };
 tslib_1.__decorate([
@@ -168,31 +200,13 @@ exports.ProductController = ProductController;
 /***/ }),
 
 /***/ "./apps/uc-api/src/app/product/product.dto.ts":
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProductDto = void 0;
-const tslib_1 = __webpack_require__("tslib");
-const class_validator_1 = __webpack_require__("class-validator");
 class ProductDto {
 }
-tslib_1.__decorate([
-    (0, class_validator_1.IsString)(),
-    tslib_1.__metadata("design:type", String)
-], ProductDto.prototype, "name", void 0);
-tslib_1.__decorate([
-    (0, class_validator_1.IsString)(),
-    tslib_1.__metadata("design:type", String)
-], ProductDto.prototype, "picture", void 0);
-tslib_1.__decorate([
-    (0, class_validator_1.IsNumber)(),
-    tslib_1.__metadata("design:type", Number)
-], ProductDto.prototype, "price", void 0);
-tslib_1.__decorate([
-    (0, class_validator_1.IsString)(),
-    tslib_1.__metadata("design:type", String)
-], ProductDto.prototype, "description", void 0);
 exports.ProductDto = ProductDto;
 
 
@@ -350,17 +364,17 @@ let ProductService = class ProductService {
     }
     getAllProducts() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.productRepository.getAllProducts();
+            return yield this.productRepository.getAllProducts();
         });
     }
     getProductById(productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.productRepository.getProductById(productId);
+            return yield this.productRepository.getProductById(productId);
         });
     }
     createProduct(productDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.productRepository.createProduct({
+            return yield this.productRepository.createProduct({
                 name: productDto.name,
                 picture: productDto.picture,
                 price: productDto.price,
@@ -372,12 +386,12 @@ let ProductService = class ProductService {
     }
     updateProduct(productId, newProduct) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.productRepository.updateProduct(productId, newProduct);
+            return yield this.productRepository.updateProduct(productId, newProduct);
         });
     }
     deleteProduct(productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.productRepository.deleteProduct(productId);
+            return yield this.productRepository.deleteProduct(productId);
         });
     }
 };
@@ -408,13 +422,6 @@ module.exports = require("@nestjs/core");
 /***/ ((module) => {
 
 module.exports = require("@nestjs/mongoose");
-
-/***/ }),
-
-/***/ "class-validator":
-/***/ ((module) => {
-
-module.exports = require("class-validator");
 
 /***/ }),
 

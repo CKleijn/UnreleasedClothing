@@ -13,15 +13,15 @@ export class ProductService {
     constructor(private productRepository: ProductRepository) {}
 
     async getAllProducts(): Promise<Product[]> {
-        return this.productRepository.getAllProducts();
+        return await this.productRepository.getAllProducts();
     }
 
     async getProductById(productId: string): Promise<Product> {
-        return this.productRepository.getProductById(productId);
+        return await this.productRepository.getProductById(productId);
     }
 
     async createProduct(productDto: ProductDto): Promise<Product> {
-        return this.productRepository.createProduct({
+        return await this.productRepository.createProduct({
             name: productDto.name,
             picture: productDto.picture,
             price: productDto.price,
@@ -31,11 +31,11 @@ export class ProductService {
         })
     }
 
-    async updateProduct(productId: string, newProduct: Partial<Product>): Promise<Product> {
-        return this.productRepository.updateProduct(productId, newProduct);
+    async updateProduct(productId: string, newProduct: Partial<ProductDto>): Promise<Product> {
+        return await this.productRepository.updateProduct(productId, newProduct);
     }
 
     async deleteProduct(productId: string): Promise<Product> {
-        return this.productRepository.deleteProduct(productId);
+        return await this.productRepository.deleteProduct(productId);
     }
 }
