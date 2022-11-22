@@ -62,6 +62,19 @@
                     </div>
                 </div>
             </div>
+            <div class="row mb-3">
+                <label class="form-label col-md-4 col-sm-12 col-form-label">Category</label>
+                <div class="col-md-8 col-sm-12">
+                    <select class="form-control" name="category" #category="ngModel" [(ngModel)]="product!.category" required [ngClass]="{'is-invalid': category.invalid && category.touched}">
+                        <option *ngFor="let category of categories" [ngValue]="category">{{ category.title }}</option>
+                    </select>
+                    <div *ngIf="category.invalid && category.touched" class="invalid-feedback">
+                        <div *ngIf="category.errors!['required']">
+                            Category is required!
+                        </div>
+                    </div>
+                </div>
+            </div>
             <button *ngIf="productExists === false" type="submit" [disabled]="!productForm.valid" class="btn pull-right">Submit</button>
             <button *ngIf="productExists === true" type="submit" [disabled]="!productForm.valid" class="btn pull-right">Update</button>
         </form>

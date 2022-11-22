@@ -1,0 +1,33 @@
+<h1>{{ category?.title }}</h1>
+
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">Icon</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Created at</th>
+                    <th scope="col">Total used</th>
+                    <th scope="col" colspan="2">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ category?._id }}</td>
+                    <td><img src="{{ category?.icon }}" alt="{{ category?.title }}" width="50px" /></td>
+                    <td>{{ category?.title }}</td>
+                    <td>{{ category?.description }}</td>
+                    <td>{{ createdAt }}</td>
+                    <td>{{ totalUsed }}</td>
+                    <td>
+                        <button class="btn" routerLink="edit">Edit</button>
+                        <button class="btn mx-2" (click)="delete()">Delete</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

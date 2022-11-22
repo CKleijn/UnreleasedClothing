@@ -8,9 +8,8 @@ import { ProductService } from '../product.service';
   templateUrl: './detail.component.html',
   styleUrls: ['./detail.component.scss'],
 })
-export class DetailComponent implements OnInit {
+export class ProductDetailComponent implements OnInit {
   productId: string | null = null;
-  isActive: string | null = null;
   product: Product | undefined;
 
   constructor(private route: ActivatedRoute, private router: Router, private productService: ProductService) { }

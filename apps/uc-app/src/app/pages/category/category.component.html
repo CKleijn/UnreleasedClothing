@@ -1,0 +1,29 @@
+<div class="row my-2">
+    <div class="col-md-8 col-sm-12">
+        <h1>All categories</h1>
+    </div>
+    <div class="col-md-4 col-sm-12">
+        <button class="btn pull-right" routerLink="create">Add category <i class="bi bi-plus-lg"></i></button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 col-sm-12 mb-4">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">Id</th>
+                    <th scope="col">Icon</th>
+                    <th scope="col">Title</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let category of categories">
+                    <td><a routerLink="{{ category._id }}">{{ category._id }}</a></td>
+                    <td><img src="{{ category.icon }}" alt="{{ category.title }}" width="50px" /></td>
+                    <td>{{ category.title }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -12,8 +12,13 @@ h1, h2, h3, h4, h5 {
     color: $secondary-color;
 }
 
-h6 {
+b {
     color: $primary-color;
+}
+
+a {
+    color: $secondary-color !important;
+    text-decoration: none !important;
 }
 
 .pull-right {
