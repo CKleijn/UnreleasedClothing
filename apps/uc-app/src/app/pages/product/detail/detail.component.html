@@ -9,7 +9,7 @@
     <div class="col-md-6 col-sm-12 mb-4">
         <div class="card">
             <div class="card-body">
-                <h6 class="card-title"><b>{{ product?.brand }}</b></h6>
+                <h6 class="card-title"><b>{{ product?.brand }}</b> - <a routerLink="../../categories/{{ product?.category?._id }}">{{ product?.category?.title }} <img class="pb-1" src="{{ product?.category?.icon }}" width="15" /></a></h6>
                 <h5 class="card-title">{{ product?.name }}</h5>
                 <p class="card-text">€{{ product?.price }}</p>
                 <p class="card-text">{{ product?.description }}</p>
