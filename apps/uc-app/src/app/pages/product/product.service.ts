@@ -103,6 +103,10 @@ export class ProductService {
         return this.products.filter(product => product._id === productId)[0];
     }
 
+    getProductsByCategoryId(categoryId: number): Product[] {
+        return this.products.filter(product => product.category._id === categoryId);
+    }
+
     getNewIndex(): number {
         let lastIndex = this.products[this.products.length - 1]._id;
         return lastIndex + 1;

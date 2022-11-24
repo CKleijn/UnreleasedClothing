@@ -4,15 +4,17 @@ import { Category } from '../category.model';
 import { CategoryService } from '../category.service';
 
 @Component({
-  selector: 'uc-app-form',
+  selector: 'uc-app-form-category',
   templateUrl: './form.component.html',
   styleUrls: ['./form.component.scss'],
 })
 export class CategoryFormComponent implements OnInit {
+  productId: string | null = null;
   categoryId: string | null = null;
   categoryTitle: string | null = null;
   category: Category | undefined;
   categoryExists: boolean = false;
+  categoryCreated: boolean = false;
 
   constructor(private route: ActivatedRoute, private router: Router, private categoryService: CategoryService) {}
 
@@ -41,6 +43,17 @@ export class CategoryFormComponent implements OnInit {
       this.categoryService.createCategory(this.category!);
     }
 
-    this.router.navigate(['categories']);
+    this.route.paramMap.subscribe(params => {
+      this.productId = params.get('productId');
+    })
+
+    if(this.router.url === '/products/create')
+      this.categoryCreated = true;
+
+    if(this.router.url === '/products/' + this.productId +'/edit') 
+      this.categoryCreated = true;
+
+    if(this.router.url === '/categories/create' || this.router.url === '/categories/' + this.categoryId + '/edit')
+      this.router.navigate(['categories']);
   }
 }

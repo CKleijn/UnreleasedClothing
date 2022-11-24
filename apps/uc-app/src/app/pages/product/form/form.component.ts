@@ -6,7 +6,7 @@ import { Product } from '../product.model';
 import { ProductService } from '../product.service';
 
 @Component({
-  selector: 'uc-app-form',
+  selector: 'uc-app-form-product',
   templateUrl: './form.component.html',
   styleUrls: ['./form.component.scss'],
 })
@@ -16,6 +16,7 @@ export class ProductFormComponent implements OnInit {
   productExists: boolean = false;
   product: Product | undefined;
   categories: Category[] = [];
+  showComponent: boolean = false;
 
   constructor(private route: ActivatedRoute, private router: Router, private productService: ProductService, private categoryService: CategoryService) { }
 
@@ -37,6 +38,10 @@ export class ProductFormComponent implements OnInit {
 
       this.categories = this.categoryService.getCategories();
     })
+  }
+
+  triggerCategoryForm(): void {
+    this.showComponent = this.showComponent ? false : true;
   }
 
   onSubmit(): void {

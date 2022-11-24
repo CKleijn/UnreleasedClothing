@@ -4,7 +4,7 @@ import { Product } from '../product.model';
 import { ProductService } from '../product.service';
 
 @Component({
-  selector: 'uc-app-detail',
+  selector: 'uc-app-detail-product',
   templateUrl: './detail.component.html',
   styleUrls: ['./detail.component.scss'],
 })
