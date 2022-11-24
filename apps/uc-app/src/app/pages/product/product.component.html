@@ -12,7 +12,7 @@
         <div class="card">
             <img class="card-img-top" src="{{ product.picture }}" alt="{{ product.name }}">
             <div class="card-body">
-                <h6 class="card-title"><b>{{ product.brand }}</b></h6>
+                <h6 class="card-title"><b>{{ product.brand }}</b> - <a routerLink="../categories/{{ product.category._id }}">{{ product.category.title }} <img class="pb-1" src="{{ product.category.icon }}" width="15" /></a></h6>
                 <h5 class="card-title">{{ product.name }}</h5>
                 <p class="card-text">€{{ product.price }}</p>
                 <a routerLink="{{ product._id }}" class="btn">Details <i class="bi bi-arrow-right"></i></a>

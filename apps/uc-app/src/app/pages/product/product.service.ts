@@ -13,7 +13,15 @@ export class ProductService {
             price: 49.99,
             description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
             brand: 'Daily Paper',
-            isActive: true
+            category: {
+                _id: 1,
+                title: 'T-shirts',
+                description: 'This is a category for t-shirts.',
+                icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
+                createdAt: new Date()
+            },
+            isActive: true,
+            createdAt: new Date()
         },
         {
             _id: 2,
@@ -22,7 +30,15 @@ export class ProductService {
             price: 79.99,
             description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
             brand: 'Diesel',
-            isActive: false
+            category: {
+                _id: 1,
+                title: 'T-shirts',
+                description: 'This is a category for t-shirts.',
+                icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
+                createdAt: new Date()
+            },
+            isActive: false,
+            createdAt: new Date()
         },
         {
             _id: 3,
@@ -31,7 +47,15 @@ export class ProductService {
             price: 74.99,
             description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
             brand: 'Balr',
-            isActive: true
+            category: {
+                _id: 1,
+                title: 'T-shirts',
+                description: 'This is a category for t-shirts.',
+                icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
+                createdAt: new Date()
+            },
+            isActive: true,
+            createdAt: new Date()
         },
         {
             _id: 4,
@@ -40,7 +64,15 @@ export class ProductService {
             price: 24.99,
             description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
             brand: 'Calvin Klein',
-            isActive: true
+            category: {
+                _id: 1,
+                title: 'T-shirts',
+                description: 'This is a category for t-shirts.',
+                icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
+                createdAt: new Date()
+            },
+            isActive: true,
+            createdAt: new Date()
         },
         {
             _id: 5,
@@ -49,7 +81,15 @@ export class ProductService {
             price: 69.99,
             description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
             brand: 'In Gold We Trust',
-            isActive: false
+            category: {
+                _id: 1,
+                title: 'T-shirts',
+                description: 'This is a category for t-shirts.',
+                icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
+                createdAt: new Date()
+            },
+            isActive: false,
+            createdAt: new Date()
         },
     ];
 
@@ -61,6 +101,10 @@ export class ProductService {
 
     getProductById(productId: number): Product {
         return this.products.filter(product => product._id === productId)[0];
+    }
+
+    getProductsByCategoryId(categoryId: number): Product[] {
+        return this.products.filter(product => product.category._id === categoryId);
     }
 
     getNewIndex(): number {
