@@ -46,12 +46,12 @@ const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const app_controller_1 = __webpack_require__("./apps/uc-api/src/app/app.controller.ts");
 const app_service_1 = __webpack_require__("./apps/uc-api/src/app/app.service.ts");
-const user_module_1 = __webpack_require__("./apps/uc-api/src/app/user/user.module.ts");
+const product_module_1 = __webpack_require__("./apps/uc-api/src/app/product/product.module.ts");
 let AppModule = class AppModule {
 };
 AppModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), user_module_1.UserModule],
+        imports: [mongoose_1.MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), product_module_1.ProductModule],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })
@@ -82,216 +82,324 @@ exports.AppService = AppService;
 
 /***/ }),
 
-/***/ "./apps/uc-api/src/app/user/user.controller.ts":
+/***/ "./apps/uc-api/src/app/product/product.controller.ts":
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c;
+var _a, _b, _c, _d, _e, _f, _g, _h;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.UserController = void 0;
+exports.ProductController = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
-const user_service_1 = __webpack_require__("./apps/uc-api/src/app/user/user.service.ts");
-let UserController = class UserController {
-    constructor(userService) {
-        this.userService = userService;
+const product_dto_1 = __webpack_require__("./apps/uc-api/src/app/product/product.dto.ts");
+const product_service_1 = __webpack_require__("./apps/uc-api/src/app/product/product.service.ts");
+let ProductController = class ProductController {
+    constructor(productService) {
+        this.productService = productService;
     }
-    getUser(userId) {
+    getAllProducts() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.userService.getUserById(userId);
+            return yield this.productService.getAllProducts();
         });
     }
-    getUsers() {
+    getProductById(productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return this.userService.getUsers();
+            try {
+                return yield this.productService.getProductById(productId);
+            }
+            catch (error) {
+                this.generateProductExceptions(error);
+            }
         });
+    }
+    createProduct(productDto) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield this.productService.createProduct(productDto);
+            }
+            catch (error) {
+                this.generateProductExceptions(error);
+            }
+        });
+    }
+    updateProduct(productId, newProduct) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield this.productService.updateProduct(productId, newProduct);
+            }
+            catch (error) {
+                this.generateProductExceptions(error);
+            }
+        });
+    }
+    deleteProduct(productId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield this.productService.deleteProduct(productId);
+            }
+            catch (error) {
+                this.generateProductExceptions(error);
+            }
+        });
+    }
+    generateProductExceptions(error) {
+        if (error.name === 'CastError')
+            throw new common_1.HttpException('This ObjectId doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+        if (error.errors.name)
+            throw new common_1.HttpException(error.errors.name.message, common_1.HttpStatus.CONFLICT);
+        if (error.errors.picture)
+            throw new common_1.HttpException(error.errors.picture.message, common_1.HttpStatus.CONFLICT);
+        if (error.errors.price)
+            throw new common_1.HttpException(error.errors.price.message, common_1.HttpStatus.CONFLICT);
+        if (error.errors.description)
+            throw new common_1.HttpException(error.errors.description.message, common_1.HttpStatus.CONFLICT);
     }
 };
 tslib_1.__decorate([
-    (0, common_1.Get)('user/:userId'),
-    tslib_1.__param(0, (0, common_1.Param)('userId')),
-    tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", [String]),
-    tslib_1.__metadata("design:returntype", typeof (_b = typeof Promise !== "undefined" && Promise) === "function" ? _b : Object)
-], UserController.prototype, "getUser", null);
-tslib_1.__decorate([
-    (0, common_1.Get)('users'),
+    (0, common_1.Get)('products'),
     tslib_1.__metadata("design:type", Function),
     tslib_1.__metadata("design:paramtypes", []),
+    tslib_1.__metadata("design:returntype", typeof (_b = typeof Promise !== "undefined" && Promise) === "function" ? _b : Object)
+], ProductController.prototype, "getAllProducts", null);
+tslib_1.__decorate([
+    (0, common_1.Get)('product/:productId'),
+    tslib_1.__param(0, (0, common_1.Param)('productId')),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [String]),
     tslib_1.__metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
-], UserController.prototype, "getUsers", null);
-UserController = tslib_1.__decorate([
+], ProductController.prototype, "getProductById", null);
+tslib_1.__decorate([
+    (0, common_1.Post)('product'),
+    tslib_1.__param(0, (0, common_1.Body)()),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [typeof (_d = typeof product_dto_1.ProductDto !== "undefined" && product_dto_1.ProductDto) === "function" ? _d : Object]),
+    tslib_1.__metadata("design:returntype", typeof (_e = typeof Promise !== "undefined" && Promise) === "function" ? _e : Object)
+], ProductController.prototype, "createProduct", null);
+tslib_1.__decorate([
+    (0, common_1.Put)('product/:productId'),
+    tslib_1.__param(0, (0, common_1.Param)('productId')),
+    tslib_1.__param(1, (0, common_1.Body)()),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [String, typeof (_f = typeof Partial !== "undefined" && Partial) === "function" ? _f : Object]),
+    tslib_1.__metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
+], ProductController.prototype, "updateProduct", null);
+tslib_1.__decorate([
+    (0, common_1.Delete)('product/:productId'),
+    tslib_1.__param(0, (0, common_1.Param)('productId')),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [String]),
+    tslib_1.__metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
+], ProductController.prototype, "deleteProduct", null);
+ProductController = tslib_1.__decorate([
     (0, common_1.Controller)(),
-    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _a : Object])
-], UserController);
-exports.UserController = UserController;
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof product_service_1.ProductService !== "undefined" && product_service_1.ProductService) === "function" ? _a : Object])
+], ProductController);
+exports.ProductController = ProductController;
 
 
 /***/ }),
 
-/***/ "./apps/uc-api/src/app/user/user.module.ts":
+/***/ "./apps/uc-api/src/app/product/product.dto.ts":
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ProductDto = void 0;
+class ProductDto {
+}
+exports.ProductDto = ProductDto;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/product/product.module.ts":
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.UserModule = void 0;
+exports.ProductModule = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
-const user_controller_1 = __webpack_require__("./apps/uc-api/src/app/user/user.controller.ts");
-const user_schema_1 = __webpack_require__("./apps/uc-api/src/app/user/user.schema.ts");
-const user_service_1 = __webpack_require__("./apps/uc-api/src/app/user/user.service.ts");
-let UserModule = class UserModule {
+const product_controller_1 = __webpack_require__("./apps/uc-api/src/app/product/product.controller.ts");
+const product_repository_1 = __webpack_require__("./apps/uc-api/src/app/product/product.repository.ts");
+const product_schema_1 = __webpack_require__("./apps/uc-api/src/app/product/product.schema.ts");
+const product_service_1 = __webpack_require__("./apps/uc-api/src/app/product/product.service.ts");
+let ProductModule = class ProductModule {
 };
-UserModule = tslib_1.__decorate([
+ProductModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: user_schema_1.User.name, schema: user_schema_1.UserSchema }])],
-        controllers: [user_controller_1.UserController],
-        providers: [user_service_1.UserService],
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: product_schema_1.Product.name, schema: product_schema_1.ProductSchema }])],
+        controllers: [product_controller_1.ProductController],
+        providers: [product_service_1.ProductService, product_repository_1.ProductRepository],
     })
-], UserModule);
-exports.UserModule = UserModule;
+], ProductModule);
+exports.ProductModule = ProductModule;
 ;
 
 
 /***/ }),
 
-/***/ "./apps/uc-api/src/app/user/user.schema.ts":
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-var _a, _b;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.UserSchema = exports.User = void 0;
-const tslib_1 = __webpack_require__("tslib");
-const mongoose_1 = __webpack_require__("@nestjs/mongoose");
-let User = class User {
-};
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)({
-        required: [true, 'Firstname is required!'],
-    }),
-    tslib_1.__metadata("design:type", String)
-], User.prototype, "firstName", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)({
-        required: [true, 'Lastname is required!'],
-    }),
-    tslib_1.__metadata("design:type", String)
-], User.prototype, "lastName", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)({
-        required: [true, 'Date of birth is required!'],
-    }),
-    tslib_1.__metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
-], User.prototype, "dateOfBirth", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)({
-        validate: {
-            validator: function (v) {
-                return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
-            },
-            message: `Use a correct emailaddress like john.doe@gmail.com!`,
-        },
-        required: [true, 'Emailaddress is required!'],
-    }),
-    tslib_1.__metadata("design:type", String)
-], User.prototype, "emailAddress", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_b = typeof Buffer !== "undefined" && Buffer) === "function" ? _b : Object)
-], User.prototype, "picture", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)({
-        required: [true, 'Street is required!'],
-    }),
-    tslib_1.__metadata("design:type", String)
-], User.prototype, "street", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)({
-        required: [true, 'Housenumber is required!'],
-    }),
-    tslib_1.__metadata("design:type", Number)
-], User.prototype, "houseNumber", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", String)
-], User.prototype, "houseNumberAddition", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)({
-        required: [true, 'Postalcode is required!'],
-    }),
-    tslib_1.__metadata("design:type", String)
-], User.prototype, "postalCode", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)({
-        required: [true, 'City is required!'],
-    }),
-    tslib_1.__metadata("design:type", String)
-], User.prototype, "city", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)({
-        required: [true, 'Password is required!'],
-    }),
-    tslib_1.__metadata("design:type", String)
-], User.prototype, "password", void 0);
-User = tslib_1.__decorate([
-    (0, mongoose_1.Schema)()
-], User);
-exports.User = User;
-exports.UserSchema = mongoose_1.SchemaFactory.createForClass(User);
-
-
-/***/ }),
-
-/***/ "./apps/uc-api/src/app/user/user.service.ts":
+/***/ "./apps/uc-api/src/app/product/product.repository.ts":
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.UserService = void 0;
+exports.ProductRepository = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const mongoose_2 = __webpack_require__("mongoose");
-const user_schema_1 = __webpack_require__("./apps/uc-api/src/app/user/user.schema.ts");
-let UserService = class UserService {
-    constructor(userModel) {
-        this.userModel = userModel;
+const product_schema_1 = __webpack_require__("./apps/uc-api/src/app/product/product.schema.ts");
+let ProductRepository = class ProductRepository {
+    constructor(productModel) {
+        this.productModel = productModel;
     }
-    getUserById(userId) {
+    getAllProducts() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.userModel.findOne({ _id: userId });
+            return yield this.productModel.find();
         });
     }
-    getUsers() {
+    getProductById(productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.userModel.find();
+            return yield this.productModel.findById({ _id: productId });
         });
     }
-    createUser(user) {
+    createProduct(product) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.userModel.create(user);
+            return yield this.productModel.create(product);
         });
     }
-    updateUser(userId, user) {
+    updateProduct(productId, newProduct) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.userModel.findOneAndUpdate({ _id: userId }, user);
+            return yield this.productModel.findOneAndUpdate({ _id: productId }, newProduct, { new: true });
         });
     }
-    deleteUser(userId) {
+    deleteProduct(productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.userModel.deleteOne({ _id: userId });
+            return yield this.productModel.findOneAndDelete({ _id: productId });
         });
     }
 };
-UserService = tslib_1.__decorate([
+ProductRepository = tslib_1.__decorate([
     (0, common_1.Injectable)(),
-    tslib_1.__param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
+    tslib_1.__param(0, (0, mongoose_1.InjectModel)(product_schema_1.Product.name)),
     tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
-], UserService);
-exports.UserService = UserService;
+], ProductRepository);
+exports.ProductRepository = ProductRepository;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/product/product.schema.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ProductSchema = exports.Product = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+let Product = class Product {
+};
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Name is required!'],
+    }),
+    tslib_1.__metadata("design:type", String)
+], Product.prototype, "name", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Picture is required!'],
+    }),
+    tslib_1.__metadata("design:type", String)
+], Product.prototype, "picture", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Price is required!'],
+    }),
+    tslib_1.__metadata("design:type", Number)
+], Product.prototype, "price", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Description is required!'],
+    }),
+    tslib_1.__metadata("design:type", String)
+], Product.prototype, "description", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)(),
+    tslib_1.__metadata("design:type", Boolean)
+], Product.prototype, "isActive", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)(),
+    tslib_1.__metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+], Product.prototype, "createdAt", void 0);
+Product = tslib_1.__decorate([
+    (0, mongoose_1.Schema)()
+], Product);
+exports.Product = Product;
+exports.ProductSchema = mongoose_1.SchemaFactory.createForClass(Product);
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/product/product.service.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+// import { Injectable } from "@nestjs/common";
+// import { InjectModel } from "@nestjs/mongoose";
+// import { Model } from "mongoose";
+// import { User } from "./user.schema";
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ProductService = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const product_repository_1 = __webpack_require__("./apps/uc-api/src/app/product/product.repository.ts");
+let ProductService = class ProductService {
+    constructor(productRepository) {
+        this.productRepository = productRepository;
+    }
+    getAllProducts() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.productRepository.getAllProducts();
+        });
+    }
+    getProductById(productId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.productRepository.getProductById(productId);
+        });
+    }
+    createProduct(productDto) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.productRepository.createProduct({
+                name: productDto.name,
+                picture: productDto.picture,
+                price: productDto.price,
+                description: productDto.description,
+                isActive: true,
+                createdAt: new Date()
+            });
+        });
+    }
+    updateProduct(productId, newProduct) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.productRepository.updateProduct(productId, newProduct);
+        });
+    }
+    deleteProduct(productId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.productRepository.deleteProduct(productId);
+        });
+    }
+};
+ProductService = tslib_1.__decorate([
+    (0, common_1.Injectable)(),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof product_repository_1.ProductRepository !== "undefined" && product_repository_1.ProductRepository) === "function" ? _a : Object])
+], ProductService);
+exports.ProductService = ProductService;
 
 
 /***/ }),
@@ -363,15 +471,23 @@ var __webpack_exports__ = {};
 (() => {
 var exports = __webpack_exports__;
 
+/**
+ * This is not a production server yet!
+ * This is only a minimal backend to get started.
+ */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
 const core_1 = __webpack_require__("@nestjs/core");
 const app_module_1 = __webpack_require__("./apps/uc-api/src/app/app.module.ts");
 function bootstrap() {
     return tslib_1.__awaiter(this, void 0, void 0, function* () {
         const app = yield core_1.NestFactory.create(app_module_1.AppModule);
-        app.setGlobalPrefix('api');
-        yield app.listen(process.env.PORT || 3333);
+        const globalPrefix = 'api';
+        app.setGlobalPrefix(globalPrefix);
+        const port = process.env.PORT || 3333;
+        yield app.listen(port);
+        common_1.Logger.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
     });
 }
 bootstrap();
