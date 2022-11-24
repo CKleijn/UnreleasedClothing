@@ -46,12 +46,13 @@ const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const app_controller_1 = __webpack_require__("./apps/uc-api/src/app/app.controller.ts");
 const app_service_1 = __webpack_require__("./apps/uc-api/src/app/app.service.ts");
+const category_module_1 = __webpack_require__("./apps/uc-api/src/app/category/category.module.ts");
 const product_module_1 = __webpack_require__("./apps/uc-api/src/app/product/product.module.ts");
 let AppModule = class AppModule {
 };
 AppModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), product_module_1.ProductModule],
+        imports: [mongoose_1.MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), product_module_1.ProductModule, category_module_1.CategoryModule],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })
@@ -78,6 +79,310 @@ AppService = tslib_1.__decorate([
     (0, common_1.Injectable)()
 ], AppService);
 exports.AppService = AppService;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/category/category.controller.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a, _b, _c, _d, _e, _f, _g, _h;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CategoryController = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const category_dto_1 = __webpack_require__("./apps/uc-api/src/app/category/category.dto.ts");
+const category_service_1 = __webpack_require__("./apps/uc-api/src/app/category/category.service.ts");
+let CategoryController = class CategoryController {
+    constructor(categoryService) {
+        this.categoryService = categoryService;
+    }
+    getAllCategories() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.categoryService.getAllCategories();
+        });
+    }
+    getCategoryById(categoryId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield this.categoryService.getCategorieById(categoryId);
+            }
+            catch (error) {
+                this.generateCategoryExceptions(error);
+            }
+        });
+    }
+    createCategory(categoryDto) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield this.categoryService.createCategory(categoryDto);
+            }
+            catch (error) {
+                this.generateCategoryExceptions(error);
+            }
+        });
+    }
+    updateCategory(categoryId, newCategory) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield this.categoryService.updateCategory(categoryId, newCategory);
+            }
+            catch (error) {
+                this.generateCategoryExceptions(error);
+            }
+        });
+    }
+    deleteCategory(categoryId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield this.categoryService.deleteCategory(categoryId);
+            }
+            catch (error) {
+                this.generateCategoryExceptions(error);
+            }
+        });
+    }
+    generateCategoryExceptions(error) {
+        if (error.name === 'CastError')
+            throw new common_1.HttpException('This ObjectId doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+        if (error.errors.title)
+            throw new common_1.HttpException(error.errors.title.message, common_1.HttpStatus.CONFLICT);
+        if (error.errors.description)
+            throw new common_1.HttpException(error.errors.description.message, common_1.HttpStatus.CONFLICT);
+        if (error.errors.icon)
+            throw new common_1.HttpException(error.errors.icon.message, common_1.HttpStatus.CONFLICT);
+    }
+};
+tslib_1.__decorate([
+    (0, common_1.Get)('categories'),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", []),
+    tslib_1.__metadata("design:returntype", typeof (_b = typeof Promise !== "undefined" && Promise) === "function" ? _b : Object)
+], CategoryController.prototype, "getAllCategories", null);
+tslib_1.__decorate([
+    (0, common_1.Get)('category/:categoryId'),
+    tslib_1.__param(0, (0, common_1.Param)('categoryId')),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [String]),
+    tslib_1.__metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
+], CategoryController.prototype, "getCategoryById", null);
+tslib_1.__decorate([
+    (0, common_1.Post)('category'),
+    tslib_1.__param(0, (0, common_1.Body)()),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [typeof (_d = typeof category_dto_1.CategoryDto !== "undefined" && category_dto_1.CategoryDto) === "function" ? _d : Object]),
+    tslib_1.__metadata("design:returntype", typeof (_e = typeof Promise !== "undefined" && Promise) === "function" ? _e : Object)
+], CategoryController.prototype, "createCategory", null);
+tslib_1.__decorate([
+    (0, common_1.Put)('category/:categoryId'),
+    tslib_1.__param(0, (0, common_1.Param)('categoryId')),
+    tslib_1.__param(1, (0, common_1.Body)()),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [String, typeof (_f = typeof Partial !== "undefined" && Partial) === "function" ? _f : Object]),
+    tslib_1.__metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
+], CategoryController.prototype, "updateCategory", null);
+tslib_1.__decorate([
+    (0, common_1.Delete)('category/:categoryId'),
+    tslib_1.__param(0, (0, common_1.Param)('categoryId')),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [String]),
+    tslib_1.__metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
+], CategoryController.prototype, "deleteCategory", null);
+CategoryController = tslib_1.__decorate([
+    (0, common_1.Controller)(),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof category_service_1.CategoryService !== "undefined" && category_service_1.CategoryService) === "function" ? _a : Object])
+], CategoryController);
+exports.CategoryController = CategoryController;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/category/category.dto.ts":
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CategoryDto = void 0;
+class CategoryDto {
+}
+exports.CategoryDto = CategoryDto;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/category/category.module.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CategoryModule = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const category_controller_1 = __webpack_require__("./apps/uc-api/src/app/category/category.controller.ts");
+const category_repository_1 = __webpack_require__("./apps/uc-api/src/app/category/category.repository.ts");
+const category_schema_1 = __webpack_require__("./apps/uc-api/src/app/category/category.schema.ts");
+const category_service_1 = __webpack_require__("./apps/uc-api/src/app/category/category.service.ts");
+let CategoryModule = class CategoryModule {
+};
+CategoryModule = tslib_1.__decorate([
+    (0, common_1.Module)({
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: category_schema_1.Category.name, schema: category_schema_1.CategorySchema }])],
+        controllers: [category_controller_1.CategoryController],
+        providers: [category_service_1.CategoryService, category_repository_1.CategoryRepository],
+    })
+], CategoryModule);
+exports.CategoryModule = CategoryModule;
+;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/category/category.repository.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CategoryRepository = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const mongoose_2 = __webpack_require__("mongoose");
+const category_schema_1 = __webpack_require__("./apps/uc-api/src/app/category/category.schema.ts");
+let CategoryRepository = class CategoryRepository {
+    constructor(categoryModel) {
+        this.categoryModel = categoryModel;
+    }
+    getAllCategories() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.categoryModel.find();
+        });
+    }
+    getCategoryById(categoryId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.categoryModel.findById({ _id: categoryId });
+        });
+    }
+    createCategory(category) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.categoryModel.create(category);
+        });
+    }
+    updateCategory(categoryId, newCategory) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.categoryModel.findOneAndUpdate({ _id: categoryId }, newCategory, { new: true });
+        });
+    }
+    deleteCategory(categoryId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.categoryModel.findOneAndDelete({ _id: categoryId });
+        });
+    }
+};
+CategoryRepository = tslib_1.__decorate([
+    (0, common_1.Injectable)(),
+    tslib_1.__param(0, (0, mongoose_1.InjectModel)(category_schema_1.Category.name)),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
+], CategoryRepository);
+exports.CategoryRepository = CategoryRepository;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/category/category.schema.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CategorySchema = exports.Category = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+let Category = class Category {
+};
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Title is required!'],
+    }),
+    tslib_1.__metadata("design:type", String)
+], Category.prototype, "title", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Description is required!'],
+    }),
+    tslib_1.__metadata("design:type", String)
+], Category.prototype, "description", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Icon is required!'],
+    }),
+    tslib_1.__metadata("design:type", String)
+], Category.prototype, "icon", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)(),
+    tslib_1.__metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+], Category.prototype, "createdAt", void 0);
+Category = tslib_1.__decorate([
+    (0, mongoose_1.Schema)()
+], Category);
+exports.Category = Category;
+exports.CategorySchema = mongoose_1.SchemaFactory.createForClass(Category);
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/category/category.service.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CategoryService = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const category_repository_1 = __webpack_require__("./apps/uc-api/src/app/category/category.repository.ts");
+let CategoryService = class CategoryService {
+    constructor(categoryRepository) {
+        this.categoryRepository = categoryRepository;
+    }
+    getAllCategories() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.categoryRepository.getAllCategories();
+        });
+    }
+    getCategorieById(categoryId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.categoryRepository.getCategoryById(categoryId);
+        });
+    }
+    createCategory(categoryDto) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.categoryRepository.createCategory({
+                title: categoryDto.title,
+                description: categoryDto.description,
+                icon: categoryDto.icon,
+                createdAt: new Date()
+            });
+        });
+    }
+    updateCategory(categoryId, newCategory) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.categoryRepository.updateCategory(categoryId, newCategory);
+        });
+    }
+    deleteCategory(categoryId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.categoryRepository.deleteCategory(categoryId);
+        });
+    }
+};
+CategoryService = tslib_1.__decorate([
+    (0, common_1.Injectable)(),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof category_repository_1.CategoryRepository !== "undefined" && category_repository_1.CategoryRepository) === "function" ? _a : Object])
+], CategoryService);
+exports.CategoryService = CategoryService;
 
 
 /***/ }),
