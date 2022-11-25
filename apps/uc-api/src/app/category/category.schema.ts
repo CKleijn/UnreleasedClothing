@@ -1,7 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { ObjectId } from 'mongoose';
 
 @Schema()
 export class Category {
+    @Prop()
+    userId: ObjectId;
+
     @Prop({
         required: [true, 'Title is required!'],
     })

@@ -1,34 +1,51 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
 import { CategoryDto } from "./category.dto";
-import { CategoryRepository } from "./category.repository";
 import { Category } from "./category.schema";
 
 @Injectable()
 export class CategoryService {
-    constructor(private categoryRepository: CategoryRepository) {}
+    constructor(@InjectModel(Category.name) private categoryModel: Model<Category>) {}
 
     async getAllCategories(): Promise<Category[]> {
-        return await this.categoryRepository.getAllCategories();
+        return await this.categoryModel.find();
     }
 
-    async getCategorieById(categoryId: string): Promise<Category> {
-        return await this.categoryRepository.getCategoryById(categoryId);
+    async getCategoryById(categoryId: string): Promise<Category> {
+        const category = await this.categoryModel.findById({ _id: categoryId });
+
+        if(!category)
+            throw new HttpException('This category doesnt exists!', HttpStatus.NOT_FOUND)
+
+        return category;
     }
 
-    async createCategory(categoryDto: CategoryDto): Promise<Category> {
-        return await this.categoryRepository.createCategory({
+    async createCategory(user: any, categoryDto: CategoryDto): Promise<Category> {
+        return await this.categoryModel.create({
+            userId: user._id,
             title: categoryDto.title,
             description: categoryDto.description,
             icon: categoryDto.icon,
             createdAt: new Date()
-        })
+        });
     }
 
-    async updateCategory(categoryId: string, newCategory: Partial<CategoryDto>): Promise<Category> {
-        return await this.categoryRepository.updateCategory(categoryId, newCategory);
+    async updateCategory(user: any, categoryId: string, newCategory: Partial<CategoryDto>): Promise<Category> {
+        const category = await this.getCategoryById(categoryId);
+
+        if(user._id.equals(category.userId)) 
+            return await this.categoryModel.findOneAndUpdate({ _id: categoryId }, newCategory, { new: true });
+
+        throw new UnauthorizedException({ message: "This user don't have access to this method!" });
     }
 
-    async deleteCategory(categoryId: string): Promise<Category> {
-        return await this.categoryRepository.deleteCategory(categoryId);
+    async deleteCategory(user: any, categoryId: string): Promise<Category> {
+        const category = await this.getCategoryById(categoryId);
+
+        if(user._id.equals(category.userId)) 
+            return await this.categoryModel.findOneAndDelete({ _id: categoryId });
+
+        throw new UnauthorizedException({ message: "This user don't have access to this method!" });
     }
 }
