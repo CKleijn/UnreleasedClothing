@@ -517,10 +517,6 @@ const mongoose_2 = __webpack_require__("mongoose");
 let Category = class Category {
 };
 tslib_1.__decorate([
-    (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_a = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _a : Object)
-], Category.prototype, "userId", void 0);
-tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Title is required!'],
     }),
@@ -540,8 +536,12 @@ tslib_1.__decorate([
 ], Category.prototype, "icon", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
+    tslib_1.__metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
 ], Category.prototype, "createdAt", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)(),
+    tslib_1.__metadata("design:type", typeof (_b = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _b : Object)
+], Category.prototype, "createdBy", void 0);
 Category = tslib_1.__decorate([
     (0, mongoose_1.Schema)()
 ], Category);
@@ -583,18 +583,18 @@ let CategoryService = class CategoryService {
     createCategory(user, categoryDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             return yield this.categoryModel.create({
-                userId: user._id,
                 title: categoryDto.title,
                 description: categoryDto.description,
                 icon: categoryDto.icon,
-                createdAt: new Date()
+                createdAt: new Date(),
+                createdBy: user._id
             });
         });
     }
     updateCategory(user, categoryId, newCategory) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const category = yield this.getCategoryById(categoryId);
-            if (user._id.equals(category.userId))
+            if (user._id.equals(category.createdBy))
                 return yield this.categoryModel.findOneAndUpdate({ _id: categoryId }, newCategory, { new: true });
             throw new common_1.UnauthorizedException({ message: "This user don't have access to this method!" });
         });
@@ -602,7 +602,7 @@ let CategoryService = class CategoryService {
     deleteCategory(user, categoryId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const category = yield this.getCategoryById(categoryId);
-            if (user._id.equals(category.userId))
+            if (user._id.equals(category.createdBy))
                 return yield this.categoryModel.findOneAndDelete({ _id: categoryId });
             throw new common_1.UnauthorizedException({ message: "This user don't have access to this method!" });
         });
@@ -627,6 +627,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProductController = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
+const passport_1 = __webpack_require__("@nestjs/passport");
+const role_enum_1 = __webpack_require__("./apps/uc-api/src/app/auth/roles/role.enum.ts");
+const roles_decorator_1 = __webpack_require__("./apps/uc-api/src/app/auth/roles/roles.decorator.ts");
+const roles_guard_1 = __webpack_require__("./apps/uc-api/src/app/auth/roles/roles.guard.ts");
 const product_dto_1 = __webpack_require__("./apps/uc-api/src/app/product/product.dto.ts");
 const product_service_1 = __webpack_require__("./apps/uc-api/src/app/product/product.service.ts");
 let ProductController = class ProductController {
@@ -648,30 +652,44 @@ let ProductController = class ProductController {
             }
         });
     }
-    createProduct(productDto) {
+    createProduct(req, productDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                return yield this.productService.createProduct(productDto);
+                const createdProduct = yield this.productService.createProduct(req.user, productDto);
+                return {
+                    status: 201,
+                    message: 'Product has been successfully created!',
+                    product: createdProduct
+                };
             }
             catch (error) {
                 this.generateProductExceptions(error);
             }
         });
     }
-    updateProduct(productId, newProduct) {
+    updateProduct(req, productId, newProduct) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                return yield this.productService.updateProduct(productId, newProduct);
+                const updatedProduct = yield this.productService.updateProduct(req.user, productId, newProduct);
+                return {
+                    status: 200,
+                    message: 'Product has been successfully updated!',
+                    product: updatedProduct
+                };
             }
             catch (error) {
                 this.generateProductExceptions(error);
             }
         });
     }
-    deleteProduct(productId) {
+    deleteProduct(req, productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                return yield this.productService.deleteProduct(productId);
+                yield this.productService.deleteProduct(req.user, productId);
+                return {
+                    status: 200,
+                    message: 'Product has been successfully deleted!'
+                };
             }
             catch (error) {
                 this.generateProductExceptions(error);
@@ -679,15 +697,20 @@ let ProductController = class ProductController {
         });
     }
     generateProductExceptions(error) {
-        if (error.name === 'CastError')
+        var _a, _b, _c, _d, _e, _f;
+        if (error === null || error === void 0 ? void 0 : error.response)
+            throw new common_1.HttpException('This product doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+        if ((_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.message)
+            throw new common_1.UnauthorizedException((_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.message);
+        if ((error === null || error === void 0 ? void 0 : error.name) === 'CastError')
             throw new common_1.HttpException('This ObjectId doesnt exists!', common_1.HttpStatus.NOT_FOUND);
-        if (error.errors.name)
+        if ((_c = error === null || error === void 0 ? void 0 : error.errors) === null || _c === void 0 ? void 0 : _c.name)
             throw new common_1.HttpException(error.errors.name.message, common_1.HttpStatus.CONFLICT);
-        if (error.errors.picture)
+        if ((_d = error === null || error === void 0 ? void 0 : error.errors) === null || _d === void 0 ? void 0 : _d.picture)
             throw new common_1.HttpException(error.errors.picture.message, common_1.HttpStatus.CONFLICT);
-        if (error.errors.price)
+        if ((_e = error === null || error === void 0 ? void 0 : error.errors) === null || _e === void 0 ? void 0 : _e.price)
             throw new common_1.HttpException(error.errors.price.message, common_1.HttpStatus.CONFLICT);
-        if (error.errors.description)
+        if ((_f = error === null || error === void 0 ? void 0 : error.errors) === null || _f === void 0 ? void 0 : _f.description)
             throw new common_1.HttpException(error.errors.description.message, common_1.HttpStatus.CONFLICT);
     }
 };
@@ -705,25 +728,34 @@ tslib_1.__decorate([
     tslib_1.__metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
 ], ProductController.prototype, "getProductById", null);
 tslib_1.__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.BRAND),
     (0, common_1.Post)('product'),
-    tslib_1.__param(0, (0, common_1.Body)()),
+    tslib_1.__param(0, (0, common_1.Request)()),
+    tslib_1.__param(1, (0, common_1.Body)()),
     tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", [typeof (_d = typeof product_dto_1.ProductDto !== "undefined" && product_dto_1.ProductDto) === "function" ? _d : Object]),
+    tslib_1.__metadata("design:paramtypes", [Object, typeof (_d = typeof product_dto_1.ProductDto !== "undefined" && product_dto_1.ProductDto) === "function" ? _d : Object]),
     tslib_1.__metadata("design:returntype", typeof (_e = typeof Promise !== "undefined" && Promise) === "function" ? _e : Object)
 ], ProductController.prototype, "createProduct", null);
 tslib_1.__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.BRAND),
     (0, common_1.Put)('product/:productId'),
-    tslib_1.__param(0, (0, common_1.Param)('productId')),
-    tslib_1.__param(1, (0, common_1.Body)()),
+    tslib_1.__param(0, (0, common_1.Request)()),
+    tslib_1.__param(1, (0, common_1.Param)('productId')),
+    tslib_1.__param(2, (0, common_1.Body)()),
     tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", [String, typeof (_f = typeof Partial !== "undefined" && Partial) === "function" ? _f : Object]),
+    tslib_1.__metadata("design:paramtypes", [Object, String, typeof (_f = typeof Partial !== "undefined" && Partial) === "function" ? _f : Object]),
     tslib_1.__metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
 ], ProductController.prototype, "updateProduct", null);
 tslib_1.__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.BRAND),
     (0, common_1.Delete)('product/:productId'),
-    tslib_1.__param(0, (0, common_1.Param)('productId')),
+    tslib_1.__param(0, (0, common_1.Request)()),
+    tslib_1.__param(1, (0, common_1.Param)('productId')),
     tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", [String]),
+    tslib_1.__metadata("design:paramtypes", [Object, String]),
     tslib_1.__metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
 ], ProductController.prototype, "deleteProduct", null);
 ProductController = tslib_1.__decorate([
@@ -758,7 +790,6 @@ const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const product_controller_1 = __webpack_require__("./apps/uc-api/src/app/product/product.controller.ts");
-const product_repository_1 = __webpack_require__("./apps/uc-api/src/app/product/product.repository.ts");
 const product_schema_1 = __webpack_require__("./apps/uc-api/src/app/product/product.schema.ts");
 const product_service_1 = __webpack_require__("./apps/uc-api/src/app/product/product.service.ts");
 let ProductModule = class ProductModule {
@@ -767,7 +798,7 @@ ProductModule = tslib_1.__decorate([
     (0, common_1.Module)({
         imports: [mongoose_1.MongooseModule.forFeature([{ name: product_schema_1.Product.name, schema: product_schema_1.ProductSchema }])],
         controllers: [product_controller_1.ProductController],
-        providers: [product_service_1.ProductService, product_repository_1.ProductRepository],
+        providers: [product_service_1.ProductService],
     })
 ], ProductModule);
 exports.ProductModule = ProductModule;
@@ -776,67 +807,16 @@ exports.ProductModule = ProductModule;
 
 /***/ }),
 
-/***/ "./apps/uc-api/src/app/product/product.repository.ts":
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-var _a;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ProductRepository = void 0;
-const tslib_1 = __webpack_require__("tslib");
-const common_1 = __webpack_require__("@nestjs/common");
-const mongoose_1 = __webpack_require__("@nestjs/mongoose");
-const mongoose_2 = __webpack_require__("mongoose");
-const product_schema_1 = __webpack_require__("./apps/uc-api/src/app/product/product.schema.ts");
-let ProductRepository = class ProductRepository {
-    constructor(productModel) {
-        this.productModel = productModel;
-    }
-    getAllProducts() {
-        return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.productModel.find();
-        });
-    }
-    getProductById(productId) {
-        return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.productModel.findById({ _id: productId });
-        });
-    }
-    createProduct(product) {
-        return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.productModel.create(product);
-        });
-    }
-    updateProduct(productId, newProduct) {
-        return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.productModel.findOneAndUpdate({ _id: productId }, newProduct, { new: true });
-        });
-    }
-    deleteProduct(productId) {
-        return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.productModel.findOneAndDelete({ _id: productId });
-        });
-    }
-};
-ProductRepository = tslib_1.__decorate([
-    (0, common_1.Injectable)(),
-    tslib_1.__param(0, (0, mongoose_1.InjectModel)(product_schema_1.Product.name)),
-    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
-], ProductRepository);
-exports.ProductRepository = ProductRepository;
-
-
-/***/ }),
-
 /***/ "./apps/uc-api/src/app/product/product.schema.ts":
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a;
+var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProductSchema = exports.Product = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const mongoose_2 = __webpack_require__("mongoose");
 let Product = class Product {
 };
 tslib_1.__decorate([
@@ -871,6 +851,10 @@ tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
     tslib_1.__metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
 ], Product.prototype, "createdAt", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)(),
+    tslib_1.__metadata("design:type", typeof (_b = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _b : Object)
+], Product.prototype, "createdBy", void 0);
 Product = tslib_1.__decorate([
     (0, mongoose_1.Schema)()
 ], Product);
@@ -884,56 +868,65 @@ exports.ProductSchema = mongoose_1.SchemaFactory.createForClass(Product);
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-// import { Injectable } from "@nestjs/common";
-// import { InjectModel } from "@nestjs/mongoose";
-// import { Model } from "mongoose";
-// import { User } from "./user.schema";
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProductService = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
-const product_repository_1 = __webpack_require__("./apps/uc-api/src/app/product/product.repository.ts");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const mongoose_2 = __webpack_require__("mongoose");
+const product_schema_1 = __webpack_require__("./apps/uc-api/src/app/product/product.schema.ts");
 let ProductService = class ProductService {
-    constructor(productRepository) {
-        this.productRepository = productRepository;
+    constructor(productModel) {
+        this.productModel = productModel;
     }
     getAllProducts() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.productRepository.getAllProducts();
+            return yield this.productModel.find();
         });
     }
     getProductById(productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.productRepository.getProductById(productId);
+            const product = yield this.productModel.findById({ _id: productId });
+            if (!product)
+                throw new common_1.HttpException('This product doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+            return product;
         });
     }
-    createProduct(productDto) {
+    createProduct(user, productDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.productRepository.createProduct({
+            return yield this.productModel.create({
                 name: productDto.name,
                 picture: productDto.picture,
                 price: productDto.price,
                 description: productDto.description,
                 isActive: true,
-                createdAt: new Date()
+                createdAt: new Date(),
+                createdBy: user._id
             });
         });
     }
-    updateProduct(productId, newProduct) {
+    updateProduct(user, productId, newProduct) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.productRepository.updateProduct(productId, newProduct);
+            const product = yield this.getProductById(productId);
+            if (user._id.equals(product.createdBy))
+                return yield this.productModel.findOneAndUpdate({ _id: productId }, newProduct, { new: true });
+            throw new common_1.UnauthorizedException({ message: "This user don't have access to this method!" });
         });
     }
-    deleteProduct(productId) {
+    deleteProduct(user, productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.productRepository.deleteProduct(productId);
+            const product = yield this.getProductById(productId);
+            if (user._id.equals(product.createdBy))
+                return yield this.productModel.findOneAndDelete({ _id: productId });
+            throw new common_1.UnauthorizedException({ message: "This user don't have access to this method!" });
         });
     }
 };
 ProductService = tslib_1.__decorate([
     (0, common_1.Injectable)(),
-    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof product_repository_1.ProductRepository !== "undefined" && product_repository_1.ProductRepository) === "function" ? _a : Object])
+    tslib_1.__param(0, (0, mongoose_1.InjectModel)(product_schema_1.Product.name)),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
 ], ProductService);
 exports.ProductService = ProductService;
 

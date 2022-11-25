@@ -3,9 +3,6 @@ import { ObjectId } from 'mongoose';
 
 @Schema()
 export class Category {
-    @Prop()
-    userId: ObjectId;
-
     @Prop({
         required: [true, 'Title is required!'],
     })
@@ -23,6 +20,9 @@ export class Category {
 
     @Prop()
     createdAt: Date;
+
+    @Prop()
+    createdBy: ObjectId;
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category);
