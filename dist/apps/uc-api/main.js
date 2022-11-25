@@ -46,13 +46,15 @@ const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const app_controller_1 = __webpack_require__("./apps/uc-api/src/app/app.controller.ts");
 const app_service_1 = __webpack_require__("./apps/uc-api/src/app/app.service.ts");
+const auth_module_1 = __webpack_require__("./apps/uc-api/src/app/auth/auth.module.ts");
 const category_module_1 = __webpack_require__("./apps/uc-api/src/app/category/category.module.ts");
 const product_module_1 = __webpack_require__("./apps/uc-api/src/app/product/product.module.ts");
+const user_module_1 = __webpack_require__("./apps/uc-api/src/app/user/user.module.ts");
 let AppModule = class AppModule {
 };
 AppModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), product_module_1.ProductModule, category_module_1.CategoryModule],
+        imports: [mongoose_1.MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), auth_module_1.AuthModule, user_module_1.UserModule, product_module_1.ProductModule, category_module_1.CategoryModule],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })
@@ -79,6 +81,183 @@ AppService = tslib_1.__decorate([
     (0, common_1.Injectable)()
 ], AppService);
 exports.AppService = AppService;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/auth/auth.module.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuthModule = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const jwt_1 = __webpack_require__("@nestjs/jwt");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const passport_1 = __webpack_require__("@nestjs/passport");
+const user_module_1 = __webpack_require__("./apps/uc-api/src/app/user/user.module.ts");
+const user_schema_1 = __webpack_require__("./apps/uc-api/src/app/user/user.schema.ts");
+const auth_service_1 = __webpack_require__("./apps/uc-api/src/app/auth/auth.service.ts");
+const jwt_strategy_1 = __webpack_require__("./apps/uc-api/src/app/auth/strategies/jwt.strategy.ts");
+const local_strategy_1 = __webpack_require__("./apps/uc-api/src/app/auth/strategies/local.strategy.ts");
+let AuthModule = class AuthModule {
+};
+AuthModule = tslib_1.__decorate([
+    (0, common_1.Module)({
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: user_schema_1.User.name, schema: user_schema_1.UserSchema }]), (0, common_1.forwardRef)(() => user_module_1.UserModule), passport_1.PassportModule, jwt_1.JwtModule.register({
+                secret: 'S1e2C3r4E5t',
+                signOptions: { expiresIn: '1h' },
+            }),
+        ],
+        providers: [auth_service_1.AuthService, local_strategy_1.LocalStrategy, jwt_strategy_1.JwtStrategy],
+        exports: [auth_service_1.AuthService, local_strategy_1.LocalStrategy, jwt_strategy_1.JwtStrategy]
+    })
+], AuthModule);
+exports.AuthModule = AuthModule;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/auth/auth.service.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a, _b;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuthService = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const jwt_1 = __webpack_require__("@nestjs/jwt");
+const user_service_1 = __webpack_require__("./apps/uc-api/src/app/user/user.service.ts");
+const bcrypt = __webpack_require__("bcrypt");
+let AuthService = class AuthService {
+    constructor(userService, jwtService) {
+        this.userService = userService;
+        this.jwtService = jwtService;
+    }
+    login(loginUserDto) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.jwtService.signAsync({ name: loginUserDto.username });
+        });
+    }
+    register(registerUserDto) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const user = yield this.userService.getUserByEmailAddress(registerUserDto.emailAddress);
+            if (!user) {
+                if (registerUserDto.password !== undefined) {
+                    registerUserDto.password = yield bcrypt.hash(registerUserDto.password, 10);
+                    return yield this.userService.registerUser(registerUserDto);
+                }
+                else {
+                    throw new common_1.HttpException('Password is required!', common_1.HttpStatus.CONFLICT);
+                }
+            }
+            else {
+                throw new common_1.HttpException('This user already exists!', common_1.HttpStatus.CONFLICT);
+            }
+        });
+    }
+    validate(emailAddress, password) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const user = yield this.userService.getUserByEmailAddress(emailAddress);
+            if (user) {
+                const passwordValid = yield bcrypt.compare(password, user.password);
+                if (user && passwordValid)
+                    return user;
+            }
+            return null;
+        });
+    }
+};
+AuthService = tslib_1.__decorate([
+    (0, common_1.Injectable)(),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _a : Object, typeof (_b = typeof jwt_1.JwtService !== "undefined" && jwt_1.JwtService) === "function" ? _b : Object])
+], AuthService);
+exports.AuthService = AuthService;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/auth/roles/role.enum.ts":
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Role = void 0;
+var Role;
+(function (Role) {
+    Role["CUSTOMER"] = "customer";
+    Role["BRAND"] = "brand";
+})(Role = exports.Role || (exports.Role = {}));
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/auth/strategies/jwt.strategy.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.JwtStrategy = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const passport_1 = __webpack_require__("@nestjs/passport");
+const passport_jwt_1 = __webpack_require__("passport-jwt");
+let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
+    constructor() {
+        super({
+            jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
+            ignoreExpiration: false,
+            secretOrKey: 'S1e2C3r4E5t',
+        });
+    }
+    validate(user) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return { name: user.name, role: user.role };
+        });
+    }
+};
+JwtStrategy = tslib_1.__decorate([
+    (0, common_1.Injectable)(),
+    tslib_1.__metadata("design:paramtypes", [])
+], JwtStrategy);
+exports.JwtStrategy = JwtStrategy;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/auth/strategies/local.strategy.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LocalStrategy = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const passport_local_1 = __webpack_require__("passport-local");
+const passport_1 = __webpack_require__("@nestjs/passport");
+const common_1 = __webpack_require__("@nestjs/common");
+const auth_service_1 = __webpack_require__("./apps/uc-api/src/app/auth/auth.service.ts");
+let LocalStrategy = class LocalStrategy extends (0, passport_1.PassportStrategy)(passport_local_1.Strategy) {
+    constructor(authService) {
+        super();
+        this.authService = authService;
+    }
+    validate(username, password) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const user = yield this.authService.validate(username, password);
+            if (!user)
+                throw new common_1.UnauthorizedException({ message: "This user doesn't exists or your password is wrong!" });
+            return user;
+        });
+    }
+};
+LocalStrategy = tslib_1.__decorate([
+    (0, common_1.Injectable)(),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof auth_service_1.AuthService !== "undefined" && auth_service_1.AuthService) === "function" ? _a : Object])
+], LocalStrategy);
+exports.LocalStrategy = LocalStrategy;
 
 
 /***/ }),
@@ -709,6 +888,276 @@ exports.ProductService = ProductService;
 
 /***/ }),
 
+/***/ "./apps/uc-api/src/app/user/dtos/loginUser.dto.ts":
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LoginUserDto = void 0;
+class LoginUserDto {
+    constructor(username, password) {
+        this.username = username;
+        this.password = password;
+    }
+}
+exports.LoginUserDto = LoginUserDto;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/user/dtos/registerUser.dto.ts":
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RegisterUserDto = void 0;
+class RegisterUserDto {
+    constructor(name, emailAddress, picture, role, password) {
+        this.name = name;
+        this.emailAddress = emailAddress;
+        this.picture;
+        this.role = role;
+        this.password = password;
+    }
+}
+exports.RegisterUserDto = RegisterUserDto;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/user/user.controller.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UserController = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const passport_1 = __webpack_require__("@nestjs/passport");
+const auth_service_1 = __webpack_require__("./apps/uc-api/src/app/auth/auth.service.ts");
+const loginUser_dto_1 = __webpack_require__("./apps/uc-api/src/app/user/dtos/loginUser.dto.ts");
+const registerUser_dto_1 = __webpack_require__("./apps/uc-api/src/app/user/dtos/registerUser.dto.ts");
+let UserController = class UserController {
+    // @UseGuards(AuthGuard('jwt'), RolesGuard)
+    // @Roles(Role.BRAND)
+    constructor(authService) {
+        this.authService = authService;
+    }
+    login(loginUserDto) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                const token = yield this.authService.login(loginUserDto);
+                return {
+                    'message': 'You are successfully logged in!',
+                    'jwt_token': token
+                };
+            }
+            catch (error) {
+                this.generateUserExceptions(error);
+            }
+        });
+    }
+    register(registerUserDto) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield this.authService.register(registerUserDto);
+            }
+            catch (error) {
+                this.generateUserExceptions(error);
+            }
+        });
+    }
+    generateUserExceptions(error) {
+        var _a, _b, _c, _d, _e;
+        if ((error === null || error === void 0 ? void 0 : error.response) === `This user doesn't exists or your password is wrong!`)
+            throw new common_1.UnauthorizedException(error.response);
+        if ((error === null || error === void 0 ? void 0 : error.response) === 'This user already exists!')
+            throw new common_1.HttpException(error.response, common_1.HttpStatus.CONFLICT);
+        if ((error === null || error === void 0 ? void 0 : error.response) === 'Password is required!')
+            throw new common_1.HttpException(error.response, common_1.HttpStatus.CONFLICT);
+        if ((error === null || error === void 0 ? void 0 : error.name) === 'CastError')
+            throw new common_1.HttpException('This ObjectId doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+        if ((_a = error === null || error === void 0 ? void 0 : error.errors) === null || _a === void 0 ? void 0 : _a.name)
+            throw new common_1.HttpException(error.errors.name.message, common_1.HttpStatus.CONFLICT);
+        if ((_b = error === null || error === void 0 ? void 0 : error.errors) === null || _b === void 0 ? void 0 : _b.emailAddress)
+            throw new common_1.HttpException(error.errors.emailAddress.message, common_1.HttpStatus.CONFLICT);
+        if ((_c = error === null || error === void 0 ? void 0 : error.errors) === null || _c === void 0 ? void 0 : _c.picture)
+            throw new common_1.HttpException(error.errors.picture.message, common_1.HttpStatus.CONFLICT);
+        if ((_d = error === null || error === void 0 ? void 0 : error.errors) === null || _d === void 0 ? void 0 : _d.role)
+            throw new common_1.HttpException(error.errors.role.message, common_1.HttpStatus.CONFLICT);
+        if ((_e = error === null || error === void 0 ? void 0 : error.errors) === null || _e === void 0 ? void 0 : _e.password)
+            throw new common_1.HttpException(error.errors.password.message, common_1.HttpStatus.CONFLICT);
+    }
+};
+tslib_1.__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('local')),
+    (0, common_1.Post)('login'),
+    tslib_1.__param(0, (0, common_1.Body)()),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [typeof (_b = typeof loginUser_dto_1.LoginUserDto !== "undefined" && loginUser_dto_1.LoginUserDto) === "function" ? _b : Object]),
+    tslib_1.__metadata("design:returntype", Promise)
+], UserController.prototype, "login", null);
+tslib_1.__decorate([
+    (0, common_1.Post)('register'),
+    tslib_1.__param(0, (0, common_1.Body)()),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [typeof (_c = typeof registerUser_dto_1.RegisterUserDto !== "undefined" && registerUser_dto_1.RegisterUserDto) === "function" ? _c : Object]),
+    tslib_1.__metadata("design:returntype", Promise)
+], UserController.prototype, "register", null);
+UserController = tslib_1.__decorate([
+    (0, common_1.Controller)('user'),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof auth_service_1.AuthService !== "undefined" && auth_service_1.AuthService) === "function" ? _a : Object])
+], UserController);
+exports.UserController = UserController;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/user/user.module.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UserModule = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const user_controller_1 = __webpack_require__("./apps/uc-api/src/app/user/user.controller.ts");
+const user_schema_1 = __webpack_require__("./apps/uc-api/src/app/user/user.schema.ts");
+const user_service_1 = __webpack_require__("./apps/uc-api/src/app/user/user.service.ts");
+const jwt_1 = __webpack_require__("@nestjs/jwt");
+const passport_1 = __webpack_require__("@nestjs/passport");
+const auth_module_1 = __webpack_require__("./apps/uc-api/src/app/auth/auth.module.ts");
+let UserModule = class UserModule {
+};
+UserModule = tslib_1.__decorate([
+    (0, common_1.Module)({
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: user_schema_1.User.name, schema: user_schema_1.UserSchema }]), (0, common_1.forwardRef)(() => auth_module_1.AuthModule), passport_1.PassportModule, jwt_1.JwtModule.register({
+                secret: 'S1e2C3r4E5t',
+                signOptions: { expiresIn: '1h' },
+            })],
+        controllers: [user_controller_1.UserController],
+        providers: [user_service_1.UserService],
+        exports: [user_service_1.UserService]
+    })
+], UserModule);
+exports.UserModule = UserModule;
+;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/user/user.schema.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UserSchema = exports.User = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const role_enum_1 = __webpack_require__("./apps/uc-api/src/app/auth/roles/role.enum.ts");
+let User = class User {
+};
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Name is required!'],
+    }),
+    tslib_1.__metadata("design:type", String)
+], User.prototype, "name", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Emailaddress is required!'],
+        validate: {
+            validator: function (v) {
+                return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
+            },
+            message: 'Use a correct emailaddress like j.doe@gmail.com!',
+        },
+    }),
+    tslib_1.__metadata("design:type", String)
+], User.prototype, "emailAddress", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Picture is required!'],
+        default: 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+    }),
+    tslib_1.__metadata("design:type", String)
+], User.prototype, "picture", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Role is required!'],
+        enum: {
+            values: [role_enum_1.Role.BRAND, role_enum_1.Role.CUSTOMER],
+            message: 'Choose between a customer or a brand as role!'
+        }
+    }),
+    tslib_1.__metadata("design:type", String)
+], User.prototype, "role", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Password is required!'],
+    }),
+    tslib_1.__metadata("design:type", String)
+], User.prototype, "password", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        default: true
+    }),
+    tslib_1.__metadata("design:type", Boolean)
+], User.prototype, "isActive", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)(),
+    tslib_1.__metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+], User.prototype, "createdAt", void 0);
+User = tslib_1.__decorate([
+    (0, mongoose_1.Schema)()
+], User);
+exports.User = User;
+exports.UserSchema = mongoose_1.SchemaFactory.createForClass(User);
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/user/user.service.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UserService = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const mongoose_2 = __webpack_require__("mongoose");
+const user_schema_1 = __webpack_require__("./apps/uc-api/src/app/user/user.schema.ts");
+let UserService = class UserService {
+    constructor(userModel) {
+        this.userModel = userModel;
+    }
+    getUserByEmailAddress(emailAddress) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.userModel.findOne({ emailAddress });
+        });
+    }
+    registerUser(registerUserDto) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const user = Object.assign(Object.assign({}, registerUserDto), { 'createdAt': new Date() });
+            return yield this.userModel.create(user);
+        });
+    }
+};
+UserService = tslib_1.__decorate([
+    (0, common_1.Injectable)(),
+    tslib_1.__param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
+], UserService);
+exports.UserService = UserService;
+
+
+/***/ }),
+
 /***/ "@nestjs/common":
 /***/ ((module) => {
 
@@ -723,6 +1172,13 @@ module.exports = require("@nestjs/core");
 
 /***/ }),
 
+/***/ "@nestjs/jwt":
+/***/ ((module) => {
+
+module.exports = require("@nestjs/jwt");
+
+/***/ }),
+
 /***/ "@nestjs/mongoose":
 /***/ ((module) => {
 
@@ -730,10 +1186,38 @@ module.exports = require("@nestjs/mongoose");
 
 /***/ }),
 
+/***/ "@nestjs/passport":
+/***/ ((module) => {
+
+module.exports = require("@nestjs/passport");
+
+/***/ }),
+
+/***/ "bcrypt":
+/***/ ((module) => {
+
+module.exports = require("bcrypt");
+
+/***/ }),
+
 /***/ "mongoose":
 /***/ ((module) => {
 
 module.exports = require("mongoose");
+
+/***/ }),
+
+/***/ "passport-jwt":
+/***/ ((module) => {
+
+module.exports = require("passport-jwt");
+
+/***/ }),
+
+/***/ "passport-local":
+/***/ ((module) => {
+
+module.exports = require("passport-local");
 
 /***/ }),
 
