@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { ObjectId } from 'mongoose';
 
 @Schema()
 export class Product {
@@ -27,6 +28,9 @@ export class Product {
 
     @Prop()
     createdAt: Date;
+
+    @Prop()
+    createdBy: ObjectId;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);

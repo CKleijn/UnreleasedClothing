@@ -1,41 +1,53 @@
-// import { Injectable } from "@nestjs/common";
-// import { InjectModel } from "@nestjs/mongoose";
-// import { Model } from "mongoose";
-// import { User } from "./user.schema";
-
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
 import { ProductDto } from "./product.dto";
-import { ProductRepository } from "./product.repository";
 import { Product } from "./product.schema";
 
 @Injectable()
 export class ProductService {
-    constructor(private productRepository: ProductRepository) {}
+    constructor(@InjectModel(Product.name) private productModel: Model<Product>) {}
 
     async getAllProducts(): Promise<Product[]> {
-        return await this.productRepository.getAllProducts();
+        return await this.productModel.find();
     }
 
     async getProductById(productId: string): Promise<Product> {
-        return await this.productRepository.getProductById(productId);
+        const product = await this.productModel.findById({ _id: productId });
+
+        if(!product)
+            throw new HttpException('This product doesnt exists!', HttpStatus.NOT_FOUND)
+
+        return product;
     }
 
-    async createProduct(productDto: ProductDto): Promise<Product> {
-        return await this.productRepository.createProduct({
+    async createProduct(user: any, productDto: ProductDto): Promise<Product> {
+        return await this.productModel.create({
             name: productDto.name,
             picture: productDto.picture,
             price: productDto.price,
             description: productDto.description,
             isActive: true,
-            createdAt: new Date()
-        })
+            createdAt: new Date(),
+            createdBy: user._id
+        });
     }
 
-    async updateProduct(productId: string, newProduct: Partial<ProductDto>): Promise<Product> {
-        return await this.productRepository.updateProduct(productId, newProduct);
+    async updateProduct(user: any, productId: string, newProduct: Partial<ProductDto>): Promise<Product> {
+        const product = await this.getProductById(productId);
+
+        if(user._id.equals(product.createdBy))
+            return await this.productModel.findOneAndUpdate({ _id: productId }, newProduct, { new: true });
+
+        throw new UnauthorizedException({ message: "This user don't have access to this method!" });
     }
 
-    async deleteProduct(productId: string): Promise<Product> {
-        return await this.productRepository.deleteProduct(productId);
+    async deleteProduct(user: any, productId: string): Promise<Product> {
+        const product = await this.getProductById(productId);
+
+        if(user._id.equals(product.createdBy))
+            return await this.productModel.findOneAndDelete({ _id: productId });
+
+        throw new UnauthorizedException({ message: "This user don't have access to this method!" });
     }
 }

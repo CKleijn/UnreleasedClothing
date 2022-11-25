@@ -23,18 +23,18 @@ export class CategoryService {
 
     async createCategory(user: any, categoryDto: CategoryDto): Promise<Category> {
         return await this.categoryModel.create({
-            userId: user._id,
             title: categoryDto.title,
             description: categoryDto.description,
             icon: categoryDto.icon,
-            createdAt: new Date()
+            createdAt: new Date(),
+            createdBy: user._id
         });
     }
 
     async updateCategory(user: any, categoryId: string, newCategory: Partial<CategoryDto>): Promise<Category> {
         const category = await this.getCategoryById(categoryId);
 
-        if(user._id.equals(category.userId)) 
+        if(user._id.equals(category.createdBy)) 
             return await this.categoryModel.findOneAndUpdate({ _id: categoryId }, newCategory, { new: true });
 
         throw new UnauthorizedException({ message: "This user don't have access to this method!" });
@@ -43,7 +43,7 @@ export class CategoryService {
     async deleteCategory(user: any, categoryId: string): Promise<Category> {
         const category = await this.getCategoryById(categoryId);
 
-        if(user._id.equals(category.userId)) 
+        if(user._id.equals(category.createdBy)) 
             return await this.categoryModel.findOneAndDelete({ _id: categoryId });
 
         throw new UnauthorizedException({ message: "This user don't have access to this method!" });
