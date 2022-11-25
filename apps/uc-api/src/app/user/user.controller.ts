@@ -9,9 +9,6 @@ import { RegisterUserDto } from "./dtos/registerUser.dto";
 
 @Controller('user')
 export class UserController {
-    // @UseGuards(AuthGuard('jwt'), RolesGuard)
-    // @Roles(Role.BRAND)
-
     constructor(private authService: AuthService) {}
 
     @UseGuards(AuthGuard('local'))
