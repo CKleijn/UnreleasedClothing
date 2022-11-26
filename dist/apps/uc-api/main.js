@@ -48,13 +48,14 @@ const app_controller_1 = __webpack_require__("./apps/uc-api/src/app/app.controll
 const app_service_1 = __webpack_require__("./apps/uc-api/src/app/app.service.ts");
 const auth_module_1 = __webpack_require__("./apps/uc-api/src/app/auth/auth.module.ts");
 const category_module_1 = __webpack_require__("./apps/uc-api/src/app/category/category.module.ts");
+const comment_module_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.module.ts");
 const product_module_1 = __webpack_require__("./apps/uc-api/src/app/product/product.module.ts");
 const user_module_1 = __webpack_require__("./apps/uc-api/src/app/user/user.module.ts");
 let AppModule = class AppModule {
 };
 AppModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), auth_module_1.AuthModule, user_module_1.UserModule, product_module_1.ProductModule, category_module_1.CategoryModule],
+        imports: [mongoose_1.MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), auth_module_1.AuthModule, user_module_1.UserModule, product_module_1.ProductModule, category_module_1.CategoryModule, comment_module_1.CommentModule],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })
@@ -162,7 +163,7 @@ let AuthService = class AuthService {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const user = yield this.userService.getUserByEmailAddress(emailAddress);
             if (user) {
-                const passwordValid = yield bcrypt.compare(password, user.password);
+                const passwordValid = yield bcrypt.compare(password, user.password.toString());
                 if (user && passwordValid)
                     return user;
             }
@@ -268,6 +269,7 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
             return {
                 _id: user._id,
                 name: user.name,
+                emailAddress: user.emailAddress,
                 role: user.role
             };
         });
@@ -508,7 +510,7 @@ exports.CategoryModule = CategoryModule;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b;
+var _a, _b, _c, _d, _e;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CategorySchema = exports.Category = void 0;
 const tslib_1 = __webpack_require__("tslib");
@@ -520,27 +522,27 @@ tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Title is required!'],
     }),
-    tslib_1.__metadata("design:type", String)
+    tslib_1.__metadata("design:type", typeof (_a = typeof String !== "undefined" && String) === "function" ? _a : Object)
 ], Category.prototype, "title", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Description is required!'],
     }),
-    tslib_1.__metadata("design:type", String)
+    tslib_1.__metadata("design:type", typeof (_b = typeof String !== "undefined" && String) === "function" ? _b : Object)
 ], Category.prototype, "description", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Icon is required!'],
     }),
-    tslib_1.__metadata("design:type", String)
+    tslib_1.__metadata("design:type", typeof (_c = typeof String !== "undefined" && String) === "function" ? _c : Object)
 ], Category.prototype, "icon", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+    tslib_1.__metadata("design:type", typeof (_d = typeof Date !== "undefined" && Date) === "function" ? _d : Object)
 ], Category.prototype, "createdAt", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_b = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _b : Object)
+    tslib_1.__metadata("design:type", typeof (_e = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _e : Object)
 ], Category.prototype, "createdBy", void 0);
 Category = tslib_1.__decorate([
     (0, mongoose_1.Schema)()
@@ -614,6 +616,310 @@ CategoryService = tslib_1.__decorate([
     tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
 ], CategoryService);
 exports.CategoryService = CategoryService;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/comment/comment.controller.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a, _b, _c, _d, _e, _f, _g, _h;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CommentController = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const passport_1 = __webpack_require__("@nestjs/passport");
+const role_enum_1 = __webpack_require__("./apps/uc-api/src/app/auth/roles/role.enum.ts");
+const roles_decorator_1 = __webpack_require__("./apps/uc-api/src/app/auth/roles/roles.decorator.ts");
+const roles_guard_1 = __webpack_require__("./apps/uc-api/src/app/auth/roles/roles.guard.ts");
+const comment_dto_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.dto.ts");
+const comment_service_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.service.ts");
+let CommentController = class CommentController {
+    constructor(commentService) {
+        this.commentService = commentService;
+    }
+    getAllComments() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.commentService.getAllComments();
+        });
+    }
+    getCommentById(commentId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield this.commentService.getCommentById(commentId);
+            }
+            catch (error) {
+                this.generateCommentExceptions(error);
+            }
+        });
+    }
+    createComment(req, commentDto) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                const createdComment = yield this.commentService.createComment(req.user, commentDto);
+                return {
+                    status: 201,
+                    message: 'Comment has been succesfully created!',
+                    comment: createdComment
+                };
+            }
+            catch (error) {
+                this.generateCommentExceptions(error);
+            }
+        });
+    }
+    updateComment(req, commentId, newComment) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                const updatedComment = yield this.commentService.updateComment(req.user, commentId, newComment);
+                return {
+                    status: 200,
+                    message: 'Comment has been succesfully updated!',
+                    comment: updatedComment
+                };
+            }
+            catch (error) {
+                this.generateCommentExceptions(error);
+            }
+        });
+    }
+    deleteComment(req, commentId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                yield this.commentService.deleteComment(req.user, commentId);
+                return {
+                    status: 200,
+                    message: 'Comment has been succesfully deleted!'
+                };
+            }
+            catch (error) {
+                this.generateCommentExceptions(error);
+            }
+        });
+    }
+    generateCommentExceptions(error) {
+        var _a, _b, _c, _d, _e;
+        if (error === null || error === void 0 ? void 0 : error.response)
+            throw new common_1.HttpException('This comment doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+        if ((_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.message)
+            throw new common_1.UnauthorizedException((_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.message);
+        if ((error === null || error === void 0 ? void 0 : error.name) === 'CastError')
+            throw new common_1.HttpException('This ObjectId doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+        if ((_c = error === null || error === void 0 ? void 0 : error.errors) === null || _c === void 0 ? void 0 : _c.title)
+            throw new common_1.HttpException(error.errors.title.message, common_1.HttpStatus.CONFLICT);
+        if ((_d = error === null || error === void 0 ? void 0 : error.errors) === null || _d === void 0 ? void 0 : _d.body)
+            throw new common_1.HttpException(error.errors.body.message, common_1.HttpStatus.CONFLICT);
+        if ((_e = error === null || error === void 0 ? void 0 : error.errors) === null || _e === void 0 ? void 0 : _e.rating)
+            throw new common_1.HttpException(error.errors.rating.message, common_1.HttpStatus.CONFLICT);
+    }
+};
+tslib_1.__decorate([
+    (0, common_1.Get)('comments'),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", []),
+    tslib_1.__metadata("design:returntype", typeof (_b = typeof Promise !== "undefined" && Promise) === "function" ? _b : Object)
+], CommentController.prototype, "getAllComments", null);
+tslib_1.__decorate([
+    (0, common_1.Get)('comment/:commentId'),
+    tslib_1.__param(0, (0, common_1.Param)('commentId')),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [String]),
+    tslib_1.__metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
+], CommentController.prototype, "getCommentById", null);
+tslib_1.__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.CUSTOMER),
+    (0, common_1.Post)('comment'),
+    tslib_1.__param(0, (0, common_1.Request)()),
+    tslib_1.__param(1, (0, common_1.Body)()),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [Object, typeof (_d = typeof comment_dto_1.CommentDto !== "undefined" && comment_dto_1.CommentDto) === "function" ? _d : Object]),
+    tslib_1.__metadata("design:returntype", typeof (_e = typeof Promise !== "undefined" && Promise) === "function" ? _e : Object)
+], CommentController.prototype, "createComment", null);
+tslib_1.__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.CUSTOMER),
+    (0, common_1.Put)('comment/:commentId'),
+    tslib_1.__param(0, (0, common_1.Request)()),
+    tslib_1.__param(1, (0, common_1.Param)('commentId')),
+    tslib_1.__param(2, (0, common_1.Body)()),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [Object, String, typeof (_f = typeof Partial !== "undefined" && Partial) === "function" ? _f : Object]),
+    tslib_1.__metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
+], CommentController.prototype, "updateComment", null);
+tslib_1.__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.CUSTOMER),
+    (0, common_1.Delete)('comment/:commentId'),
+    tslib_1.__param(0, (0, common_1.Request)()),
+    tslib_1.__param(1, (0, common_1.Param)('commentId')),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [Object, String]),
+    tslib_1.__metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
+], CommentController.prototype, "deleteComment", null);
+CommentController = tslib_1.__decorate([
+    (0, common_1.Controller)(),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof comment_service_1.CommentService !== "undefined" && comment_service_1.CommentService) === "function" ? _a : Object])
+], CommentController);
+exports.CommentController = CommentController;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/comment/comment.dto.ts":
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CommentDto = void 0;
+class CommentDto {
+}
+exports.CommentDto = CommentDto;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/comment/comment.module.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CommentModule = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const user_module_1 = __webpack_require__("./apps/uc-api/src/app/user/user.module.ts");
+const comment_controller_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.controller.ts");
+const comment_schema_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.schema.ts");
+const comment_service_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.service.ts");
+let CommentModule = class CommentModule {
+};
+CommentModule = tslib_1.__decorate([
+    (0, common_1.Module)({
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: comment_schema_1.Comment.name, schema: comment_schema_1.CommentSchema }]), (0, common_1.forwardRef)(() => user_module_1.UserModule)],
+        controllers: [comment_controller_1.CommentController],
+        providers: [comment_service_1.CommentService],
+    })
+], CommentModule);
+exports.CommentModule = CommentModule;
+;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/comment/comment.schema.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a, _b, _c, _d, _e;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CommentSchema = exports.Comment = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const user_schema_1 = __webpack_require__("./apps/uc-api/src/app/user/user.schema.ts");
+let Comment = class Comment {
+};
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Title is required!'],
+    }),
+    tslib_1.__metadata("design:type", typeof (_a = typeof String !== "undefined" && String) === "function" ? _a : Object)
+], Comment.prototype, "title", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Body is required!'],
+    }),
+    tslib_1.__metadata("design:type", typeof (_b = typeof String !== "undefined" && String) === "function" ? _b : Object)
+], Comment.prototype, "body", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Rating is required!'],
+    }),
+    tslib_1.__metadata("design:type", typeof (_c = typeof Number !== "undefined" && Number) === "function" ? _c : Object)
+], Comment.prototype, "rating", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)(),
+    tslib_1.__metadata("design:type", typeof (_d = typeof user_schema_1.User !== "undefined" && user_schema_1.User) === "function" ? _d : Object)
+], Comment.prototype, "createdBy", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)(),
+    tslib_1.__metadata("design:type", typeof (_e = typeof Date !== "undefined" && Date) === "function" ? _e : Object)
+], Comment.prototype, "createdAt", void 0);
+Comment = tslib_1.__decorate([
+    (0, mongoose_1.Schema)()
+], Comment);
+exports.Comment = Comment;
+exports.CommentSchema = mongoose_1.SchemaFactory.createForClass(Comment);
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/comment/comment.service.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a, _b;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.CommentService = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const mongoose_2 = __webpack_require__("mongoose");
+const user_service_1 = __webpack_require__("./apps/uc-api/src/app/user/user.service.ts");
+const comment_schema_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.schema.ts");
+let CommentService = class CommentService {
+    constructor(commentModel, userService) {
+        this.commentModel = commentModel;
+        this.userService = userService;
+    }
+    getAllComments() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.commentModel.find();
+        });
+    }
+    getCommentById(commentId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const comment = yield this.commentModel.findById({ _id: commentId });
+            if (!comment)
+                throw new common_1.HttpException('This comment doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+            return comment;
+        });
+    }
+    createComment(user, commentDto) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.commentModel.create({
+                title: commentDto.title,
+                body: commentDto.body,
+                rating: commentDto.rating,
+                createdAt: new Date(),
+                createdBy: yield this.userService.getUserByEmailAddress(user.emailAddress)
+            });
+        });
+    }
+    updateComment(user, commentId, newComment) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const comment = yield this.getCommentById(commentId);
+            if (user._id.equals(comment.createdBy._id))
+                return yield this.commentModel.findOneAndUpdate({ _id: commentId }, newComment, { new: true });
+            throw new common_1.UnauthorizedException({ message: "This user don't have access to this method!" });
+        });
+    }
+    deleteComment(user, commentId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const comment = yield this.getCommentById(commentId);
+            if (user._id.equals(comment.createdBy._id))
+                return yield this.commentModel.findOneAndDelete({ _id: commentId });
+            throw new common_1.UnauthorizedException({ message: "This user don't have access to this method!" });
+        });
+    }
+};
+CommentService = tslib_1.__decorate([
+    (0, common_1.Injectable)(),
+    tslib_1.__param(0, (0, mongoose_1.InjectModel)(comment_schema_1.Comment.name)),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _b : Object])
+], CommentService);
+exports.CommentService = CommentService;
 
 
 /***/ }),
@@ -811,7 +1117,7 @@ exports.ProductModule = ProductModule;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b;
+var _a, _b, _c, _d, _e, _f, _g;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProductSchema = exports.Product = void 0;
 const tslib_1 = __webpack_require__("tslib");
@@ -823,37 +1129,37 @@ tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Name is required!'],
     }),
-    tslib_1.__metadata("design:type", String)
+    tslib_1.__metadata("design:type", typeof (_a = typeof String !== "undefined" && String) === "function" ? _a : Object)
 ], Product.prototype, "name", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Picture is required!'],
     }),
-    tslib_1.__metadata("design:type", String)
+    tslib_1.__metadata("design:type", typeof (_b = typeof String !== "undefined" && String) === "function" ? _b : Object)
 ], Product.prototype, "picture", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Price is required!'],
     }),
-    tslib_1.__metadata("design:type", Number)
+    tslib_1.__metadata("design:type", typeof (_c = typeof Number !== "undefined" && Number) === "function" ? _c : Object)
 ], Product.prototype, "price", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Description is required!'],
     }),
-    tslib_1.__metadata("design:type", String)
+    tslib_1.__metadata("design:type", typeof (_d = typeof String !== "undefined" && String) === "function" ? _d : Object)
 ], Product.prototype, "description", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", Boolean)
+    tslib_1.__metadata("design:type", typeof (_e = typeof Boolean !== "undefined" && Boolean) === "function" ? _e : Object)
 ], Product.prototype, "isActive", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+    tslib_1.__metadata("design:type", typeof (_f = typeof Date !== "undefined" && Date) === "function" ? _f : Object)
 ], Product.prototype, "createdAt", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_b = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _b : Object)
+    tslib_1.__metadata("design:type", typeof (_g = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _g : Object)
 ], Product.prototype, "createdBy", void 0);
 Product = tslib_1.__decorate([
     (0, mongoose_1.Schema)()
@@ -1095,7 +1401,7 @@ exports.UserModule = UserModule;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b;
+var _a, _b, _c, _d, _e, _f, _g, _h;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserSchema = exports.User = void 0;
 const tslib_1 = __webpack_require__("tslib");
@@ -1112,7 +1418,7 @@ tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Name is required!'],
     }),
-    tslib_1.__metadata("design:type", String)
+    tslib_1.__metadata("design:type", typeof (_b = typeof String !== "undefined" && String) === "function" ? _b : Object)
 ], User.prototype, "name", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
@@ -1124,14 +1430,14 @@ tslib_1.__decorate([
             message: 'Use a correct emailaddress like j.doe@gmail.com!',
         },
     }),
-    tslib_1.__metadata("design:type", String)
+    tslib_1.__metadata("design:type", typeof (_c = typeof String !== "undefined" && String) === "function" ? _c : Object)
 ], User.prototype, "emailAddress", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Picture is required!'],
         default: 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
     }),
-    tslib_1.__metadata("design:type", String)
+    tslib_1.__metadata("design:type", typeof (_d = typeof String !== "undefined" && String) === "function" ? _d : Object)
 ], User.prototype, "picture", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
@@ -1141,23 +1447,23 @@ tslib_1.__decorate([
             message: 'Choose between a customer or a brand as role!'
         }
     }),
-    tslib_1.__metadata("design:type", String)
+    tslib_1.__metadata("design:type", typeof (_e = typeof String !== "undefined" && String) === "function" ? _e : Object)
 ], User.prototype, "role", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Password is required!'],
     }),
-    tslib_1.__metadata("design:type", String)
+    tslib_1.__metadata("design:type", typeof (_f = typeof String !== "undefined" && String) === "function" ? _f : Object)
 ], User.prototype, "password", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         default: true
     }),
-    tslib_1.__metadata("design:type", Boolean)
+    tslib_1.__metadata("design:type", typeof (_g = typeof Boolean !== "undefined" && Boolean) === "function" ? _g : Object)
 ], User.prototype, "isActive", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
+    tslib_1.__metadata("design:type", typeof (_h = typeof Date !== "undefined" && Date) === "function" ? _h : Object)
 ], User.prototype, "createdAt", void 0);
 User = tslib_1.__decorate([
     (0, mongoose_1.Schema)()

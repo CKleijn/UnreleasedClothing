@@ -6,17 +6,17 @@ export class Category {
     @Prop({
         required: [true, 'Title is required!'],
     })
-    title: string;
+    title: String;
 
     @Prop({
         required: [true, 'Description is required!'],
     })
-    description: string;
+    description: String;
 
     @Prop({
         required: [true, 'Icon is required!'],
     })
-    icon: string
+    icon: String;
 
     @Prop()
     createdAt: Date;

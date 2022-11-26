@@ -10,7 +10,7 @@ export class User {
     @Prop({
         required: [true, 'Name is required!'],
     })
-    name: string;
+    name: String;
 
     @Prop({
         required: [true, 'Emailaddress is required!'],
@@ -21,13 +21,13 @@ export class User {
             message: 'Use a correct emailaddress like j.doe@gmail.com!',
         },
     })
-    emailAddress: string;
+    emailAddress: String;
 
     @Prop({
         required: [true, 'Picture is required!'],
         default: 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
     })
-    picture: string;
+    picture: String;
 
     @Prop({
         required: [true, 'Role is required!'],
@@ -36,17 +36,17 @@ export class User {
             message: 'Choose between a customer or a brand as role!'
         }
     })
-    role: string;
+    role: String;
 
     @Prop({
         required: [true, 'Password is required!'],
     })
-    password: string;
+    password: String;
 
     @Prop({
         default: true
     })
-    isActive: boolean;
+    isActive: Boolean;
 
     @Prop()
     createdAt: Date;

@@ -6,25 +6,25 @@ export class Product {
     @Prop({
         required: [true, 'Name is required!'],
     })
-    name: string;
+    name: String;
 
     @Prop({
         required: [true, 'Picture is required!'],
     })
-    picture: string;
+    picture: String;
 
     @Prop({
         required: [true, 'Price is required!'],
     })
-    price: number;
+    price: Number;
 
     @Prop({
         required: [true, 'Description is required!'],
     })
-    description: string;
+    description: String;
 
     @Prop()
-    isActive: boolean;
+    isActive: Boolean;
 
     @Prop()
     createdAt: Date;
