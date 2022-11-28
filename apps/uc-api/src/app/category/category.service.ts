@@ -23,9 +23,7 @@ export class CategoryService {
 
     async createCategory(user: any, categoryDto: CategoryDto): Promise<Category> {
         return await this.categoryModel.create({
-            title: categoryDto.title,
-            description: categoryDto.description,
-            icon: categoryDto.icon,
+            ...categoryDto,
             createdAt: new Date(),
             createdBy: user._id
         });

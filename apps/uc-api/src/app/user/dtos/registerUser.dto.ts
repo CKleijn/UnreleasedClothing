@@ -8,7 +8,7 @@ export class RegisterUserDto {
     constructor(name: string, emailAddress: string, picture: string, role: string, password: string) {
         this.name = name;
         this.emailAddress = emailAddress;
-        this.picture;
+        this.picture = picture;
         this.role = role;
         this.password = password;
     }

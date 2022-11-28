@@ -30,6 +30,11 @@ export class User {
     picture: String;
 
     @Prop({
+        ref: 'User'
+    })
+    follows: [ObjectId];
+
+    @Prop({
         required: [true, 'Role is required!'],
         enum: {
             values: [Role.BRAND, Role.CUSTOMER],

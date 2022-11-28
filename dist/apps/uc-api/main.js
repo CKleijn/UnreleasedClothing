@@ -50,12 +50,13 @@ const auth_module_1 = __webpack_require__("./apps/uc-api/src/app/auth/auth.modul
 const category_module_1 = __webpack_require__("./apps/uc-api/src/app/category/category.module.ts");
 const comment_module_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.module.ts");
 const product_module_1 = __webpack_require__("./apps/uc-api/src/app/product/product.module.ts");
+const rating_module_1 = __webpack_require__("./apps/uc-api/src/app/rating/rating.module.ts");
 const user_module_1 = __webpack_require__("./apps/uc-api/src/app/user/user.module.ts");
 let AppModule = class AppModule {
 };
 AppModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), auth_module_1.AuthModule, user_module_1.UserModule, product_module_1.ProductModule, category_module_1.CategoryModule, comment_module_1.CommentModule],
+        imports: [mongoose_1.MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), auth_module_1.AuthModule, user_module_1.UserModule, product_module_1.ProductModule, category_module_1.CategoryModule, comment_module_1.CommentModule, rating_module_1.RatingModule],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })
@@ -498,6 +499,7 @@ CategoryModule = tslib_1.__decorate([
         imports: [mongoose_1.MongooseModule.forFeature([{ name: category_schema_1.Category.name, schema: category_schema_1.CategorySchema }])],
         controllers: [category_controller_1.CategoryController],
         providers: [category_service_1.CategoryService],
+        exports: [category_service_1.CategoryService]
     })
 ], CategoryModule);
 exports.CategoryModule = CategoryModule;
@@ -541,7 +543,9 @@ tslib_1.__decorate([
     tslib_1.__metadata("design:type", typeof (_d = typeof Date !== "undefined" && Date) === "function" ? _d : Object)
 ], Category.prototype, "createdAt", void 0);
 tslib_1.__decorate([
-    (0, mongoose_1.Prop)(),
+    (0, mongoose_1.Prop)({
+        ref: 'User'
+    }),
     tslib_1.__metadata("design:type", typeof (_e = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _e : Object)
 ], Category.prototype, "createdBy", void 0);
 Category = tslib_1.__decorate([
@@ -584,13 +588,7 @@ let CategoryService = class CategoryService {
     }
     createCategory(user, categoryDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.categoryModel.create({
-                title: categoryDto.title,
-                description: categoryDto.description,
-                icon: categoryDto.icon,
-                createdAt: new Date(),
-                createdBy: user._id
-            });
+            return yield this.categoryModel.create(Object.assign(Object.assign({}, categoryDto), { createdAt: new Date(), createdBy: user._id }));
         });
     }
     updateCategory(user, categoryId, newCategory) {
@@ -624,7 +622,7 @@ exports.CategoryService = CategoryService;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c, _d, _e, _f, _g, _h;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CommentController = void 0;
 const tslib_1 = __webpack_require__("tslib");
@@ -644,24 +642,29 @@ let CommentController = class CommentController {
             return yield this.commentService.getAllComments();
         });
     }
-    getCommentById(commentId) {
+    getAllCommentsFromProduct(productId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.commentService.getAllCommentsFromProduct(productId);
+        });
+    }
+    getCommentById(productId, commentId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                return yield this.commentService.getCommentById(commentId);
+                return yield this.commentService.getCommentById(productId, commentId);
             }
             catch (error) {
                 this.generateCommentExceptions(error);
             }
         });
     }
-    createComment(req, commentDto) {
+    createComment(req, productId, commentDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                const createdComment = yield this.commentService.createComment(req.user, commentDto);
+                const createdComment = yield this.commentService.createComment(req.user, productId, commentDto);
                 return {
                     status: 201,
                     message: 'Comment has been succesfully created!',
-                    comment: createdComment
+                    comment: createdComment.comments[createdComment.comments.length - 1]
                 };
             }
             catch (error) {
@@ -669,10 +672,10 @@ let CommentController = class CommentController {
             }
         });
     }
-    updateComment(req, commentId, newComment) {
+    updateComment(req, productId, commentId, newComment) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                const updatedComment = yield this.commentService.updateComment(req.user, commentId, newComment);
+                const updatedComment = yield this.commentService.updateComment(req.user, productId, commentId, newComment);
                 return {
                     status: 200,
                     message: 'Comment has been succesfully updated!',
@@ -684,10 +687,10 @@ let CommentController = class CommentController {
             }
         });
     }
-    deleteComment(req, commentId) {
+    deleteComment(req, productId, commentId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                yield this.commentService.deleteComment(req.user, commentId);
+                yield this.commentService.deleteComment(req.user, productId, commentId);
                 return {
                     status: 200,
                     message: 'Comment has been succesfully deleted!'
@@ -721,42 +724,53 @@ tslib_1.__decorate([
     tslib_1.__metadata("design:returntype", typeof (_b = typeof Promise !== "undefined" && Promise) === "function" ? _b : Object)
 ], CommentController.prototype, "getAllComments", null);
 tslib_1.__decorate([
-    (0, common_1.Get)('comment/:commentId'),
-    tslib_1.__param(0, (0, common_1.Param)('commentId')),
+    (0, common_1.Get)('product/:productId/comments'),
+    tslib_1.__param(0, (0, common_1.Param)('productId')),
     tslib_1.__metadata("design:type", Function),
     tslib_1.__metadata("design:paramtypes", [String]),
     tslib_1.__metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
+], CommentController.prototype, "getAllCommentsFromProduct", null);
+tslib_1.__decorate([
+    (0, common_1.Get)('product/:productId/comment/:commentId'),
+    tslib_1.__param(0, (0, common_1.Param)('productId')),
+    tslib_1.__param(1, (0, common_1.Param)('commentId')),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [String, String]),
+    tslib_1.__metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
 ], CommentController.prototype, "getCommentById", null);
 tslib_1.__decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.CUSTOMER),
-    (0, common_1.Post)('comment'),
+    (0, common_1.Post)('product/:productId/comment'),
     tslib_1.__param(0, (0, common_1.Request)()),
-    tslib_1.__param(1, (0, common_1.Body)()),
+    tslib_1.__param(1, (0, common_1.Param)('productId')),
+    tslib_1.__param(2, (0, common_1.Body)()),
     tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", [Object, typeof (_d = typeof comment_dto_1.CommentDto !== "undefined" && comment_dto_1.CommentDto) === "function" ? _d : Object]),
-    tslib_1.__metadata("design:returntype", typeof (_e = typeof Promise !== "undefined" && Promise) === "function" ? _e : Object)
+    tslib_1.__metadata("design:paramtypes", [Object, String, typeof (_e = typeof comment_dto_1.CommentDto !== "undefined" && comment_dto_1.CommentDto) === "function" ? _e : Object]),
+    tslib_1.__metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
 ], CommentController.prototype, "createComment", null);
 tslib_1.__decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.CUSTOMER),
-    (0, common_1.Put)('comment/:commentId'),
+    (0, common_1.Put)('product/:productId/comment/:commentId'),
     tslib_1.__param(0, (0, common_1.Request)()),
-    tslib_1.__param(1, (0, common_1.Param)('commentId')),
-    tslib_1.__param(2, (0, common_1.Body)()),
+    tslib_1.__param(1, (0, common_1.Param)('productId')),
+    tslib_1.__param(2, (0, common_1.Param)('commentId')),
+    tslib_1.__param(3, (0, common_1.Body)()),
     tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", [Object, String, typeof (_f = typeof Partial !== "undefined" && Partial) === "function" ? _f : Object]),
-    tslib_1.__metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
+    tslib_1.__metadata("design:paramtypes", [Object, String, String, typeof (_g = typeof Partial !== "undefined" && Partial) === "function" ? _g : Object]),
+    tslib_1.__metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
 ], CommentController.prototype, "updateComment", null);
 tslib_1.__decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.CUSTOMER),
-    (0, common_1.Delete)('comment/:commentId'),
+    (0, common_1.Delete)('product/:productId/comment/:commentId'),
     tslib_1.__param(0, (0, common_1.Request)()),
-    tslib_1.__param(1, (0, common_1.Param)('commentId')),
+    tslib_1.__param(1, (0, common_1.Param)('productId')),
+    tslib_1.__param(2, (0, common_1.Param)('commentId')),
     tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", [Object, String]),
-    tslib_1.__metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
+    tslib_1.__metadata("design:paramtypes", [Object, String, String]),
+    tslib_1.__metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
 ], CommentController.prototype, "deleteComment", null);
 CommentController = tslib_1.__decorate([
     (0, common_1.Controller)(),
@@ -789,7 +803,8 @@ exports.CommentModule = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
-const user_module_1 = __webpack_require__("./apps/uc-api/src/app/user/user.module.ts");
+const product_module_1 = __webpack_require__("./apps/uc-api/src/app/product/product.module.ts");
+const rating_module_1 = __webpack_require__("./apps/uc-api/src/app/rating/rating.module.ts");
 const comment_controller_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.controller.ts");
 const comment_schema_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.schema.ts");
 const comment_service_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.service.ts");
@@ -797,9 +812,10 @@ let CommentModule = class CommentModule {
 };
 CommentModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: comment_schema_1.Comment.name, schema: comment_schema_1.CommentSchema }]), (0, common_1.forwardRef)(() => user_module_1.UserModule)],
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: comment_schema_1.Comment.name, schema: comment_schema_1.CommentSchema }]), product_module_1.ProductModule, rating_module_1.RatingModule],
         controllers: [comment_controller_1.CommentController],
         providers: [comment_service_1.CommentService],
+        exports: [comment_service_1.CommentService]
     })
 ], CommentModule);
 exports.CommentModule = CommentModule;
@@ -812,39 +828,47 @@ exports.CommentModule = CommentModule;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c, _d, _e;
+var _a, _b, _c, _d, _e, _f;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CommentSchema = exports.Comment = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const mongoose_2 = __webpack_require__("mongoose");
+const rating_schema_1 = __webpack_require__("./apps/uc-api/src/app/rating/rating.schema.ts");
 const user_schema_1 = __webpack_require__("./apps/uc-api/src/app/user/user.schema.ts");
 let Comment = class Comment {
 };
 tslib_1.__decorate([
+    (0, mongoose_1.Prop)(),
+    tslib_1.__metadata("design:type", typeof (_a = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _a : Object)
+], Comment.prototype, "_id", void 0);
+tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Title is required!'],
     }),
-    tslib_1.__metadata("design:type", typeof (_a = typeof String !== "undefined" && String) === "function" ? _a : Object)
+    tslib_1.__metadata("design:type", typeof (_b = typeof String !== "undefined" && String) === "function" ? _b : Object)
 ], Comment.prototype, "title", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Body is required!'],
     }),
-    tslib_1.__metadata("design:type", typeof (_b = typeof String !== "undefined" && String) === "function" ? _b : Object)
+    tslib_1.__metadata("design:type", typeof (_c = typeof String !== "undefined" && String) === "function" ? _c : Object)
 ], Comment.prototype, "body", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Rating is required!'],
     }),
-    tslib_1.__metadata("design:type", typeof (_c = typeof Number !== "undefined" && Number) === "function" ? _c : Object)
+    tslib_1.__metadata("design:type", typeof (_d = typeof rating_schema_1.Rating !== "undefined" && rating_schema_1.Rating) === "function" ? _d : Object)
 ], Comment.prototype, "rating", void 0);
 tslib_1.__decorate([
-    (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_d = typeof user_schema_1.User !== "undefined" && user_schema_1.User) === "function" ? _d : Object)
+    (0, mongoose_1.Prop)({
+        ref: 'User'
+    }),
+    tslib_1.__metadata("design:type", typeof (_e = typeof user_schema_1.User !== "undefined" && user_schema_1.User) === "function" ? _e : Object)
 ], Comment.prototype, "createdBy", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_e = typeof Date !== "undefined" && Date) === "function" ? _e : Object)
+    tslib_1.__metadata("design:type", typeof (_f = typeof Date !== "undefined" && Date) === "function" ? _f : Object)
 ], Comment.prototype, "createdAt", void 0);
 Comment = tslib_1.__decorate([
     (0, mongoose_1.Schema)()
@@ -859,57 +883,70 @@ exports.CommentSchema = mongoose_1.SchemaFactory.createForClass(Comment);
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b;
+var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CommentService = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const mongoose_2 = __webpack_require__("mongoose");
-const user_service_1 = __webpack_require__("./apps/uc-api/src/app/user/user.service.ts");
+const product_service_1 = __webpack_require__("./apps/uc-api/src/app/product/product.service.ts");
+const rating_service_1 = __webpack_require__("./apps/uc-api/src/app/rating/rating.service.ts");
 const comment_schema_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.schema.ts");
 let CommentService = class CommentService {
-    constructor(commentModel, userService) {
+    constructor(commentModel, ratingService, productService) {
         this.commentModel = commentModel;
-        this.userService = userService;
+        this.ratingService = ratingService;
+        this.productService = productService;
     }
     getAllComments() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.commentModel.find();
+            return yield this.productService.getAllComments();
         });
     }
-    getCommentById(commentId) {
+    getAllCommentsFromProduct(productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const comment = yield this.commentModel.findById({ _id: commentId });
+            return yield this.productService.getAllCommentsFromProduct(productId);
+        });
+    }
+    getCommentById(productId, commentId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const comment = yield this.productService.getCommentById(productId, commentId);
             if (!comment)
                 throw new common_1.HttpException('This comment doesnt exists!', common_1.HttpStatus.NOT_FOUND);
             return comment;
         });
     }
-    createComment(user, commentDto) {
+    createComment(user, productId, commentDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.commentModel.create({
+            const comment = {
+                _id: new mongoose_2.default.Types.ObjectId(),
                 title: commentDto.title,
                 body: commentDto.body,
-                rating: commentDto.rating,
-                createdAt: new Date(),
-                createdBy: yield this.userService.getUserByEmailAddress(user.emailAddress)
-            });
+                rating: yield this.ratingService.getRatingById(commentDto.ratingId),
+                createdBy: user._id,
+                createdAt: new Date()
+            };
+            return yield this.productService.addCommentToProduct(productId, comment);
         });
     }
-    updateComment(user, commentId, newComment) {
+    updateComment(user, productId, commentId, newComment) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const comment = yield this.getCommentById(commentId);
-            if (user._id.equals(comment.createdBy._id))
-                return yield this.commentModel.findOneAndUpdate({ _id: commentId }, newComment, { new: true });
+            const comment = yield this.getCommentById(productId, commentId);
+            if (user._id.equals(comment.createdBy._id)) {
+                if (newComment.ratingId) {
+                    newComment.rating = yield this.ratingService.getRatingById(newComment.ratingId);
+                }
+                return yield this.productService.updateCommentFromProduct(user, productId, commentId, newComment);
+            }
             throw new common_1.UnauthorizedException({ message: "This user don't have access to this method!" });
         });
     }
-    deleteComment(user, commentId) {
+    deleteComment(user, productId, commentId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const comment = yield this.getCommentById(commentId);
+            const comment = yield this.getCommentById(productId, commentId);
             if (user._id.equals(comment.createdBy._id))
-                return yield this.commentModel.findOneAndDelete({ _id: commentId });
+                return yield this.productService.deleteCommentFromProduct(user, productId, commentId);
             throw new common_1.UnauthorizedException({ message: "This user don't have access to this method!" });
         });
     }
@@ -917,7 +954,7 @@ let CommentService = class CommentService {
 CommentService = tslib_1.__decorate([
     (0, common_1.Injectable)(),
     tslib_1.__param(0, (0, mongoose_1.InjectModel)(comment_schema_1.Comment.name)),
-    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _b : Object])
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof rating_service_1.RatingService !== "undefined" && rating_service_1.RatingService) === "function" ? _b : Object, typeof (_c = typeof product_service_1.ProductService !== "undefined" && product_service_1.ProductService) === "function" ? _c : Object])
 ], CommentService);
 exports.CommentService = CommentService;
 
@@ -1095,6 +1132,9 @@ exports.ProductModule = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const category_module_1 = __webpack_require__("./apps/uc-api/src/app/category/category.module.ts");
+const rating_module_1 = __webpack_require__("./apps/uc-api/src/app/rating/rating.module.ts");
+const user_module_1 = __webpack_require__("./apps/uc-api/src/app/user/user.module.ts");
 const product_controller_1 = __webpack_require__("./apps/uc-api/src/app/product/product.controller.ts");
 const product_schema_1 = __webpack_require__("./apps/uc-api/src/app/product/product.schema.ts");
 const product_service_1 = __webpack_require__("./apps/uc-api/src/app/product/product.service.ts");
@@ -1102,9 +1142,10 @@ let ProductModule = class ProductModule {
 };
 ProductModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: product_schema_1.Product.name, schema: product_schema_1.ProductSchema }])],
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: product_schema_1.Product.name, schema: product_schema_1.ProductSchema }]), (0, common_1.forwardRef)(() => user_module_1.UserModule), category_module_1.CategoryModule, rating_module_1.RatingModule],
         controllers: [product_controller_1.ProductController],
         providers: [product_service_1.ProductService],
+        exports: [product_service_1.ProductService]
     })
 ], ProductModule);
 exports.ProductModule = ProductModule;
@@ -1117,12 +1158,13 @@ exports.ProductModule = ProductModule;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c, _d, _e, _f, _g;
+var _a, _b, _c, _d, _e, _f, _g, _h;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProductSchema = exports.Product = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
-const mongoose_2 = __webpack_require__("mongoose");
+const category_schema_1 = __webpack_require__("./apps/uc-api/src/app/category/category.schema.ts");
+const user_schema_1 = __webpack_require__("./apps/uc-api/src/app/user/user.schema.ts");
 let Product = class Product {
 };
 tslib_1.__decorate([
@@ -1151,16 +1193,24 @@ tslib_1.__decorate([
 ], Product.prototype, "description", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_e = typeof Boolean !== "undefined" && Boolean) === "function" ? _e : Object)
+    tslib_1.__metadata("design:type", typeof (_e = typeof category_schema_1.Category !== "undefined" && category_schema_1.Category) === "function" ? _e : Object)
+], Product.prototype, "category", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)(),
+    tslib_1.__metadata("design:type", Array)
+], Product.prototype, "comments", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)(),
+    tslib_1.__metadata("design:type", typeof (_f = typeof Boolean !== "undefined" && Boolean) === "function" ? _f : Object)
 ], Product.prototype, "isActive", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_f = typeof Date !== "undefined" && Date) === "function" ? _f : Object)
-], Product.prototype, "createdAt", void 0);
+    tslib_1.__metadata("design:type", typeof (_g = typeof user_schema_1.User !== "undefined" && user_schema_1.User) === "function" ? _g : Object)
+], Product.prototype, "createdBy", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_g = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _g : Object)
-], Product.prototype, "createdBy", void 0);
+    tslib_1.__metadata("design:type", typeof (_h = typeof Date !== "undefined" && Date) === "function" ? _h : Object)
+], Product.prototype, "createdAt", void 0);
 Product = tslib_1.__decorate([
     (0, mongoose_1.Schema)()
 ], Product);
@@ -1174,29 +1224,51 @@ exports.ProductSchema = mongoose_1.SchemaFactory.createForClass(Product);
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a;
+var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProductService = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const mongoose_2 = __webpack_require__("mongoose");
+const category_service_1 = __webpack_require__("./apps/uc-api/src/app/category/category.service.ts");
+const user_service_1 = __webpack_require__("./apps/uc-api/src/app/user/user.service.ts");
 const product_schema_1 = __webpack_require__("./apps/uc-api/src/app/product/product.schema.ts");
 let ProductService = class ProductService {
-    constructor(productModel) {
+    constructor(productModel, categoryService, userService) {
         this.productModel = productModel;
+        this.categoryService = categoryService;
+        this.userService = userService;
     }
     getAllProducts() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             return yield this.productModel.find();
         });
     }
+    getAllComments() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return [].concat(yield this.productModel.find({}, { _id: 0, comments: 1 }))[0].comments;
+        });
+    }
+    getAllCommentsFromProduct(productId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return [].concat(yield this.productModel.find({ _id: productId }, { _id: 0, comments: 1 }))[0].comments;
+        });
+    }
     getProductById(productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const product = yield this.productModel.findById({ _id: productId });
             if (!product)
-                throw new common_1.HttpException('This product doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+                throw new common_1.HttpException(`This product doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
             return product;
+        });
+    }
+    getCommentById(productId, commentId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const comment = [].concat(yield this.productModel.findOne({ _id: productId, 'comments._id': new mongoose_2.default.Types.ObjectId(commentId) }, { _id: 0, comments: 1 }, { 'comments.$': 1 }))[0].comments[0];
+            if (!comment)
+                throw new common_1.HttpException(`This comment doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
+            return comment;
         });
     }
     createProduct(user, productDto) {
@@ -1206,10 +1278,17 @@ let ProductService = class ProductService {
                 picture: productDto.picture,
                 price: productDto.price,
                 description: productDto.description,
+                category: yield this.categoryService.getCategoryById(productDto.category),
+                comments: [],
                 isActive: true,
                 createdAt: new Date(),
-                createdBy: user._id
+                createdBy: yield this.userService.getUserByEmailAddress(user.emailAddress)
             });
+        });
+    }
+    addCommentToProduct(productId, newComment) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.productModel.findOneAndUpdate({ _id: productId }, { $push: { comments: newComment } }, { new: true });
         });
     }
     updateProduct(user, productId, newProduct) {
@@ -1217,7 +1296,18 @@ let ProductService = class ProductService {
             const product = yield this.getProductById(productId);
             if (user._id.equals(product.createdBy))
                 return yield this.productModel.findOneAndUpdate({ _id: productId }, newProduct, { new: true });
-            throw new common_1.UnauthorizedException({ message: "This user don't have access to this method!" });
+            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+        });
+    }
+    updateCommentFromProduct(user, productId, commentId, newComment) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const oldComment = yield this.getCommentById(productId, commentId);
+            if (user._id.equals(oldComment.createdBy._id)) {
+                const updateComment = yield this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose_2.default.Types.ObjectId(commentId) }, { $set: { 'comments.$.title': newComment === null || newComment === void 0 ? void 0 : newComment.title, 'comments.$.body': newComment === null || newComment === void 0 ? void 0 : newComment.body, 'comments.$.rating': newComment === null || newComment === void 0 ? void 0 : newComment.rating } });
+                const comment = yield this.getCommentById(productId, commentId);
+                return comment;
+            }
+            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
         });
     }
     deleteProduct(user, productId) {
@@ -1225,16 +1315,195 @@ let ProductService = class ProductService {
             const product = yield this.getProductById(productId);
             if (user._id.equals(product.createdBy))
                 return yield this.productModel.findOneAndDelete({ _id: productId });
-            throw new common_1.UnauthorizedException({ message: "This user don't have access to this method!" });
+            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+        });
+    }
+    deleteCommentFromProduct(user, productId, commentId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const comment = yield this.getCommentById(productId, commentId);
+            if (user._id.equals(comment.createdBy._id))
+                return yield this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose_2.default.Types.ObjectId(commentId) }, { $pull: { 'comments': { _id: new mongoose_2.default.Types.ObjectId(commentId) } } }, { new: true });
+            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
         });
     }
 };
 ProductService = tslib_1.__decorate([
     (0, common_1.Injectable)(),
     tslib_1.__param(0, (0, mongoose_1.InjectModel)(product_schema_1.Product.name)),
-    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof category_service_1.CategoryService !== "undefined" && category_service_1.CategoryService) === "function" ? _b : Object, typeof (_c = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _c : Object])
 ], ProductService);
 exports.ProductService = ProductService;
+// Dubbele validatie beide services
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/rating/rating.controller.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RatingController = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const rating_service_1 = __webpack_require__("./apps/uc-api/src/app/rating/rating.service.ts");
+let RatingController = class RatingController {
+    constructor(ratingService) {
+        this.ratingService = ratingService;
+    }
+    getAllRatings() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.ratingService.getAllRatings();
+        });
+    }
+    getRatingById(ratingId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield this.ratingService.getRatingById(ratingId);
+            }
+            catch (error) {
+                if (error === null || error === void 0 ? void 0 : error.response)
+                    throw new common_1.HttpException('This rating doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+            }
+        });
+    }
+};
+tslib_1.__decorate([
+    (0, common_1.Get)('ratings'),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", []),
+    tslib_1.__metadata("design:returntype", typeof (_b = typeof Promise !== "undefined" && Promise) === "function" ? _b : Object)
+], RatingController.prototype, "getAllRatings", null);
+tslib_1.__decorate([
+    (0, common_1.Get)('rating/:ratingId'),
+    tslib_1.__param(0, (0, common_1.Param)('ratingId')),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [String]),
+    tslib_1.__metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
+], RatingController.prototype, "getRatingById", null);
+RatingController = tslib_1.__decorate([
+    (0, common_1.Controller)(),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof rating_service_1.RatingService !== "undefined" && rating_service_1.RatingService) === "function" ? _a : Object])
+], RatingController);
+exports.RatingController = RatingController;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/rating/rating.module.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RatingModule = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const rating_controller_1 = __webpack_require__("./apps/uc-api/src/app/rating/rating.controller.ts");
+const rating_schema_1 = __webpack_require__("./apps/uc-api/src/app/rating/rating.schema.ts");
+const rating_service_1 = __webpack_require__("./apps/uc-api/src/app/rating/rating.service.ts");
+let RatingModule = class RatingModule {
+};
+RatingModule = tslib_1.__decorate([
+    (0, common_1.Module)({
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: rating_schema_1.Rating.name, schema: rating_schema_1.RatingSchema }])],
+        controllers: [rating_controller_1.RatingController],
+        providers: [rating_service_1.RatingService],
+        exports: [rating_service_1.RatingService]
+    })
+], RatingModule);
+exports.RatingModule = RatingModule;
+;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/rating/rating.schema.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a, _b, _c, _d, _e;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RatingSchema = exports.Rating = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const mongoose_2 = __webpack_require__("mongoose");
+let Rating = class Rating {
+};
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)(),
+    tslib_1.__metadata("design:type", typeof (_a = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _a : Object)
+], Rating.prototype, "_id", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Title is required!'],
+    }),
+    tslib_1.__metadata("design:type", typeof (_b = typeof String !== "undefined" && String) === "function" ? _b : Object)
+], Rating.prototype, "title", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Picture is required!'],
+    }),
+    tslib_1.__metadata("design:type", typeof (_c = typeof String !== "undefined" && String) === "function" ? _c : Object)
+], Rating.prototype, "picture", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Mark is required!'],
+    }),
+    tslib_1.__metadata("design:type", typeof (_d = typeof Number !== "undefined" && Number) === "function" ? _d : Object)
+], Rating.prototype, "grade", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Description is required!'],
+    }),
+    tslib_1.__metadata("design:type", typeof (_e = typeof String !== "undefined" && String) === "function" ? _e : Object)
+], Rating.prototype, "description", void 0);
+Rating = tslib_1.__decorate([
+    (0, mongoose_1.Schema)()
+], Rating);
+exports.Rating = Rating;
+exports.RatingSchema = mongoose_1.SchemaFactory.createForClass(Rating);
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/rating/rating.service.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RatingService = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const mongoose_2 = __webpack_require__("mongoose");
+const rating_schema_1 = __webpack_require__("./apps/uc-api/src/app/rating/rating.schema.ts");
+let RatingService = class RatingService {
+    constructor(ratingModel) {
+        this.ratingModel = ratingModel;
+    }
+    getAllRatings() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.ratingModel.find();
+        });
+    }
+    getRatingById(ratingId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const rating = yield this.ratingModel.findById({ _id: ratingId });
+            if (!rating)
+                throw new common_1.HttpException('This rating doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+            return rating;
+        });
+    }
+};
+RatingService = tslib_1.__decorate([
+    (0, common_1.Injectable)(),
+    tslib_1.__param(0, (0, mongoose_1.InjectModel)(rating_schema_1.Rating.name)),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
+], RatingService);
+exports.RatingService = RatingService;
 
 
 /***/ }),
@@ -1266,7 +1535,7 @@ class RegisterUserDto {
     constructor(name, emailAddress, picture, role, password) {
         this.name = name;
         this.emailAddress = emailAddress;
-        this.picture;
+        this.picture = picture;
         this.role = role;
         this.password = password;
     }
@@ -1441,6 +1710,12 @@ tslib_1.__decorate([
 ], User.prototype, "picture", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
+        ref: 'User'
+    }),
+    tslib_1.__metadata("design:type", Array)
+], User.prototype, "follows", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
         required: [true, 'Role is required!'],
         enum: {
             values: [role_enum_1.Role.BRAND, role_enum_1.Role.CUSTOMER],
@@ -1497,8 +1772,7 @@ let UserService = class UserService {
     }
     registerUser(registerUserDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const user = Object.assign(Object.assign({}, registerUserDto), { 'createdAt': new Date() });
-            return yield this.userModel.create(user);
+            return yield this.userModel.create(Object.assign(Object.assign({ _id: new mongoose_2.default.Types.ObjectId() }, registerUserDto), { createdAt: new Date() }));
         });
     }
 };

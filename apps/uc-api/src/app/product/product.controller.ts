@@ -31,7 +31,7 @@ export class ProductController {
     async createProduct(@Request() req: any, @Body() productDto: ProductDto): Promise<Object> {
         try {
             const createdProduct = await this.productService.createProduct(req.user, productDto);
-
+            
             return {
                 status: 201,
                 message: 'Product has been successfully created!',
