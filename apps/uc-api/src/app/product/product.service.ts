@@ -34,7 +34,7 @@ export class ProductService {
     }
 
     async getCommentById(productId: string, commentId: string): Promise<Comment> {
-        const comment = [].concat(await this.productModel.findOne({ _id: productId, 'comments._id': new mongoose.Types.ObjectId(commentId) }, { _id: 0, comments: 1 }, { 'comments.$': 1 }))[0].comments[0];
+        const comment = [].concat(await this.productModel.findOne({ _id: productId, 'comments._id': new mongoose.Types.ObjectId(commentId) }, { _id: 0, comments: 1 }))[0].comments[0];
 
         if(!comment)
             throw new HttpException(`This comment doesn't exists!`, HttpStatus.NOT_FOUND)
@@ -101,5 +101,3 @@ export class ProductService {
         throw new UnauthorizedException({ message: `This user don't have access to this method!` });
     }
 }
-
-// Dubbele validatie beide services

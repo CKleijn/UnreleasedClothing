@@ -23,7 +23,7 @@ export class CommentService {
         const comment = await this.productService.getCommentById(productId, commentId);
 
         if(!comment)
-            throw new HttpException('This comment doesnt exists!', HttpStatus.NOT_FOUND)
+            throw new HttpException(`This comment doesn't exists!`, HttpStatus.NOT_FOUND)
 
         return comment;
     }
@@ -45,14 +45,13 @@ export class CommentService {
         const comment = await this.getCommentById(productId, commentId);
 
         if(user._id.equals(comment.createdBy._id)) {
-            if(newComment.ratingId) {
+            if(newComment.ratingId)
                 newComment.rating = await this.ratingService.getRatingById(newComment.ratingId);
-            }
 
             return await this.productService.updateCommentFromProduct(user, productId, commentId, newComment);
         }
 
-        throw new UnauthorizedException({ message: "This user don't have access to this method!" });
+        throw new UnauthorizedException({ message: `This user don't have access to this method!` });
     }
 
     async deleteComment(user: any, productId: string, commentId: string): Promise<Comment> {
@@ -61,6 +60,6 @@ export class CommentService {
         if(user._id.equals(comment.createdBy._id)) 
             return await this.productService.deleteCommentFromProduct(user, productId, commentId);
 
-        throw new UnauthorizedException({ message: "This user don't have access to this method!" });
+        throw new UnauthorizedException({ message: `This user don't have access to this method!` });
     }
 }

@@ -35,10 +35,12 @@ export class AuthService {
         if(user) {
             const passwordValid = await bcrypt.compare(password, user.password.toString());
 
-            if (user && passwordValid)
-                return user;
+            if (!passwordValid)
+                throw new HttpException({ message: `This password isn't correct!` }, HttpStatus.CONFLICT);
+
+            return user;
         }
 
-        return null;
+        throw new HttpException({ message: `This user doesn't exists!` }, HttpStatus.NOT_FOUND);
     }
 }

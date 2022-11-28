@@ -165,10 +165,11 @@ let AuthService = class AuthService {
             const user = yield this.userService.getUserByEmailAddress(emailAddress);
             if (user) {
                 const passwordValid = yield bcrypt.compare(password, user.password.toString());
-                if (user && passwordValid)
-                    return user;
+                if (!passwordValid)
+                    throw new common_1.HttpException({ message: `This password isn't correct!` }, common_1.HttpStatus.CONFLICT);
+                return user;
             }
-            return null;
+            throw new common_1.HttpException({ message: `This user doesn't exists!` }, common_1.HttpStatus.NOT_FOUND);
         });
     }
 };
@@ -304,10 +305,7 @@ let LocalStrategy = class LocalStrategy extends (0, passport_1.PassportStrategy)
     }
     validate(username, password) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const user = yield this.authService.validate(username, password);
-            if (!user)
-                throw new common_1.UnauthorizedException({ message: "This user doesn't exists or your password is wrong!" });
-            return user;
+            return yield this.authService.validate(username, password);
         });
     }
 };
@@ -400,12 +398,10 @@ let CategoryController = class CategoryController {
     }
     generateCategoryExceptions(error) {
         var _a, _b, _c, _d, _e;
-        if (error === null || error === void 0 ? void 0 : error.response)
-            throw new common_1.HttpException('This category doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+        if ((error === null || error === void 0 ? void 0 : error.response) || (error === null || error === void 0 ? void 0 : error.name) === 'CastError')
+            throw new common_1.HttpException(`This category doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
         if ((_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.message)
             throw new common_1.UnauthorizedException((_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.message);
-        if ((error === null || error === void 0 ? void 0 : error.name) === 'CastError')
-            throw new common_1.HttpException('This ObjectId doesnt exists!', common_1.HttpStatus.NOT_FOUND);
         if ((_c = error === null || error === void 0 ? void 0 : error.errors) === null || _c === void 0 ? void 0 : _c.title)
             throw new common_1.HttpException(error.errors.title.message, common_1.HttpStatus.CONFLICT);
         if ((_d = error === null || error === void 0 ? void 0 : error.errors) === null || _d === void 0 ? void 0 : _d.description)
@@ -582,7 +578,7 @@ let CategoryService = class CategoryService {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const category = yield this.categoryModel.findById({ _id: categoryId });
             if (!category)
-                throw new common_1.HttpException('This category doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+                throw new common_1.HttpException(`This category doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
             return category;
         });
     }
@@ -596,7 +592,7 @@ let CategoryService = class CategoryService {
             const category = yield this.getCategoryById(categoryId);
             if (user._id.equals(category.createdBy))
                 return yield this.categoryModel.findOneAndUpdate({ _id: categoryId }, newCategory, { new: true });
-            throw new common_1.UnauthorizedException({ message: "This user don't have access to this method!" });
+            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
         });
     }
     deleteCategory(user, categoryId) {
@@ -604,7 +600,7 @@ let CategoryService = class CategoryService {
             const category = yield this.getCategoryById(categoryId);
             if (user._id.equals(category.createdBy))
                 return yield this.categoryModel.findOneAndDelete({ _id: categoryId });
-            throw new common_1.UnauthorizedException({ message: "This user don't have access to this method!" });
+            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
         });
     }
 };
@@ -703,12 +699,10 @@ let CommentController = class CommentController {
     }
     generateCommentExceptions(error) {
         var _a, _b, _c, _d, _e;
-        if (error === null || error === void 0 ? void 0 : error.response)
-            throw new common_1.HttpException('This comment doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+        if ((error === null || error === void 0 ? void 0 : error.response) || (error === null || error === void 0 ? void 0 : error.name) === 'CastError')
+            throw new common_1.HttpException(`This comment doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
         if ((_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.message)
             throw new common_1.UnauthorizedException((_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.message);
-        if ((error === null || error === void 0 ? void 0 : error.name) === 'CastError')
-            throw new common_1.HttpException('This ObjectId doesnt exists!', common_1.HttpStatus.NOT_FOUND);
         if ((_c = error === null || error === void 0 ? void 0 : error.errors) === null || _c === void 0 ? void 0 : _c.title)
             throw new common_1.HttpException(error.errors.title.message, common_1.HttpStatus.CONFLICT);
         if ((_d = error === null || error === void 0 ? void 0 : error.errors) === null || _d === void 0 ? void 0 : _d.body)
@@ -913,7 +907,7 @@ let CommentService = class CommentService {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const comment = yield this.productService.getCommentById(productId, commentId);
             if (!comment)
-                throw new common_1.HttpException('This comment doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+                throw new common_1.HttpException(`This comment doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
             return comment;
         });
     }
@@ -934,12 +928,11 @@ let CommentService = class CommentService {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const comment = yield this.getCommentById(productId, commentId);
             if (user._id.equals(comment.createdBy._id)) {
-                if (newComment.ratingId) {
+                if (newComment.ratingId)
                     newComment.rating = yield this.ratingService.getRatingById(newComment.ratingId);
-                }
                 return yield this.productService.updateCommentFromProduct(user, productId, commentId, newComment);
             }
-            throw new common_1.UnauthorizedException({ message: "This user don't have access to this method!" });
+            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
         });
     }
     deleteComment(user, productId, commentId) {
@@ -947,7 +940,7 @@ let CommentService = class CommentService {
             const comment = yield this.getCommentById(productId, commentId);
             if (user._id.equals(comment.createdBy._id))
                 return yield this.productService.deleteCommentFromProduct(user, productId, commentId);
-            throw new common_1.UnauthorizedException({ message: "This user don't have access to this method!" });
+            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
         });
     }
 };
@@ -1041,12 +1034,10 @@ let ProductController = class ProductController {
     }
     generateProductExceptions(error) {
         var _a, _b, _c, _d, _e, _f;
-        if (error === null || error === void 0 ? void 0 : error.response)
-            throw new common_1.HttpException('This product doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+        if ((error === null || error === void 0 ? void 0 : error.response) || (error === null || error === void 0 ? void 0 : error.name) === 'CastError')
+            throw new common_1.HttpException(`This product doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
         if ((_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.message)
             throw new common_1.UnauthorizedException((_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.message);
-        if ((error === null || error === void 0 ? void 0 : error.name) === 'CastError')
-            throw new common_1.HttpException('This ObjectId doesnt exists!', common_1.HttpStatus.NOT_FOUND);
         if ((_c = error === null || error === void 0 ? void 0 : error.errors) === null || _c === void 0 ? void 0 : _c.name)
             throw new common_1.HttpException(error.errors.name.message, common_1.HttpStatus.CONFLICT);
         if ((_d = error === null || error === void 0 ? void 0 : error.errors) === null || _d === void 0 ? void 0 : _d.picture)
@@ -1265,7 +1256,7 @@ let ProductService = class ProductService {
     }
     getCommentById(productId, commentId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const comment = [].concat(yield this.productModel.findOne({ _id: productId, 'comments._id': new mongoose_2.default.Types.ObjectId(commentId) }, { _id: 0, comments: 1 }, { 'comments.$': 1 }))[0].comments[0];
+            const comment = [].concat(yield this.productModel.findOne({ _id: productId, 'comments._id': new mongoose_2.default.Types.ObjectId(commentId) }, { _id: 0, comments: 1 }))[0].comments[0];
             if (!comment)
                 throw new common_1.HttpException(`This comment doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
             return comment;
@@ -1333,7 +1324,6 @@ ProductService = tslib_1.__decorate([
     tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof category_service_1.CategoryService !== "undefined" && category_service_1.CategoryService) === "function" ? _b : Object, typeof (_c = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _c : Object])
 ], ProductService);
 exports.ProductService = ProductService;
-// Dubbele validatie beide services
 
 
 /***/ }),
@@ -1364,7 +1354,7 @@ let RatingController = class RatingController {
             }
             catch (error) {
                 if (error === null || error === void 0 ? void 0 : error.response)
-                    throw new common_1.HttpException('This rating doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+                    throw new common_1.HttpException(`This rating doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
             }
         });
     }
@@ -1493,7 +1483,7 @@ let RatingService = class RatingService {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const rating = yield this.ratingModel.findById({ _id: ratingId });
             if (!rating)
-                throw new common_1.HttpException('This rating doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+                throw new common_1.HttpException(`This rating doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
             return rating;
         });
     }
@@ -1549,7 +1539,7 @@ exports.RegisterUserDto = RegisterUserDto;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c;
+var _a, _b, _c, _d, _e, _f;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserController = void 0;
 const tslib_1 = __webpack_require__("tslib");
@@ -1558,9 +1548,11 @@ const passport_1 = __webpack_require__("@nestjs/passport");
 const auth_service_1 = __webpack_require__("./apps/uc-api/src/app/auth/auth.service.ts");
 const loginUser_dto_1 = __webpack_require__("./apps/uc-api/src/app/user/dtos/loginUser.dto.ts");
 const registerUser_dto_1 = __webpack_require__("./apps/uc-api/src/app/user/dtos/registerUser.dto.ts");
+const user_service_1 = __webpack_require__("./apps/uc-api/src/app/user/user.service.ts");
 let UserController = class UserController {
-    constructor(authService) {
+    constructor(authService, userService) {
         this.authService = authService;
+        this.userService = userService;
     }
     login(loginUserDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
@@ -1586,16 +1578,25 @@ let UserController = class UserController {
             }
         });
     }
+    getProfile(req) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.userService.getUserByEmailAddress(req.user.emailAddress);
+        });
+    }
+    getUser(userId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield this.userService.getUserById(userId);
+            }
+            catch (error) {
+                this.generateUserExceptions(error);
+            }
+        });
+    }
     generateUserExceptions(error) {
         var _a, _b, _c, _d, _e;
-        if ((error === null || error === void 0 ? void 0 : error.response) === `This user doesn't exists or your password is wrong!`)
-            throw new common_1.UnauthorizedException(error.response);
-        if ((error === null || error === void 0 ? void 0 : error.response) === 'This user already exists!')
-            throw new common_1.HttpException(error.response, common_1.HttpStatus.CONFLICT);
-        if ((error === null || error === void 0 ? void 0 : error.response) === 'Password is required!')
-            throw new common_1.HttpException(error.response, common_1.HttpStatus.CONFLICT);
         if ((error === null || error === void 0 ? void 0 : error.name) === 'CastError')
-            throw new common_1.HttpException('This ObjectId doesnt exists!', common_1.HttpStatus.NOT_FOUND);
+            throw new common_1.HttpException(`This user doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
         if ((_a = error === null || error === void 0 ? void 0 : error.errors) === null || _a === void 0 ? void 0 : _a.name)
             throw new common_1.HttpException(error.errors.name.message, common_1.HttpStatus.CONFLICT);
         if ((_b = error === null || error === void 0 ? void 0 : error.errors) === null || _b === void 0 ? void 0 : _b.emailAddress)
@@ -1613,19 +1614,34 @@ tslib_1.__decorate([
     (0, common_1.Post)('login'),
     tslib_1.__param(0, (0, common_1.Body)()),
     tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", [typeof (_b = typeof loginUser_dto_1.LoginUserDto !== "undefined" && loginUser_dto_1.LoginUserDto) === "function" ? _b : Object]),
+    tslib_1.__metadata("design:paramtypes", [typeof (_c = typeof loginUser_dto_1.LoginUserDto !== "undefined" && loginUser_dto_1.LoginUserDto) === "function" ? _c : Object]),
     tslib_1.__metadata("design:returntype", Promise)
 ], UserController.prototype, "login", null);
 tslib_1.__decorate([
     (0, common_1.Post)('register'),
     tslib_1.__param(0, (0, common_1.Body)()),
     tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", [typeof (_c = typeof registerUser_dto_1.RegisterUserDto !== "undefined" && registerUser_dto_1.RegisterUserDto) === "function" ? _c : Object]),
+    tslib_1.__metadata("design:paramtypes", [typeof (_d = typeof registerUser_dto_1.RegisterUserDto !== "undefined" && registerUser_dto_1.RegisterUserDto) === "function" ? _d : Object]),
     tslib_1.__metadata("design:returntype", Promise)
 ], UserController.prototype, "register", null);
+tslib_1.__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.Get)('profile'),
+    tslib_1.__param(0, (0, common_1.Request)()),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [Object]),
+    tslib_1.__metadata("design:returntype", typeof (_e = typeof Promise !== "undefined" && Promise) === "function" ? _e : Object)
+], UserController.prototype, "getProfile", null);
+tslib_1.__decorate([
+    (0, common_1.Get)(':userId'),
+    tslib_1.__param(0, (0, common_1.Param)('userId')),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [String]),
+    tslib_1.__metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
+], UserController.prototype, "getUser", null);
 UserController = tslib_1.__decorate([
     (0, common_1.Controller)('user'),
-    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof auth_service_1.AuthService !== "undefined" && auth_service_1.AuthService) === "function" ? _a : Object])
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof auth_service_1.AuthService !== "undefined" && auth_service_1.AuthService) === "function" ? _a : Object, typeof (_b = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _b : Object])
 ], UserController);
 exports.UserController = UserController;
 
@@ -1765,9 +1781,20 @@ let UserService = class UserService {
     constructor(userModel) {
         this.userModel = userModel;
     }
+    getUserById(userId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const user = yield this.userModel.findOne({ _id: userId });
+            if (!user)
+                throw new common_1.HttpException({ message: `This user doesn't exists!` }, common_1.HttpStatus.NOT_FOUND);
+            return user;
+        });
+    }
     getUserByEmailAddress(emailAddress) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.userModel.findOne({ emailAddress });
+            const user = yield this.userModel.findOne({ emailAddress });
+            if (!user)
+                throw new common_1.HttpException({ message: `This user doesn't exists!` }, common_1.HttpStatus.NOT_FOUND);
+            return user;
         });
     }
     registerUser(registerUserDto) {
