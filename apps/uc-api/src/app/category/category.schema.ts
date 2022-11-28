@@ -21,7 +21,9 @@ export class Category {
     @Prop()
     createdAt: Date;
 
-    @Prop()
+    @Prop({
+        ref: 'User'
+    })
     createdBy: ObjectId;
 }
 

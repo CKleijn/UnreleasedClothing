@@ -1,7 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { ObjectId } from 'mongoose';
 
 @Schema()
 export class Rating {
+    @Prop()
+    _id: ObjectId;
+
     @Prop({
         required: [true, 'Title is required!'],
     })
@@ -15,7 +19,7 @@ export class Rating {
     @Prop({
         required: [true, 'Mark is required!'],
     })
-    mark: Number;
+    grade: Number;
 
     @Prop({
         required: [true, 'Description is required!'],

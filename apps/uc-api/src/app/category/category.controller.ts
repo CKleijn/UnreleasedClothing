@@ -76,14 +76,11 @@ export class CategoryController {
     }
 
     generateCategoryExceptions(error: any) {
-        if(error?.response)
-            throw new HttpException('This category doesnt exists!', HttpStatus.NOT_FOUND)
+        if(error?.response || error?.name === 'CastError')
+            throw new HttpException(`This category doesn't exists!`, HttpStatus.NOT_FOUND)
 
         if(error?.response?.message)
             throw new UnauthorizedException(error?.response?.message);
-
-        if(error?.name === 'CastError')
-            throw new HttpException('This ObjectId doesnt exists!', HttpStatus.NOT_FOUND)
 
         if(error?.errors?.title)
             throw new HttpException(error.errors.title.message, HttpStatus.CONFLICT);

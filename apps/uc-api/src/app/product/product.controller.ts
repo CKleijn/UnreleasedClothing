@@ -31,7 +31,7 @@ export class ProductController {
     async createProduct(@Request() req: any, @Body() productDto: ProductDto): Promise<Object> {
         try {
             const createdProduct = await this.productService.createProduct(req.user, productDto);
-
+            
             return {
                 status: 201,
                 message: 'Product has been successfully created!',
@@ -76,15 +76,12 @@ export class ProductController {
     }
 
     generateProductExceptions(error: any) {
-        if(error?.response)
-            throw new HttpException('This product doesnt exists!', HttpStatus.NOT_FOUND)
+        if(error?.response || error?.name === 'CastError')
+            throw new HttpException(`This product doesn't exists!`, HttpStatus.NOT_FOUND)
 
         if(error?.response?.message)
             throw new UnauthorizedException(error?.response?.message);
             
-        if(error?.name === 'CastError')
-            throw new HttpException('This ObjectId doesnt exists!', HttpStatus.NOT_FOUND)
-
         if(error?.errors?.name)
             throw new HttpException(error.errors.name.message, HttpStatus.CONFLICT);
 

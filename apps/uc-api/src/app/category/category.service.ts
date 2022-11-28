@@ -16,16 +16,14 @@ export class CategoryService {
         const category = await this.categoryModel.findById({ _id: categoryId });
 
         if(!category)
-            throw new HttpException('This category doesnt exists!', HttpStatus.NOT_FOUND)
+            throw new HttpException(`This category doesn't exists!`, HttpStatus.NOT_FOUND)
 
         return category;
     }
 
     async createCategory(user: any, categoryDto: CategoryDto): Promise<Category> {
         return await this.categoryModel.create({
-            title: categoryDto.title,
-            description: categoryDto.description,
-            icon: categoryDto.icon,
+            ...categoryDto,
             createdAt: new Date(),
             createdBy: user._id
         });
@@ -37,7 +35,7 @@ export class CategoryService {
         if(user._id.equals(category.createdBy)) 
             return await this.categoryModel.findOneAndUpdate({ _id: categoryId }, newCategory, { new: true });
 
-        throw new UnauthorizedException({ message: "This user don't have access to this method!" });
+        throw new UnauthorizedException({ message: `This user don't have access to this method!` });
     }
 
     async deleteCategory(user: any, categoryId: string): Promise<Category> {
@@ -46,6 +44,6 @@ export class CategoryService {
         if(user._id.equals(category.createdBy)) 
             return await this.categoryModel.findOneAndDelete({ _id: categoryId });
 
-        throw new UnauthorizedException({ message: "This user don't have access to this method!" });
+        throw new UnauthorizedException({ message: `This user don't have access to this method!` });
     }
 }

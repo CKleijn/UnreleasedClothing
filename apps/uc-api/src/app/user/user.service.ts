@@ -1,6 +1,6 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import mongoose, { Model } from "mongoose";
 import { RegisterUserDto } from "./dtos/registerUser.dto";
 import { User } from "./user.schema";
 
@@ -8,15 +8,29 @@ import { User } from "./user.schema";
 export class UserService {
     constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
+    async getUserById(userId: string): Promise<User> {
+        const user = await this.userModel.findOne({ _id: userId });
+
+        if(!user)
+            throw new HttpException({ message: `This user doesn't exists!` }, HttpStatus.NOT_FOUND);
+
+        return user;
+    }
+
     async getUserByEmailAddress(emailAddress: string): Promise<User> {
-        return await this.userModel.findOne({ emailAddress });
+        const user = await this.userModel.findOne({ emailAddress });
+
+        if(!user)
+            throw new HttpException({ message: `This user doesn't exists!` }, HttpStatus.NOT_FOUND);
+
+        return user;
     }
 
     async registerUser(registerUserDto: RegisterUserDto): Promise<User> {
-        const user = {
+        return await this.userModel.create({
+            _id: new mongoose.Types.ObjectId(),
             ...registerUserDto,
-            'createdAt': new Date()
-        }
-        return await this.userModel.create(user);
+            createdAt: new Date()
+        });
     }
 }

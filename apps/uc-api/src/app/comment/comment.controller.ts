@@ -16,10 +16,15 @@ export class CommentController {
         return await this.commentService.getAllComments();
     }
 
-    @Get('comment/:commentId')
-    async getCommentById(@Param('commentId') commentId: string): Promise<Comment> {
+    @Get('product/:productId/comments')
+    async getAllCommentsFromProduct(@Param('productId') productId: string): Promise<Comment[]> {
+        return await this.commentService.getAllCommentsFromProduct(productId);
+    }
+
+    @Get('product/:productId/comment/:commentId')
+    async getCommentById(@Param('productId') productId: string, @Param('commentId') commentId: string): Promise<Comment> {
         try {
-            return await this.commentService.getCommentById(commentId);
+            return await this.commentService.getCommentById(productId, commentId);
         } catch (error) {
             this.generateCommentExceptions(error);
         }
@@ -27,15 +32,15 @@ export class CommentController {
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.CUSTOMER)
-    @Post('comment')
-    async createComment(@Request() req: any, @Body() commentDto: CommentDto): Promise<Object> {
+    @Post('product/:productId/comment')
+    async createComment(@Request() req: any, @Param('productId') productId: string, @Body() commentDto: CommentDto): Promise<Object> {
         try {
-            const createdComment = await this.commentService.createComment(req.user, commentDto);
+            const createdComment = await this.commentService.createComment(req.user, productId, commentDto);
 
             return {
                 status: 201,
                 message: 'Comment has been succesfully created!',
-                comment: createdComment
+                comment: createdComment.comments[createdComment.comments.length - 1]
             }
         } catch (error) {
             this.generateCommentExceptions(error);
@@ -44,10 +49,10 @@ export class CommentController {
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.CUSTOMER)
-    @Put('comment/:commentId')
-    async updateComment(@Request() req: any, @Param('commentId') commentId: string, @Body() newComment: Partial<CommentDto>): Promise<Object> {
+    @Put('product/:productId/comment/:commentId')
+    async updateComment(@Request() req: any, @Param('productId') productId: string, @Param('commentId') commentId: string, @Body() newComment: Partial<CommentDto>): Promise<Object> {
         try {
-            const updatedComment = await this.commentService.updateComment(req.user, commentId, newComment);
+            const updatedComment = await this.commentService.updateComment(req.user, productId, commentId, newComment);
 
             return {
                 status: 200,
@@ -61,10 +66,10 @@ export class CommentController {
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.CUSTOMER)
-    @Delete('comment/:commentId')
-    async deleteComment(@Request() req: any, @Param('commentId') commentId: string): Promise<Object> {
+    @Delete('product/:productId/comment/:commentId')
+    async deleteComment(@Request() req: any, @Param('productId') productId: string, @Param('commentId') commentId: string): Promise<Object> {
         try {
-            await this.commentService.deleteComment(req.user, commentId);
+            await this.commentService.deleteComment(req.user, productId, commentId);
 
             return {
                 status: 200,
@@ -76,14 +81,11 @@ export class CommentController {
     }
 
     generateCommentExceptions(error: any) {
-        if(error?.response)
-            throw new HttpException('This comment doesnt exists!', HttpStatus.NOT_FOUND)
+        if(error?.response || error?.name === 'CastError')
+            throw new HttpException(`This comment doesn't exists!`, HttpStatus.NOT_FOUND)
 
         if(error?.response?.message)
             throw new UnauthorizedException(error?.response?.message);
-
-        if(error?.name === 'CastError')
-            throw new HttpException('This ObjectId doesnt exists!', HttpStatus.NOT_FOUND)
 
         if(error?.errors?.title)
             throw new HttpException(error.errors.title.message, HttpStatus.CONFLICT);

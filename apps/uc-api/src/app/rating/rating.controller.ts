@@ -17,7 +17,7 @@ export class RatingController {
             return await this.ratingService.getRatingById(ratingId);
         } catch (error) {
             if(error?.response)
-                throw new HttpException('This rating doesnt exists!', HttpStatus.NOT_FOUND)
+                throw new HttpException(`This rating doesn't exists!`, HttpStatus.NOT_FOUND)
         }
     }
 }

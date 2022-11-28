@@ -15,7 +15,7 @@ export class RatingService {
         const rating = await this.ratingModel.findById({ _id: ratingId });
 
         if(!rating)
-            throw new HttpException('This rating doesnt exists!', HttpStatus.NOT_FOUND)
+            throw new HttpException(`This rating doesn't exists!`, HttpStatus.NOT_FOUND)
 
         return rating;
     }

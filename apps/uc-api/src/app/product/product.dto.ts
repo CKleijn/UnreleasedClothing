@@ -3,4 +3,6 @@ export class ProductDto {
     picture: string;
     price: number;
     description: string;
+    category: string;
+    comments: [Comment]
 }

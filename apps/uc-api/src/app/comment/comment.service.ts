@@ -1,52 +1,65 @@
 import { HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { UserService } from "../user/user.service";
+import mongoose, { Model } from "mongoose";
+import { Product } from "../product/product.schema";
+import { ProductService } from "../product/product.service";
+import { RatingService } from "../rating/rating.service";
 import { CommentDto } from "./comment.dto";
 import { Comment } from "./comment.schema";
 
 @Injectable()
 export class CommentService {
-    constructor(@InjectModel(Comment.name) private commentModel: Model<Comment>, private userService: UserService) {}
+    constructor(@InjectModel(Comment.name) private commentModel: Model<Comment>, private ratingService: RatingService, private productService: ProductService) {}
 
     async getAllComments(): Promise<Comment[]> {
-        return await this.commentModel.find();
+        return await this.productService.getAllComments();
+    }
+    
+    async getAllCommentsFromProduct(productId: string): Promise<Comment[]> {
+        return await this.productService.getAllCommentsFromProduct(productId);
     }
 
-    async getCommentById(commentId: string): Promise<Comment> {
-        const comment = await this.commentModel.findById({ _id: commentId });
+    async getCommentById(productId: string, commentId: string): Promise<Comment> {
+        const comment = await this.productService.getCommentById(productId, commentId);
 
         if(!comment)
-            throw new HttpException('This comment doesnt exists!', HttpStatus.NOT_FOUND)
+            throw new HttpException(`This comment doesn't exists!`, HttpStatus.NOT_FOUND)
 
         return comment;
     }
 
-    async createComment(user: any, commentDto: CommentDto): Promise<Comment> {
-        return await this.commentModel.create({
+    async createComment(user: any, productId: string, commentDto: CommentDto): Promise<Product> {
+        const comment = {
+            _id: new mongoose.Types.ObjectId(),
             title: commentDto.title,
             body: commentDto.body,
-            rating: commentDto.rating,
-            createdAt: new Date(),
-            createdBy: await this.userService.getUserByEmailAddress(user.emailAddress)
-        });
+            rating: await this.ratingService.getRatingById(commentDto.ratingId),
+            createdBy: user._id,
+            createdAt: new Date()
+        }
+        
+        return await this.productService.addCommentToProduct(productId, comment);
     }
 
-    async updateComment(user: any, commentId: string, newComment: Partial<CommentDto>): Promise<Comment> {
-        const comment = await this.getCommentById(commentId);
+    async updateComment(user: any, productId: string, commentId: string, newComment: Partial<CommentDto>): Promise<Comment> {
+        const comment = await this.getCommentById(productId, commentId);
 
-        if(user._id.equals(comment.createdBy._id)) 
-            return await this.commentModel.findOneAndUpdate({ _id: commentId }, newComment, { new: true });
+        if(user._id.equals(comment.createdBy._id)) {
+            if(newComment.ratingId)
+                newComment.rating = await this.ratingService.getRatingById(newComment.ratingId);
 
-        throw new UnauthorizedException({ message: "This user don't have access to this method!" });
+            return await this.productService.updateCommentFromProduct(user, productId, commentId, newComment);
+        }
+
+        throw new UnauthorizedException({ message: `This user don't have access to this method!` });
     }
 
-    async deleteComment(user: any, commentId: string): Promise<Comment> {
-        const comment = await this.getCommentById(commentId);
+    async deleteComment(user: any, productId: string, commentId: string): Promise<Comment> {
+        const comment = await this.getCommentById(productId, commentId);
 
         if(user._id.equals(comment.createdBy._id)) 
-            return await this.commentModel.findOneAndDelete({ _id: commentId });
+            return await this.productService.deleteCommentFromProduct(user, productId, commentId);
 
-        throw new UnauthorizedException({ message: "This user don't have access to this method!" });
+        throw new UnauthorizedException({ message: `This user don't have access to this method!` });
     }
 }

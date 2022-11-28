@@ -1,15 +1,16 @@
-import { Body, Controller, Get, HttpException, HttpStatus, Post, UnauthorizedException, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpException, HttpStatus, Param, Post, Request, UseGuards } from "@nestjs/common";
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from "../auth/auth.service";
 import { Role } from "../auth/roles/role.enum";
 import { Roles } from "../auth/roles/roles.decorator";
-import { RolesGuard } from "../auth/roles/roles.guard";
 import { LoginUserDto } from "./dtos/loginUser.dto";
 import { RegisterUserDto } from "./dtos/registerUser.dto";
+import { User } from "./user.schema";
+import { UserService } from "./user.service";
 
 @Controller('user')
 export class UserController {
-    constructor(private authService: AuthService) {}
+    constructor(private authService: AuthService, private userService: UserService) {}
 
     @UseGuards(AuthGuard('local'))
     @Post('login')
@@ -35,18 +36,24 @@ export class UserController {
         }
     }
 
+    @UseGuards(AuthGuard('jwt'))
+    @Get('profile')
+    async getProfile(@Request() req: any): Promise<User> {
+        return await this.userService.getUserByEmailAddress(req.user.emailAddress);
+    }
+
+    @Get(':userId')
+    async getUser(@Param('userId') userId: string): Promise<User> {
+        try {
+            return await this.userService.getUserById(userId);
+        } catch (error) {
+            this.generateUserExceptions(error);
+        }
+    }
+
     generateUserExceptions(error: any) {
-        if(error?.response === `This user doesn't exists or your password is wrong!`)
-            throw new UnauthorizedException(error.response);
-
-        if(error?.response === 'This user already exists!')
-            throw new HttpException(error.response, HttpStatus.CONFLICT);
-
-        if(error?.response === 'Password is required!')
-            throw new HttpException(error.response, HttpStatus.CONFLICT);
-
         if(error?.name === 'CastError')
-            throw new HttpException('This ObjectId doesnt exists!', HttpStatus.NOT_FOUND)
+            throw new HttpException(`This user doesn't exists!`, HttpStatus.NOT_FOUND)
 
         if(error?.errors?.name)
             throw new HttpException(error.errors.name.message, HttpStatus.CONFLICT);
