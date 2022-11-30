@@ -149,7 +149,7 @@ let AuthService = class AuthService {
             if (!user) {
                 if (registerUserDto.password !== undefined) {
                     registerUserDto.password = yield bcrypt.hash(registerUserDto.password, 10);
-                    return yield this.userService.registerUser(registerUserDto);
+                    yield this.userService.registerUser(registerUserDto);
                 }
                 else {
                     throw new common_1.HttpException('Password is required!', common_1.HttpStatus.CONFLICT);
@@ -355,11 +355,10 @@ let CategoryController = class CategoryController {
     createCategory(req, categoryDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                const createdCategory = yield this.categoryService.createCategory(req.user, categoryDto);
+                yield this.categoryService.createCategory(req.user, categoryDto);
                 return {
                     status: 201,
-                    message: 'Category has been succesfully created!',
-                    category: createdCategory
+                    message: 'Category has been succesfully created!'
                 };
             }
             catch (error) {
@@ -370,11 +369,10 @@ let CategoryController = class CategoryController {
     updateCategory(req, categoryId, newCategory) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                const updatedCategory = yield this.categoryService.updateCategory(req.user, categoryId, newCategory);
+                yield this.categoryService.updateCategory(req.user, categoryId, newCategory);
                 return {
                     status: 200,
-                    message: 'Category has been succesfully updated!',
-                    category: updatedCategory
+                    message: 'Category has been succesfully updated!'
                 };
             }
             catch (error) {
@@ -571,36 +569,80 @@ let CategoryService = class CategoryService {
     }
     getAllCategories() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.categoryModel.find();
+            const categories = yield this.categoryModel.aggregate([
+                {
+                    '$lookup': {
+                        'from': 'users',
+                        'localField': 'createdBy',
+                        'foreignField': '_id',
+                        'as': 'user'
+                    }
+                }, {
+                    '$set': {
+                        'createdBy': {
+                            '$first': '$user'
+                        }
+                    }
+                }, {
+                    '$project': {
+                        'user': 0
+                    }
+                }
+            ]);
+            return categories;
         });
     }
     getCategoryById(categoryId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const category = yield this.categoryModel.findById({ _id: categoryId });
+            const category = yield this.categoryModel.aggregate([
+                {
+                    '$match': {
+                        '_id': new mongoose_2.default.Types.ObjectId(categoryId)
+                    }
+                },
+                {
+                    '$lookup': {
+                        'from': 'users',
+                        'localField': 'createdBy',
+                        'foreignField': '_id',
+                        'as': 'user'
+                    }
+                }, {
+                    '$set': {
+                        'createdBy': {
+                            '$first': '$user'
+                        }
+                    }
+                }, {
+                    '$project': {
+                        'user': 0
+                    }
+                }
+            ]);
             if (!category)
                 throw new common_1.HttpException(`This category doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
-            return category;
+            return category[0];
         });
     }
     createCategory(user, categoryDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.categoryModel.create(Object.assign(Object.assign({}, categoryDto), { createdAt: new Date(), createdBy: user._id }));
+            yield this.categoryModel.create(Object.assign(Object.assign({}, categoryDto), { createdAt: new Date(), createdBy: user._id }));
         });
     }
     updateCategory(user, categoryId, newCategory) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const category = yield this.getCategoryById(categoryId);
-            if (user._id.equals(category.createdBy))
-                return yield this.categoryModel.findOneAndUpdate({ _id: categoryId }, newCategory, { new: true });
-            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+            const category = yield this.categoryModel.findById({ _id: categoryId });
+            if (!user._id.equals(category.createdBy))
+                throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+            yield this.categoryModel.findOneAndUpdate({ _id: categoryId }, newCategory, { new: true });
         });
     }
     deleteCategory(user, categoryId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const category = yield this.getCategoryById(categoryId);
-            if (user._id.equals(category.createdBy))
-                return yield this.categoryModel.findOneAndDelete({ _id: categoryId });
-            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+            const category = yield this.categoryModel.findById({ _id: categoryId });
+            if (!user._id.equals(category.createdBy))
+                throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+            yield this.categoryModel.findOneAndDelete({ _id: categoryId });
         });
     }
 };
@@ -656,11 +698,10 @@ let CommentController = class CommentController {
     createComment(req, productId, commentDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                const createdComment = yield this.commentService.createComment(req.user, productId, commentDto);
+                yield this.commentService.createComment(req.user, productId, commentDto);
                 return {
                     status: 201,
-                    message: 'Comment has been succesfully created!',
-                    comment: createdComment.comments[createdComment.comments.length - 1]
+                    message: 'Comment has been succesfully created!'
                 };
             }
             catch (error) {
@@ -671,11 +712,10 @@ let CommentController = class CommentController {
     updateComment(req, productId, commentId, newComment) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                const updatedComment = yield this.commentService.updateComment(req.user, productId, commentId, newComment);
+                yield this.commentService.updateComment(req.user, productId, commentId, newComment);
                 return {
                     status: 200,
-                    message: 'Comment has been succesfully updated!',
-                    comment: updatedComment
+                    message: 'Comment has been succesfully updated!'
                 };
             }
             catch (error) {
@@ -905,10 +945,7 @@ let CommentService = class CommentService {
     }
     getCommentById(productId, commentId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const comment = yield this.productService.getCommentById(productId, commentId);
-            if (!comment)
-                throw new common_1.HttpException(`This comment doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
-            return comment;
+            return yield this.productService.getCommentById(productId, commentId);
         });
     }
     createComment(user, productId, commentDto) {
@@ -921,26 +958,19 @@ let CommentService = class CommentService {
                 createdBy: user._id,
                 createdAt: new Date()
             };
-            return yield this.productService.addCommentToProduct(productId, comment);
+            yield this.productService.addCommentToProduct(productId, comment);
         });
     }
     updateComment(user, productId, commentId, newComment) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const comment = yield this.getCommentById(productId, commentId);
-            if (user._id.equals(comment.createdBy._id)) {
-                if (newComment.ratingId)
-                    newComment.rating = yield this.ratingService.getRatingById(newComment.ratingId);
-                return yield this.productService.updateCommentFromProduct(user, productId, commentId, newComment);
-            }
-            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+            if (newComment.ratingId)
+                newComment.rating = yield this.ratingService.getRatingById(newComment.ratingId);
+            yield this.productService.updateCommentFromProduct(user, productId, commentId, newComment);
         });
     }
     deleteComment(user, productId, commentId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const comment = yield this.getCommentById(productId, commentId);
-            if (user._id.equals(comment.createdBy._id))
-                return yield this.productService.deleteCommentFromProduct(user, productId, commentId);
-            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+            yield this.productService.deleteCommentFromProduct(user, productId, commentId);
         });
     }
 };
@@ -991,11 +1021,10 @@ let ProductController = class ProductController {
     createProduct(req, productDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                const createdProduct = yield this.productService.createProduct(req.user, productDto);
+                yield this.productService.createProduct(req.user, productDto);
                 return {
                     status: 201,
-                    message: 'Product has been successfully created!',
-                    product: createdProduct
+                    message: 'Product has been successfully created!'
                 };
             }
             catch (error) {
@@ -1006,11 +1035,10 @@ let ProductController = class ProductController {
     updateProduct(req, productId, newProduct) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                const updatedProduct = yield this.productService.updateProduct(req.user, productId, newProduct);
+                yield this.productService.updateProduct(req.user, productId, newProduct);
                 return {
                     status: 200,
-                    message: 'Product has been successfully updated!',
-                    product: updatedProduct
+                    message: 'Product has been successfully updated!'
                 };
             }
             catch (error) {
@@ -1233,38 +1261,250 @@ let ProductService = class ProductService {
     }
     getAllProducts() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.productModel.find();
+            const products = yield this.productModel.aggregate([
+                {
+                    '$unwind': {
+                        'path': '$comments'
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'users',
+                        'localField': 'comments.createdBy',
+                        'foreignField': '_id',
+                        'as': 'comment.createdBy'
+                    }
+                }, {
+                    '$set': {
+                        'comments.createdBy': {
+                            '$first': '$comment.createdBy'
+                        }
+                    }
+                }, {
+                    '$group': {
+                        '_id': '$_id',
+                        'name': {
+                            $first: '$name'
+                        },
+                        'picture': {
+                            $first: '$picture'
+                        },
+                        'price': {
+                            $first: '$price'
+                        },
+                        'description': {
+                            $first: '$description'
+                        },
+                        'category': {
+                            $first: '$category'
+                        },
+                        'comments': {
+                            '$push': '$comments'
+                        },
+                        'isActive': {
+                            $first: '$isActive'
+                        },
+                        'createdBy': {
+                            $first: '$createdBy'
+                        },
+                        'createdAt': {
+                            $first: '$createdAt'
+                        },
+                        '__v': {
+                            $first: '$__v'
+                        }
+                    }
+                }
+            ]);
+            return products;
         });
     }
     getAllComments() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return [].concat(yield this.productModel.find({}, { _id: 0, comments: 1 }))[0].comments;
+            const comments = yield this.productModel.aggregate([
+                {
+                    '$unwind': {
+                        'path': '$comments'
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'users',
+                        'localField': 'comments.createdBy',
+                        'foreignField': '_id',
+                        'as': 'comment.createdBy'
+                    }
+                }, {
+                    '$set': {
+                        'comments.createdBy': {
+                            '$first': '$comment.createdBy'
+                        }
+                    }
+                }, {
+                    '$group': {
+                        '_id': '$_id',
+                        'comments': {
+                            '$push': '$comments'
+                        }
+                    }
+                }, {
+                    '$project': {
+                        '_id': 0,
+                        'comments': 1
+                    }
+                }
+            ]);
+            return comments[0].comments;
         });
     }
     getAllCommentsFromProduct(productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return [].concat(yield this.productModel.find({ _id: productId }, { _id: 0, comments: 1 }))[0].comments;
+            const comments = yield this.productModel.aggregate([
+                {
+                    '$match': {
+                        '_id': new mongoose_2.default.Types.ObjectId(productId)
+                    }
+                }, {
+                    '$unwind': {
+                        'path': '$comments'
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'users',
+                        'localField': 'comments.createdBy',
+                        'foreignField': '_id',
+                        'as': 'comment.createdBy'
+                    }
+                }, {
+                    '$set': {
+                        'comments.createdBy': {
+                            '$first': '$comment.createdBy'
+                        }
+                    }
+                }, {
+                    '$group': {
+                        '_id': new mongoose_2.default.Types.ObjectId(productId),
+                        'comments': {
+                            '$push': '$comments'
+                        }
+                    }
+                }, {
+                    '$project': {
+                        '_id': 0,
+                        'comments': 1
+                    }
+                }
+            ]);
+            return comments[0].comments;
         });
     }
     getProductById(productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const product = yield this.productModel.findById({ _id: productId });
-            if (!product)
+            const product = yield this.productModel.aggregate([
+                {
+                    '$match': {
+                        '_id': new mongoose_2.default.Types.ObjectId(productId)
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$comments'
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'users',
+                        'localField': 'comments.createdBy',
+                        'foreignField': '_id',
+                        'as': 'comment.createdBy'
+                    }
+                }, {
+                    '$set': {
+                        'comments.createdBy': {
+                            '$first': '$comment.createdBy'
+                        }
+                    }
+                }, {
+                    '$group': {
+                        '_id': '$_id',
+                        'name': {
+                            $first: '$name'
+                        },
+                        'picture': {
+                            $first: '$picture'
+                        },
+                        'price': {
+                            $first: '$price'
+                        },
+                        'description': {
+                            $first: '$description'
+                        },
+                        'category': {
+                            $first: '$category'
+                        },
+                        'comments': {
+                            '$push': '$comments'
+                        },
+                        'isActive': {
+                            $first: '$isActive'
+                        },
+                        'createdBy': {
+                            $first: '$createdBy'
+                        },
+                        'createdAt': {
+                            $first: '$createdAt'
+                        },
+                        '__v': {
+                            $first: '$__v'
+                        }
+                    }
+                }
+            ]);
+            if (!product[0])
                 throw new common_1.HttpException(`This product doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
-            return product;
+            return product[0];
         });
     }
     getCommentById(productId, commentId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const comment = [].concat(yield this.productModel.findOne({ _id: productId, 'comments._id': new mongoose_2.default.Types.ObjectId(commentId) }, { _id: 0, comments: 1 }))[0].comments[0];
-            if (!comment)
+            const comment = yield this.productModel.aggregate([
+                {
+                    '$match': {
+                        '_id': new mongoose_2.default.Types.ObjectId(productId)
+                    }
+                }, {
+                    '$unwind': {
+                        'path': '$comments'
+                    }
+                }, {
+                    '$match': {
+                        'comments._id': new mongoose_2.default.Types.ObjectId(commentId)
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'users',
+                        'localField': 'comments.createdBy',
+                        'foreignField': '_id',
+                        'as': 'comment.createdBy'
+                    }
+                }, {
+                    '$set': {
+                        'comments.createdBy': {
+                            '$first': '$comment.createdBy'
+                        }
+                    }
+                }, {
+                    '$project': {
+                        '_id': 0,
+                        'comments': 1
+                    }
+                }
+            ]);
+            if (!comment[0].comments)
                 throw new common_1.HttpException(`This comment doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
-            return comment;
+            return comment[0].comments;
         });
     }
     createProduct(user, productDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.productModel.create({
+            yield this.productModel.create({
                 name: productDto.name,
                 picture: productDto.picture,
                 price: productDto.price,
@@ -1279,42 +1519,39 @@ let ProductService = class ProductService {
     }
     addCommentToProduct(productId, newComment) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.productModel.findOneAndUpdate({ _id: productId }, { $push: { comments: newComment } }, { new: true });
+            yield this.productModel.findOneAndUpdate({ _id: productId }, { $push: { comments: newComment } });
         });
     }
     updateProduct(user, productId, newProduct) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const product = yield this.getProductById(productId);
-            if (user._id.equals(product.createdBy))
-                return yield this.productModel.findOneAndUpdate({ _id: productId }, newProduct, { new: true });
-            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+            const product = yield this.productModel.findById({ _id: productId });
+            if (!user._id.equals(product.createdBy._id))
+                throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+            yield this.productModel.findOneAndUpdate({ _id: productId }, newProduct);
         });
     }
     updateCommentFromProduct(user, productId, commentId, newComment) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const oldComment = yield this.getCommentById(productId, commentId);
-            if (user._id.equals(oldComment.createdBy._id)) {
-                const updateComment = yield this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose_2.default.Types.ObjectId(commentId) }, { $set: { 'comments.$.title': newComment === null || newComment === void 0 ? void 0 : newComment.title, 'comments.$.body': newComment === null || newComment === void 0 ? void 0 : newComment.body, 'comments.$.rating': newComment === null || newComment === void 0 ? void 0 : newComment.rating } });
-                const comment = yield this.getCommentById(productId, commentId);
-                return comment;
-            }
-            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+            if (!user._id.equals(oldComment.createdBy._id))
+                throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+            yield this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose_2.default.Types.ObjectId(commentId) }, { $set: { 'comments.$.title': newComment === null || newComment === void 0 ? void 0 : newComment.title, 'comments.$.body': newComment === null || newComment === void 0 ? void 0 : newComment.body, 'comments.$.rating': newComment === null || newComment === void 0 ? void 0 : newComment.rating } });
         });
     }
     deleteProduct(user, productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const product = yield this.getProductById(productId);
-            if (user._id.equals(product.createdBy))
-                return yield this.productModel.findOneAndDelete({ _id: productId });
-            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+            const product = yield this.productModel.findById({ _id: productId });
+            if (!user._id.equals(product.createdBy._id))
+                throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+            yield this.productModel.findOneAndDelete({ _id: productId });
         });
     }
     deleteCommentFromProduct(user, productId, commentId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const comment = yield this.getCommentById(productId, commentId);
-            if (user._id.equals(comment.createdBy._id))
-                return yield this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose_2.default.Types.ObjectId(commentId) }, { $pull: { 'comments': { _id: new mongoose_2.default.Types.ObjectId(commentId) } } }, { new: true });
-            throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+            if (!user._id.equals(comment.createdBy._id))
+                throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
+            yield this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose_2.default.Types.ObjectId(commentId) }, { $pull: { 'comments': { _id: new mongoose_2.default.Types.ObjectId(commentId) } } }, { new: true });
         });
     }
 };
@@ -1539,7 +1776,7 @@ exports.RegisterUserDto = RegisterUserDto;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c, _d, _e, _f;
+var _a, _b, _c, _d, _e, _f, _g, _h;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserController = void 0;
 const tslib_1 = __webpack_require__("tslib");
@@ -1571,9 +1808,14 @@ let UserController = class UserController {
     register(registerUserDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                return yield this.authService.register(registerUserDto);
+                yield this.authService.register(registerUserDto);
+                return {
+                    status: 201,
+                    message: 'User has been successfully registered!'
+                };
             }
             catch (error) {
+                console.log(error);
                 this.generateUserExceptions(error);
             }
         });
@@ -1597,6 +1839,8 @@ let UserController = class UserController {
         var _a, _b, _c, _d, _e;
         if ((error === null || error === void 0 ? void 0 : error.name) === 'CastError')
             throw new common_1.HttpException(`This user doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
+        if ((error === null || error === void 0 ? void 0 : error.response) === 'This user already exists!')
+            throw new common_1.HttpException(`This user already exists!`, common_1.HttpStatus.CONFLICT);
         if ((_a = error === null || error === void 0 ? void 0 : error.errors) === null || _a === void 0 ? void 0 : _a.name)
             throw new common_1.HttpException(error.errors.name.message, common_1.HttpStatus.CONFLICT);
         if ((_b = error === null || error === void 0 ? void 0 : error.errors) === null || _b === void 0 ? void 0 : _b.emailAddress)
@@ -1615,14 +1859,14 @@ tslib_1.__decorate([
     tslib_1.__param(0, (0, common_1.Body)()),
     tslib_1.__metadata("design:type", Function),
     tslib_1.__metadata("design:paramtypes", [typeof (_c = typeof loginUser_dto_1.LoginUserDto !== "undefined" && loginUser_dto_1.LoginUserDto) === "function" ? _c : Object]),
-    tslib_1.__metadata("design:returntype", Promise)
+    tslib_1.__metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
 ], UserController.prototype, "login", null);
 tslib_1.__decorate([
     (0, common_1.Post)('register'),
     tslib_1.__param(0, (0, common_1.Body)()),
     tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", [typeof (_d = typeof registerUser_dto_1.RegisterUserDto !== "undefined" && registerUser_dto_1.RegisterUserDto) === "function" ? _d : Object]),
-    tslib_1.__metadata("design:returntype", Promise)
+    tslib_1.__metadata("design:paramtypes", [typeof (_e = typeof registerUser_dto_1.RegisterUserDto !== "undefined" && registerUser_dto_1.RegisterUserDto) === "function" ? _e : Object]),
+    tslib_1.__metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
 ], UserController.prototype, "register", null);
 tslib_1.__decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
@@ -1630,14 +1874,14 @@ tslib_1.__decorate([
     tslib_1.__param(0, (0, common_1.Request)()),
     tslib_1.__metadata("design:type", Function),
     tslib_1.__metadata("design:paramtypes", [Object]),
-    tslib_1.__metadata("design:returntype", typeof (_e = typeof Promise !== "undefined" && Promise) === "function" ? _e : Object)
+    tslib_1.__metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
 ], UserController.prototype, "getProfile", null);
 tslib_1.__decorate([
     (0, common_1.Get)(':userId'),
     tslib_1.__param(0, (0, common_1.Param)('userId')),
     tslib_1.__metadata("design:type", Function),
     tslib_1.__metadata("design:paramtypes", [String]),
-    tslib_1.__metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
+    tslib_1.__metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
 ], UserController.prototype, "getUser", null);
 UserController = tslib_1.__decorate([
     (0, common_1.Controller)('user'),
@@ -1791,10 +2035,8 @@ let UserService = class UserService {
     }
     getUserByEmailAddress(emailAddress) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const user = yield this.userModel.findOne({ emailAddress });
-            if (!user)
-                throw new common_1.HttpException({ message: `This user doesn't exists!` }, common_1.HttpStatus.NOT_FOUND);
-            return user;
+            return yield this.userModel.findOne({ emailAddress });
+            ;
         });
     }
     registerUser(registerUserDto) {
@@ -1926,12 +2168,11 @@ const core_1 = __webpack_require__("@nestjs/core");
 const app_module_1 = __webpack_require__("./apps/uc-api/src/app/app.module.ts");
 function bootstrap() {
     return tslib_1.__awaiter(this, void 0, void 0, function* () {
-        const app = yield core_1.NestFactory.create(app_module_1.AppModule);
+        const app = yield core_1.NestFactory.create(app_module_1.AppModule, { cors: true });
         const globalPrefix = 'api';
         app.setGlobalPrefix(globalPrefix);
         const port = process.env.PORT || 3333;
         yield app.listen(port);
-        yield app.enableCors();
         common_1.Logger.log(`🚀 Application is running on: http://localhost:${port}/${globalPrefix}`);
     });
 }

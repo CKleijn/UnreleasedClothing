@@ -18,12 +18,7 @@ export class UserService {
     }
 
     async getUserByEmailAddress(emailAddress: string): Promise<User> {
-        const user = await this.userModel.findOne({ emailAddress });
-
-        if(!user)
-            throw new HttpException({ message: `This user doesn't exists!` }, HttpStatus.NOT_FOUND);
-
-        return user;
+        return await this.userModel.findOne({ emailAddress });;
     }
 
     async registerUser(registerUserDto: RegisterUserDto): Promise<User> {

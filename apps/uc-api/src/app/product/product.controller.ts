@@ -30,12 +30,11 @@ export class ProductController {
     @Post('product')
     async createProduct(@Request() req: any, @Body() productDto: ProductDto): Promise<Object> {
         try {
-            const createdProduct = await this.productService.createProduct(req.user, productDto);
+            await this.productService.createProduct(req.user, productDto);
             
             return {
                 status: 201,
-                message: 'Product has been successfully created!',
-                product: createdProduct
+                message: 'Product has been successfully created!'
             }
         } catch (error) {
             this.generateProductExceptions(error);
@@ -47,12 +46,11 @@ export class ProductController {
     @Put('product/:productId')
     async updateProduct(@Request() req: any, @Param('productId') productId: string, @Body() newProduct: Partial<ProductDto>): Promise<Object> {
         try {
-            const updatedProduct = await this.productService.updateProduct(req.user, productId, newProduct);
+            await this.productService.updateProduct(req.user, productId, newProduct);
 
             return {
                 status: 200,
-                message: 'Product has been successfully updated!',
-                product: updatedProduct
+                message: 'Product has been successfully updated!'
             }
         } catch (error) {
             this.generateProductExceptions(error);

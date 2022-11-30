@@ -14,13 +14,13 @@ export class AuthService {
         return await this.jwtService.signAsync({ name: loginUserDto.username });
     }
 
-    async register(registerUserDto: RegisterUserDto): Promise<User> {
+    async register(registerUserDto: RegisterUserDto): Promise<void> {
         const user = await this.userService.getUserByEmailAddress(registerUserDto.emailAddress);
 
         if(!user) {
             if(registerUserDto.password !== undefined) {
                 registerUserDto.password = await bcrypt.hash(registerUserDto.password, 10);
-                return await this.userService.registerUser(registerUserDto);
+                await this.userService.registerUser(registerUserDto);
             } else {
                 throw new HttpException('Password is required!', HttpStatus.CONFLICT)
             }

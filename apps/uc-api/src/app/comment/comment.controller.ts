@@ -35,12 +35,11 @@ export class CommentController {
     @Post('product/:productId/comment')
     async createComment(@Request() req: any, @Param('productId') productId: string, @Body() commentDto: CommentDto): Promise<Object> {
         try {
-            const createdComment = await this.commentService.createComment(req.user, productId, commentDto);
+            await this.commentService.createComment(req.user, productId, commentDto);
 
             return {
                 status: 201,
-                message: 'Comment has been succesfully created!',
-                comment: createdComment.comments[createdComment.comments.length - 1]
+                message: 'Comment has been succesfully created!'
             }
         } catch (error) {
             this.generateCommentExceptions(error);
@@ -52,12 +51,11 @@ export class CommentController {
     @Put('product/:productId/comment/:commentId')
     async updateComment(@Request() req: any, @Param('productId') productId: string, @Param('commentId') commentId: string, @Body() newComment: Partial<CommentDto>): Promise<Object> {
         try {
-            const updatedComment = await this.commentService.updateComment(req.user, productId, commentId, newComment);
+            await this.commentService.updateComment(req.user, productId, commentId, newComment);
 
             return {
                 status: 200,
-                message: 'Comment has been succesfully updated!',
-                comment: updatedComment
+                message: 'Comment has been succesfully updated!'
             }
         } catch (error) {
             this.generateCommentExceptions(error);

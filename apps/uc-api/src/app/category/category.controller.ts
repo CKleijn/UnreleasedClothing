@@ -30,12 +30,11 @@ export class CategoryController {
     @Post('category')
     async createCategory(@Request() req: any, @Body() categoryDto: CategoryDto): Promise<Object> {
         try {
-            const createdCategory = await this.categoryService.createCategory(req.user, categoryDto);
+            await this.categoryService.createCategory(req.user, categoryDto);
 
             return {
                 status: 201,
-                message: 'Category has been succesfully created!',
-                category: createdCategory
+                message: 'Category has been succesfully created!'
             }
         } catch (error) {
             this.generateCategoryExceptions(error);
@@ -47,12 +46,11 @@ export class CategoryController {
     @Put('category/:categoryId')
     async updateCategory(@Request() req: any, @Param('categoryId') categoryId: string, @Body() newCategory: Partial<CategoryDto>): Promise<Object> {
         try {
-            const updatedCategory = await this.categoryService.updateCategory(req.user, categoryId, newCategory);
+            await this.categoryService.updateCategory(req.user, categoryId, newCategory);
 
             return {
                 status: 200,
-                message: 'Category has been succesfully updated!',
-                category: updatedCategory
+                message: 'Category has been succesfully updated!'
             }
         } catch (error) {
             this.generateCategoryExceptions(error);
