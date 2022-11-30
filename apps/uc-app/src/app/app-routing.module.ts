@@ -7,6 +7,7 @@ import { CategoryDetailComponent } from './pages/category/detail/detail.componen
 import { ProductFormComponent } from './pages/product/form/form.component';
 import { CategoryFormComponent } from './pages/category/form/form.component';
 import { ProductComponent } from './pages/product/product.component';
+import { RatingComponent } from './rating/rating.component';
 
 export const appRoutes: Route[] = [
     { path: '', pathMatch: 'full', redirectTo: 'products' },
@@ -18,6 +19,7 @@ export const appRoutes: Route[] = [
     { path: 'categories/create', pathMatch: 'full', component: CategoryFormComponent },
     { path: 'categories/:categoryId', pathMatch: 'full', component: CategoryDetailComponent },
     { path: 'categories/:categoryId/edit', pathMatch: 'full', component: CategoryFormComponent },
+    { path: 'ratings', pathMatch: 'full', component: RatingComponent },
     { path: 'about', pathMatch: 'full', component: AboutComponent },
     { path: '**', pathMatch: 'full', redirectTo: 'products' }
 ];
