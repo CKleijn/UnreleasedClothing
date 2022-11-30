@@ -10,40 +10,255 @@ import { Product } from "./product.schema";
 
 @Injectable()
 export class ProductService {
-    constructor(@InjectModel(Product.name) private productModel: Model<Product>, private categoryService: CategoryService, private userService: UserService) {}
+    constructor(@InjectModel(Product.name) private productModel: Model<Product>, private categoryService: CategoryService, private userService: UserService) { }
 
     async getAllProducts(): Promise<Product[]> {
-        return await this.productModel.find();
+        const products = await this.productModel.aggregate([
+            {
+                '$unwind': {
+                    'path': '$comments'
+                }
+            }, {
+                '$lookup': {
+                    'from': 'users',
+                    'localField': 'comments.createdBy',
+                    'foreignField': '_id',
+                    'as': 'comment.createdBy'
+                }
+            }, {
+                '$set': {
+                    'comments.createdBy': {
+                        '$first': '$comment.createdBy'
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': '$_id',
+                    'name': {
+                        $first: '$name'
+                    },
+                    'picture': {
+                        $first: '$picture'
+                    },
+                    'price': {
+                        $first: '$price'
+                    },
+                    'description': {
+                        $first: '$description'
+                    },
+                    'category': {
+                        $first: '$category'
+                    },
+                    'comments': {
+                        '$push': '$comments'
+                    },
+                    'isActive': {
+                        $first: '$isActive'
+                    },
+                    'createdBy': {
+                        $first: '$createdBy'
+                    },
+                    'createdAt': {
+                        $first: '$createdAt'
+                    },
+                    '__v': {
+                        $first: '$__v'
+                    }
+                }
+            }
+        ]);
+
+        return products;
     }
 
     async getAllComments(): Promise<Comment[]> {
-        return [].concat(await this.productModel.find({}, { _id: 0, comments: 1 }))[0].comments;
+        const comments = await this.productModel.aggregate([
+            {
+                '$unwind': {
+                    'path': '$comments'
+                }
+            }, {
+                '$lookup': {
+                    'from': 'users',
+                    'localField': 'comments.createdBy',
+                    'foreignField': '_id',
+                    'as': 'comment.createdBy'
+                }
+            }, {
+                '$set': {
+                    'comments.createdBy': {
+                        '$first': '$comment.createdBy'
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': '$_id',
+                    'comments': {
+                        '$push': '$comments'
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0,
+                    'comments': 1
+                }
+            }
+        ]);
+
+        return comments[0].comments;
     }
 
     async getAllCommentsFromProduct(productId: string): Promise<Comment[]> {
-        return [].concat(await this.productModel.find({ _id: productId }, { _id: 0, comments: 1 }))[0].comments;
+        const comments = await this.productModel.aggregate([
+            {
+                '$match': {
+                    '_id': new mongoose.Types.ObjectId(productId)
+                }
+            }, {
+                '$unwind': {
+                    'path': '$comments'
+                }
+            }, {
+                '$lookup': {
+                    'from': 'users',
+                    'localField': 'comments.createdBy',
+                    'foreignField': '_id',
+                    'as': 'comment.createdBy'
+                }
+            }, {
+                '$set': {
+                    'comments.createdBy': {
+                        '$first': '$comment.createdBy'
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': new mongoose.Types.ObjectId(productId),
+                    'comments': {
+                        '$push': '$comments'
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0,
+                    'comments': 1
+                }
+            }
+        ]);
+
+        return comments[0].comments;
     }
 
     async getProductById(productId: string): Promise<Product> {
-        const product = await this.productModel.findById({ _id: productId });
+        const product = await this.productModel.aggregate([
+            {
+                '$match': {
+                    '_id': new mongoose.Types.ObjectId(productId)
+                }
+            },
+            {
+                '$unwind': {
+                    'path': '$comments'
+                }
+            }, {
+                '$lookup': {
+                    'from': 'users',
+                    'localField': 'comments.createdBy',
+                    'foreignField': '_id',
+                    'as': 'comment.createdBy'
+                }
+            }, {
+                '$set': {
+                    'comments.createdBy': {
+                        '$first': '$comment.createdBy'
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': '$_id',
+                    'name': {
+                        $first: '$name'
+                    },
+                    'picture': {
+                        $first: '$picture'
+                    },
+                    'price': {
+                        $first: '$price'
+                    },
+                    'description': {
+                        $first: '$description'
+                    },
+                    'category': {
+                        $first: '$category'
+                    },
+                    'comments': {
+                        '$push': '$comments'
+                    },
+                    'isActive': {
+                        $first: '$isActive'
+                    },
+                    'createdBy': {
+                        $first: '$createdBy'
+                    },
+                    'createdAt': {
+                        $first: '$createdAt'
+                    },
+                    '__v': {
+                        $first: '$__v'
+                    }
+                }
+            }
+        ]);
 
-        if(!product)
+        if (!product[0])
             throw new HttpException(`This product doesn't exists!`, HttpStatus.NOT_FOUND)
 
-        return product;
+        return product[0];
     }
 
     async getCommentById(productId: string, commentId: string): Promise<Comment> {
-        const comment = [].concat(await this.productModel.findOne({ _id: productId, 'comments._id': new mongoose.Types.ObjectId(commentId) }, { _id: 0, comments: 1 }))[0].comments[0];
+        const comment = await this.productModel.aggregate([
+            {
+                '$match': {
+                    '_id': new mongoose.Types.ObjectId(productId)
+                }
+            }, {
+                '$unwind': {
+                    'path': '$comments'
+                }
+            }, {
+                '$match': {
+                    'comments._id': new mongoose.Types.ObjectId(commentId)
+                }
+            }, {
+                '$lookup': {
+                    'from': 'users',
+                    'localField': 'comments.createdBy',
+                    'foreignField': '_id',
+                    'as': 'comment.createdBy'
+                }
+            }, {
+                '$set': {
+                    'comments.createdBy': {
+                        '$first': '$comment.createdBy'
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0,
+                    'comments': 1
+                }
+            }
+        ]);
 
-        if(!comment)
+        if (!comment[0].comments)
             throw new HttpException(`This comment doesn't exists!`, HttpStatus.NOT_FOUND)
 
-        return comment;
+        return comment[0].comments;
     }
 
-    async createProduct(user: any, productDto: ProductDto): Promise<Product> {
-        return await this.productModel.create({
+    async createProduct(user: any, productDto: ProductDto): Promise<void> {
+        await this.productModel.create({
             name: productDto.name,
             picture: productDto.picture,
             price: productDto.price,
@@ -56,48 +271,43 @@ export class ProductService {
         });
     }
 
-    async addCommentToProduct(productId: string, newComment: Partial<CommentDto>): Promise<Product> {
-        return await this.productModel.findOneAndUpdate({ _id: productId }, { $push: { comments: newComment } }, { new: true });
+    async addCommentToProduct(productId: string, newComment: Partial<CommentDto>): Promise<void> {
+        await this.productModel.findOneAndUpdate({ _id: productId }, { $push: { comments: newComment } });
     }
 
-    async updateProduct(user: any, productId: string, newProduct: Partial<ProductDto>): Promise<Product> {
-        const product = await this.getProductById(productId);
+    async updateProduct(user: any, productId: string, newProduct: Partial<ProductDto>): Promise<void> {
+        const product = await this.productModel.findById({ _id: productId })
 
-        if(user._id.equals(product.createdBy))
-            return await this.productModel.findOneAndUpdate({ _id: productId }, newProduct, { new: true });
-
-        throw new UnauthorizedException({ message: `This user don't have access to this method!` });
+        if (!user._id.equals(product.createdBy._id))
+            throw new UnauthorizedException({ message: `This user don't have access to this method!` });
+        
+        await this.productModel.findOneAndUpdate({ _id: productId }, newProduct);
     }
 
-    async updateCommentFromProduct(user: any, productId: string, commentId: string, newComment: Partial<CommentDto>): Promise<Comment> {
+    async updateCommentFromProduct(user: any, productId: string, commentId: string, newComment: Partial<CommentDto>): Promise<void> {
         const oldComment = await this.getCommentById(productId, commentId);
 
-        if(user._id.equals(oldComment.createdBy._id)) {
-            const updateComment = await this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose.Types.ObjectId(commentId) }, { $set: { 'comments.$.title': newComment?.title, 'comments.$.body': newComment?.body, 'comments.$.rating': newComment?.rating } });
+        if (!user._id.equals(oldComment.createdBy._id))
+            throw new UnauthorizedException({ message: `This user don't have access to this method!` });
             
-            const comment = await this.getCommentById(productId, commentId);
-
-            return comment;
-        }
-
-        throw new UnauthorizedException({ message: `This user don't have access to this method!` });
+        await this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose.Types.ObjectId(commentId) }, { $set: { 'comments.$.title': newComment?.title, 'comments.$.body': newComment?.body, 'comments.$.rating': newComment?.rating } });
     }
 
-    async deleteProduct(user: any, productId: string): Promise<Product> {
-        const product = await this.getProductById(productId);
+    async deleteProduct(user: any, productId: string): Promise<void> {
+        const product = await this.productModel.findById({ _id: productId })
 
-        if(user._id.equals(product.createdBy))
-            return await this.productModel.findOneAndDelete({ _id: productId });
+        if (!user._id.equals(product.createdBy._id))
+            throw new UnauthorizedException({ message: `This user don't have access to this method!` });
 
-        throw new UnauthorizedException({ message: `This user don't have access to this method!` });
+        await this.productModel.findOneAndDelete({ _id: productId });
     }
 
-    async deleteCommentFromProduct(user: any, productId: string, commentId: string): Promise<Comment> {
+    async deleteCommentFromProduct(user: any, productId: string, commentId: string): Promise<void> {
         const comment = await this.getCommentById(productId, commentId);
 
-        if(user._id.equals(comment.createdBy._id))
-            return await this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose.Types.ObjectId(commentId) }, { $pull: { 'comments': { _id: new mongoose.Types.ObjectId(commentId) } } }, { new: true });
-    
-        throw new UnauthorizedException({ message: `This user don't have access to this method!` });
+        if (!user._id.equals(comment.createdBy._id))
+            throw new UnauthorizedException({ message: `This user don't have access to this method!` });
+
+        await this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose.Types.ObjectId(commentId) }, { $pull: { 'comments': { _id: new mongoose.Types.ObjectId(commentId) } } }, { new: true });
     }
 }

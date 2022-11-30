@@ -14,7 +14,7 @@ export class UserController {
 
     @UseGuards(AuthGuard('local'))
     @Post('login')
-    async login(@Body() loginUserDto: LoginUserDto) {
+    async login(@Body() loginUserDto: LoginUserDto): Promise<Object> {
         try {
             const token = await this.authService.login(loginUserDto);
 
@@ -28,10 +28,16 @@ export class UserController {
     }
 
     @Post('register')
-    async register(@Body() registerUserDto: RegisterUserDto) {
+    async register(@Body() registerUserDto: RegisterUserDto): Promise<Object> {
         try {
-            return await this.authService.register(registerUserDto);
+            await this.authService.register(registerUserDto);
+
+            return {
+                status: 201,
+                message: 'User has been successfully registered!'
+            }
         } catch (error) {
+            console.log(error)
             this.generateUserExceptions(error);
         }
     }
@@ -54,6 +60,9 @@ export class UserController {
     generateUserExceptions(error: any) {
         if(error?.name === 'CastError')
             throw new HttpException(`This user doesn't exists!`, HttpStatus.NOT_FOUND)
+
+        if(error?.response === 'This user already exists!')
+            throw new HttpException(`This user already exists!`, HttpStatus.CONFLICT)
 
         if(error?.errors?.name)
             throw new HttpException(error.errors.name.message, HttpStatus.CONFLICT);
