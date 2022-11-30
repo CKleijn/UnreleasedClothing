@@ -1,8 +1,7 @@
-<h1 *ngIf="productExists === true">Edit {{ productName }}</h1>
-<h1 *ngIf="productExists === false">Create new product</h1>
-
 <div class="row mb-4">
-    <div class="col-md-6 col-sm-12">
+    <div class="col-md-12">
+        <h1 *ngIf="productExists === true">Edit {{ productName }}</h1>
+        <h1 *ngIf="productExists === false">Create new product</h1>
         <form #productForm="ngForm" class="my-5" (ngSubmit)="onSubmit()">
             <div class="row mb-3">
                 <label class="form-label col-md-4 col-sm-12 col-form-label">Name</label>
@@ -62,11 +61,26 @@
                     </div>
                 </div>
             </div>
+            <div class="row mb-3">
+                <label class="form-label col-md-4 col-sm-12 col-form-label">Category</label>
+                <div class="col-md-8 col-sm-12">
+                    <select class="form-control" name="category" #category="ngModel" [(ngModel)]="product!.category._id" required [ngClass]="{'is-invalid': category.invalid && category.touched}">
+                        <option *ngFor="let category of categories" [ngValue]="category._id">{{ category.title }}</option>
+                    </select>
+                    <div *ngIf="category.invalid && category.touched" class="invalid-feedback">
+                        <div *ngIf="category.errors!['required']">
+                            Category is required!
+                        </div>
+                    </div>
+                    <button type="button" class="btn mt-2" (click)="triggerCategoryForm()" *ngIf="!showComponent">Show create new category</button>
+                    <button type="button" class="btn mt-2" (click)="triggerCategoryForm()" *ngIf="showComponent">Don't show create new category</button>
+                </div>
+            </div>
             <button *ngIf="productExists === false" type="submit" [disabled]="!productForm.valid" class="btn pull-right">Submit</button>
             <button *ngIf="productExists === true" type="submit" [disabled]="!productForm.valid" class="btn pull-right">Update</button>
         </form>
     </div>
-    <div class="col-md-6 col-sm-12">
-        <pre class="m-5">{{ product | json }}</pre>
+    <div class="col-md-12">
+        <uc-app-form-category *ngIf="showComponent"></uc-app-form-category>
     </div>
 </div>

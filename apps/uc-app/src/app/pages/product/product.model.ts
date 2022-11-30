@@ -1,3 +1,5 @@
+import { Category } from "../category/category.model";
+
 export interface IProduct {
     _id: number;
     name: string;
@@ -5,7 +7,9 @@ export interface IProduct {
     price: number;
     description: string;
     brand: string;
+    category: Category;
     isActive: boolean;
+    createdAt: Date;
 }
 
 export class Product implements IProduct {
@@ -15,5 +19,7 @@ export class Product implements IProduct {
     price: number = 0.00;
     description: string = '';
     brand: string = '';
+    category: Category = <Category>{};
     isActive: boolean = true;
+    createdAt: Date = <Date>{};
 }
