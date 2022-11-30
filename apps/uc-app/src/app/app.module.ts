@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { NavComponent } from './shared/nav/nav.component';
 import { FooterComponent } from './shared/footer/footer.component';
 import { AboutComponent } from './pages/about/about.component';
+import { HttpClientModule } from '@angular/common/http';
 import { CategoryComponent } from './pages/category/category.component';
 import { CategoryDetailComponent } from './pages/category/detail/detail.component';
 import { CategoryFormComponent } from './pages/category/form/form.component';
@@ -27,7 +28,7 @@ import { CategoryFormComponent } from './pages/category/form/form.component';
     CategoryDetailComponent,
     CategoryFormComponent
   ],
-  imports: [BrowserModule, AppRoutingModule, NgbModule, FormsModule],
+  imports: [BrowserModule, HttpClientModule, AppRoutingModule, NgbModule, FormsModule],
   providers: [],
   bootstrap: [AppComponent],
 })
