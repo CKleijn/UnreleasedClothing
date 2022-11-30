@@ -13,7 +13,7 @@ import { environment } from '../../../environments/environment';
 export class ProductComponent implements OnInit {
   products: Product[] = [];
 
-  constructor(private productService: ProductService, private httpClient: HttpClient) { }
+  constructor(private productService: ProductService, private categoryService: CategoryService) { }
 
   ngOnInit(): void {
     this.products = this.productService.getProducts();
@@ -21,6 +21,5 @@ export class ProductComponent implements OnInit {
       product.category.title = this.categoryService.getCategoryById(product.category._id).title;
       product.category.icon = this.categoryService.getCategoryById(product.category._id).icon;
     })
-    this.httpClient.get(environment.API_URL + 'product/6384c6cd51414ad4ca4d70eb/comment/6384cfff3d2f763d4f3c75b5').subscribe((x) => console.log(x))
   }
 }

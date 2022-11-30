@@ -14,6 +14,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { CategoryComponent } from './pages/category/category.component';
 import { CategoryDetailComponent } from './pages/category/detail/detail.component';
 import { CategoryFormComponent } from './pages/category/form/form.component';
+import { RatingComponent } from './rating/rating.component';
 
 @NgModule({
   declarations: [
@@ -26,9 +27,16 @@ import { CategoryFormComponent } from './pages/category/form/form.component';
     AboutComponent,
     CategoryComponent,
     CategoryDetailComponent,
-    CategoryFormComponent
+    CategoryFormComponent,
+    RatingComponent,
   ],
-  imports: [BrowserModule, HttpClientModule, AppRoutingModule, NgbModule, FormsModule],
+  imports: [
+    BrowserModule,
+    HttpClientModule,
+    AppRoutingModule,
+    NgbModule,
+    FormsModule,
+  ],
   providers: [],
   bootstrap: [AppComponent],
 })
