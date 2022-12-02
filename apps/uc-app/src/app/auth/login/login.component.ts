@@ -12,7 +12,7 @@ import { LoginUserDto } from './login.dto';
 export class LoginComponent implements OnInit, OnDestroy {
   subscription: Subscription | undefined;
   userDto: LoginUserDto | undefined;
-  error = null;
+  error: string | null = null;
 
   constructor(private authService: AuthService, private router: Router) { }
 
@@ -25,15 +25,14 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-    this.subscription = this.authService.signUserIn(this.userDto!).subscribe(
-    (user) => {
-      if (user) {
-        this.router.navigate(['/']);
-      }
-    },
-    (error) => {
-      this.error = error.message;
-    });
+    this.subscription = this.authService.signUserIn(this.userDto!).subscribe({
+      next: (user) => {
+        if (user) {
+          this.router.navigate(['/']);
+        }
+      },
+      error: (error) => this.error = error.message
+    })
   }
 
   ngOnDestroy(): void {

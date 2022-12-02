@@ -28,7 +28,8 @@ export class AuthService implements OnDestroy {
     }
 
     signUserIn(user: LoginUserDto): Observable<boolean> {
-        return this.httpClient.post(environment.API_URL + 'user/login', {
+        return this.httpClient.post(environment.API_URL + 'user/login', 
+        {
             username: user.username,
             password: user.password
         }, {

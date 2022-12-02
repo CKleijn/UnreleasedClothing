@@ -7,10 +7,10 @@
 				<li class="nav-item">
 					<a class="nav-link ml-5" routerLink="products" (click)="isMenuCollapsed = true">Products</a>
 				</li>
-				<li class="nav-item">
+				<li class="nav-item" *ngIf="loggedInUser$ | async">
 					<a class="nav-link ml-5" routerLink="categories" (click)="isMenuCollapsed = true">Categories</a>
 				</li>
-				<li class="nav-item">
+				<li class="nav-item" *ngIf="loggedInUser$ | async">
 					<a class="nav-link ml-5" routerLink="ratings" (click)="isMenuCollapsed = true">Ratings</a>
 				</li>
 				<li class="nav-item">

@@ -36,7 +36,7 @@ export class ProductFormComponent implements OnInit {
         this.product._id = this.productService.getNewIndex();
       }
 
-      this.categories = this.categoryService.getCategories();
+      // this.categories = this.categoryService.getCategories();
     })
   }
 

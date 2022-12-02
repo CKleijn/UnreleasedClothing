@@ -17,9 +17,9 @@ export class ProductComponent implements OnInit {
 
   ngOnInit(): void {
     this.products = this.productService.getProducts();
-    this.products.forEach(product => {
-      product.category.title = this.categoryService.getCategoryById(product.category._id).title;
-      product.category.icon = this.categoryService.getCategoryById(product.category._id).icon;
-    })
+    // this.products.forEach(product => {
+    //   product.category.title = this.categoryService.getCategoryById(product.category._id).title;
+    //   product.category.icon = this.categoryService.getCategoryById(product.category._id).icon;
+    // })
   }
 }

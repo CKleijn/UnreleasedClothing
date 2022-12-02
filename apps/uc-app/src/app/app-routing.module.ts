@@ -24,7 +24,7 @@ export const appRoutes: Route[] = [
     { path: 'categories/create', pathMatch: 'full', component: CategoryFormComponent, canActivate: [IsAuthenticatedGuard, HasRoleGuard], data: { role: 'brand' } },
     { path: 'categories/:categoryId', pathMatch: 'full', component: CategoryDetailComponent, canActivate: [IsAuthenticatedGuard, HasRoleGuard], data: { role: 'brand' } },
     { path: 'categories/:categoryId/edit', pathMatch: 'full', component: CategoryFormComponent, canActivate: [IsAuthenticatedGuard, HasRoleGuard], data: { role: 'brand' } },
-    { path: 'ratings', pathMatch: 'full', component: RatingComponent, canActivate: [IsAuthenticatedGuard, HasRoleGuard], data: { role: 'brand' } },
+    { path: 'ratings', pathMatch: 'full', component: RatingComponent, canActivate: [IsAuthenticatedGuard] },
     { path: 'about', pathMatch: 'full', component: AboutComponent },
     { path: '**', pathMatch: 'full', redirectTo: 'products' }
 ];

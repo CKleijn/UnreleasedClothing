@@ -1,25 +1,23 @@
-<h1>{{ category?.title }}</h1>
+<div *ngIf="category$ | async as category">
+    <h1>{{ category.title }}</h1>
 
-<div class="row">
-    <div class="col-md-12 mb-4">
-        <div *ngIf="cantDelete" class="alert alert-danger" role="alert">
-            You can't delete this category, because it's connected to some products!
-        </div>
-        <div class="row">
-            <div class="col-md-4 col-sm-12 mb-4">
-                <div class="card">
-                    <img class="card-img-top p-5" src="{{ category?.icon }}" alt="{{ category?.title }}">
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="row">
+                <div class="col-md-4 col-sm-12 mb-4">
+                    <div class="card">
+                        <img class="card-img-top p-5" src="{{ category?.icon }}" alt="{{ category?.title }}">
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-8 col-sm-12 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ category?.title }}</h5>
-                        <p class="card-text">{{ category?.description }}</p>
-                        <h6 class="card-title"><b>Used by {{ totalUsed }} product(s)</b></h6>
-                        <p *ngFor="let product of usedBy" class="card-text"><a routerLink="../../products/{{ product._id }}">{{ product.name }} - <b>{{ product.brand }}</b></a></p>
-                        <button class="btn" routerLink="edit">Edit <i class="bi bi-pencil"></i></button>
-                        <button class="btn mx-2" (click)="delete()">Delete <i class="bi bi-trash"></i></button>
+                <div class="col-md-8 col-sm-12 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ category?.title }}</h5>
+                            <p class="card-text">{{ category?.description }}</p>
+                            <button class="btn" routerLink="edit">Edit <i class="bi bi-pencil"></i></button>
+                            <button class="btn mx-2" (click)="delete()">Delete <i class="bi bi-trash"></i></button>
+                            <p *ngIf="error" class="error-msg">{{ error }}</p>
+                        </div>
                     </div>
                 </div>
             </div>

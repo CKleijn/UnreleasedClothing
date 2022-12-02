@@ -8,7 +8,7 @@
 </div>
 
 <div class="row">
-    <div class="col-md-3 col-sm-4 mb-4" *ngFor="let category of categories">
+    <div class="col-md-3 col-sm-4 mb-4" *ngFor="let category of categories$ | async">
         <div class="card">
             <img class="card-img-top p-5" src="{{ category.icon }}" alt="{{ category.title }}" style="border-bottom: 1px solid rgba(0, 0, 0, 0.175);">
             <div class="card-body">

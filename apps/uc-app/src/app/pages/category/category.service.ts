@@ -1,79 +1,72 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { ProductService } from '../product/product.service';
+import { environment } from 'apps/uc-app/src/environments/environment';
+import { AuthService } from '../../auth/auth.service';
 import { Category } from './category.model';
+import { catchError, map, Observable, tap } from 'rxjs';
+import { CategoryDto } from './category.dto';
 
 @Injectable({
     providedIn: 'root'
 })
 export class CategoryService {
-    categories: Category[] = [
+
+    constructor(private httpClient: HttpClient, private authService: AuthService) { }
+
+    getCategories(): Observable<Category[]> {
+        return this.httpClient.get(environment.API_URL + 'categories') as Observable<Category[]>;
+    }
+
+    getCategoryById(categoryId: string): Observable<Category> {
+        return this.httpClient.get(environment.API_URL + 'category/' + categoryId) as Observable<Category>;
+    }
+
+    createCategory(categoryDto: CategoryDto): Observable<Object> {
+        return this.httpClient.post(environment.API_URL + 'category', 
         {
-            _id: 1,
-            title: 'T-shirts',
-            description: 'This is a category for t-shirts.',
-            icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
-            createdAt: new Date()
-        },
+            title: categoryDto.title,
+            description: categoryDto.description,
+            icon: categoryDto.icon
+        }, {
+            headers: new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.authService.getToken()
+            })
+        }).pipe(
+            catchError((error: any) => {
+                throw new Error(error.error.message);
+            })
+        ) as Observable<Object>
+    }
+
+    updateCategory(categoryId: string, categoryDto: CategoryDto): Observable<Object> {
+        return this.httpClient.put(environment.API_URL + 'category/' + categoryId, 
         {
-            _id: 2,
-            title: 'Pants',
-            description: 'This is a category for pants.',
-            icon: 'https://cdn-icons-png.flaticon.com/512/664/664466.png',
-            createdAt: new Date()
-        },
-        {
-            _id: 3,
-            title: 'Jackets',
-            description: 'This is a category for jackets.',
-            icon: 'https://cdn-icons-png.flaticon.com/512/1926/1926409.png',
-            createdAt: new Date()
-        },
-        {
-            _id: 4,
-            title: 'Socks',
-            description: 'This is a category for socks.',
-            icon: 'https://cdn-icons-png.flaticon.com/512/263/263806.png',
-            createdAt: new Date()
-        },
-        {
-            _id: 5,
-            title: 'Shoes',
-            description: 'This is a category for shoes.',
-            icon: 'https://cdn-icons-png.flaticon.com/512/500/500225.png',
-            createdAt: new Date()
-        },
-    ];
-
-    constructor(private productService: ProductService) { }
-
-    getCategories(): Category[] {
-        return this.categories;
+            title: categoryDto?.title,
+            description: categoryDto?.description,
+            icon: categoryDto?.icon
+        }, {
+            headers: new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.authService.getToken()
+            })
+        }).pipe(
+            catchError((error: any) => {
+                throw new Error(error.error.message);
+            })
+        ) as Observable<Object>
     }
 
-    getCategoryById(categoryId: number): Category {
-        return this.categories.filter(category => category._id === categoryId)[0];
-    }
-
-    getTotalUsedByCategoryId(categoryId: number): number {
-        let products = this.productService.getProducts();
-        return products.filter(product => product.category._id === categoryId).length;
-    }
-
-    getNewIndex(): number {
-        let lastIndex = this.categories[this.categories.length - 1]._id;
-        return lastIndex + 1;
-    }
-
-    createCategory(category: Category) {
-        this.categories.push(category);
-    }
-
-    updateCategory(categoryId: number, newCategory: Category) {
-        const categoryIndex = this.categories.findIndex(category => category._id === categoryId)
-        this.categories[categoryIndex] = newCategory;
-    }
-
-    deleteCategory(categoryId: number) {
-        this.categories = this.categories.filter(category => category._id !== categoryId);
+    deleteCategory(categoryId: string): Observable<Object> {
+        return this.httpClient.delete(environment.API_URL + 'category/' + categoryId, {
+            headers: new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.authService.getToken()
+            })
+        }).pipe(
+            catchError((error: any) => {
+                throw new Error(error.error.message);
+            })
+        ) as Observable<Object>
     }
 }
