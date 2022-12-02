@@ -5,16 +5,25 @@
 		<div [ngbCollapse]="isMenuCollapsed" class="collapse navbar-collapse">
 			<ul class="navbar-nav ms-auto">
 				<li class="nav-item">
-					<a class="nav-link mr-5" routerLink="products" (click)="isMenuCollapsed = true">Products</a>
+					<a class="nav-link ml-5" routerLink="products" (click)="isMenuCollapsed = true">Products</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link mr-5" routerLink="categories" (click)="isMenuCollapsed = true">Categories</a>
+					<a class="nav-link ml-5" routerLink="categories" (click)="isMenuCollapsed = true">Categories</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link mr-5" routerLink="ratings" (click)="isMenuCollapsed = true">Ratings</a>
+					<a class="nav-link ml-5" routerLink="ratings" (click)="isMenuCollapsed = true">Ratings</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link" routerLink="about" (click)="isMenuCollapsed = true">About</a>
+					<a class="nav-link ml-5" routerLink="about" (click)="isMenuCollapsed = true">About</a>
+				</li>
+				<li class="nav-item" *ngIf="(loggedInUser$ | async) === undefined">
+					<a class="nav-link ml-5" routerLink="login" (click)="isMenuCollapsed = true">Sign in</a>
+				</li>
+				<li class="nav-item" *ngIf="(loggedInUser$ | async) === undefined">
+					<a class="nav-link ml-5" routerLink="register" (click)="isMenuCollapsed = true">Register</a>
+				</li>
+				<li class="nav-item" *ngIf="loggedInUser$ | async">
+					<a class="nav-link ml-5" (click)="signOut()" (click)="isMenuCollapsed = true">Log out</a>
 				</li>
 			</ul>
 		</div>
