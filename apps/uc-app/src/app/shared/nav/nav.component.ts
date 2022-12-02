@@ -1,4 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { Observable } from 'rxjs';
+import { AuthService } from '../../auth/auth.service';
+import { User } from '../../auth/user.model';
 
 @Component({
   selector: 'uc-app-nav',
@@ -6,9 +10,17 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./nav.component.scss'],
 })
 export class NavComponent implements OnInit {
+  loggedInUser$: Observable<User | undefined> | undefined;
   isMenuCollapsed = true;
 
-  constructor() {}
+  constructor(private authService: AuthService, private router: Router) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.loggedInUser$ = this.authService.currentUser$;
+  }
+
+  signOut(): void {
+    this.authService.signOut();
+    this.router.navigate(['login']);
+  }
 }
