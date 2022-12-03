@@ -31,5 +31,3 @@ export class Comment {
     @Prop()
     createdAt: Date;
 }
-
-export const CommentSchema = SchemaFactory.createForClass(Comment);

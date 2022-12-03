@@ -74,7 +74,7 @@ export class ProductController {
     }
 
     generateProductExceptions(error: any) {
-        if(error?.response || error?.name === 'CastError')
+        if(error?.name === 'CastError')
             throw new HttpException(`This product doesn't exists!`, HttpStatus.NOT_FOUND)
 
         if(error?.response?.message)
