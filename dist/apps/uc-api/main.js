@@ -1776,13 +1776,16 @@ exports.RegisterUserDto = RegisterUserDto;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c, _d, _e, _f, _g, _h;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserController = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
 const passport_1 = __webpack_require__("@nestjs/passport");
 const auth_service_1 = __webpack_require__("./apps/uc-api/src/app/auth/auth.service.ts");
+const role_enum_1 = __webpack_require__("./apps/uc-api/src/app/auth/roles/role.enum.ts");
+const roles_decorator_1 = __webpack_require__("./apps/uc-api/src/app/auth/roles/roles.decorator.ts");
+const roles_guard_1 = __webpack_require__("./apps/uc-api/src/app/auth/roles/roles.guard.ts");
 const loginUser_dto_1 = __webpack_require__("./apps/uc-api/src/app/user/dtos/loginUser.dto.ts");
 const registerUser_dto_1 = __webpack_require__("./apps/uc-api/src/app/user/dtos/registerUser.dto.ts");
 const user_service_1 = __webpack_require__("./apps/uc-api/src/app/user/user.service.ts");
@@ -1815,7 +1818,6 @@ let UserController = class UserController {
                 };
             }
             catch (error) {
-                console.log(error);
                 this.generateUserExceptions(error);
             }
         });
@@ -1835,21 +1837,55 @@ let UserController = class UserController {
             }
         });
     }
+    followUser(req, userId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                yield this.userService.followUser(req.user.emailAddress, userId);
+                return {
+                    status: 200,
+                    message: 'User has been successfully followed!'
+                };
+            }
+            catch (error) {
+                this.generateUserExceptions(error);
+            }
+        });
+    }
+    unfollowUser(req, userId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                yield this.userService.unfollowUser(req.user.emailAddress, userId);
+                return {
+                    status: 200,
+                    message: 'User has been successfully unfollowed!'
+                };
+            }
+            catch (error) {
+                this.generateUserExceptions(error);
+            }
+        });
+    }
     generateUserExceptions(error) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         if ((error === null || error === void 0 ? void 0 : error.name) === 'CastError')
             throw new common_1.HttpException(`This user doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
         if ((error === null || error === void 0 ? void 0 : error.response) === 'This user already exists!')
             throw new common_1.HttpException(`This user already exists!`, common_1.HttpStatus.CONFLICT);
-        if ((_a = error === null || error === void 0 ? void 0 : error.errors) === null || _a === void 0 ? void 0 : _a.name)
+        if (((_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.message) === `You don't follow this customer!`)
+            throw new common_1.HttpException(`You don't follow this customer!`, common_1.HttpStatus.CONFLICT);
+        if (((_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.message) === `You can only follow other customers!`)
+            throw new common_1.HttpException(`You can only follow other customers!`, common_1.HttpStatus.BAD_REQUEST);
+        if (((_c = error === null || error === void 0 ? void 0 : error.response) === null || _c === void 0 ? void 0 : _c.message) === `You already follow this customer!`)
+            throw new common_1.HttpException(`You already follow this customer!`, common_1.HttpStatus.BAD_REQUEST);
+        if ((_d = error === null || error === void 0 ? void 0 : error.errors) === null || _d === void 0 ? void 0 : _d.name)
             throw new common_1.HttpException(error.errors.name.message, common_1.HttpStatus.CONFLICT);
-        if ((_b = error === null || error === void 0 ? void 0 : error.errors) === null || _b === void 0 ? void 0 : _b.emailAddress)
+        if ((_e = error === null || error === void 0 ? void 0 : error.errors) === null || _e === void 0 ? void 0 : _e.emailAddress)
             throw new common_1.HttpException(error.errors.emailAddress.message, common_1.HttpStatus.CONFLICT);
-        if ((_c = error === null || error === void 0 ? void 0 : error.errors) === null || _c === void 0 ? void 0 : _c.picture)
+        if ((_f = error === null || error === void 0 ? void 0 : error.errors) === null || _f === void 0 ? void 0 : _f.picture)
             throw new common_1.HttpException(error.errors.picture.message, common_1.HttpStatus.CONFLICT);
-        if ((_d = error === null || error === void 0 ? void 0 : error.errors) === null || _d === void 0 ? void 0 : _d.role)
+        if ((_g = error === null || error === void 0 ? void 0 : error.errors) === null || _g === void 0 ? void 0 : _g.role)
             throw new common_1.HttpException(error.errors.role.message, common_1.HttpStatus.CONFLICT);
-        if ((_e = error === null || error === void 0 ? void 0 : error.errors) === null || _e === void 0 ? void 0 : _e.password)
+        if ((_h = error === null || error === void 0 ? void 0 : error.errors) === null || _h === void 0 ? void 0 : _h.password)
             throw new common_1.HttpException(error.errors.password.message, common_1.HttpStatus.CONFLICT);
     }
 };
@@ -1883,6 +1919,26 @@ tslib_1.__decorate([
     tslib_1.__metadata("design:paramtypes", [String]),
     tslib_1.__metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
 ], UserController.prototype, "getUser", null);
+tslib_1.__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.CUSTOMER),
+    (0, common_1.Post)(':userId/follow'),
+    tslib_1.__param(0, (0, common_1.Request)()),
+    tslib_1.__param(1, (0, common_1.Param)('userId')),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [Object, String]),
+    tslib_1.__metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
+], UserController.prototype, "followUser", null);
+tslib_1.__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.CUSTOMER),
+    (0, common_1.Post)(':userId/unfollow'),
+    tslib_1.__param(0, (0, common_1.Request)()),
+    tslib_1.__param(1, (0, common_1.Param)('userId')),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [Object, String]),
+    tslib_1.__metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
+], UserController.prototype, "unfollowUser", null);
 UserController = tslib_1.__decorate([
     (0, common_1.Controller)('user'),
     tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof auth_service_1.AuthService !== "undefined" && auth_service_1.AuthService) === "function" ? _a : Object, typeof (_b = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _b : Object])
@@ -1973,7 +2029,7 @@ tslib_1.__decorate([
         ref: 'User'
     }),
     tslib_1.__metadata("design:type", Array)
-], User.prototype, "follows", void 0);
+], User.prototype, "following", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Role is required!'],
@@ -2027,7 +2083,7 @@ let UserService = class UserService {
     }
     getUserById(userId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const user = yield this.userModel.findOne({ _id: userId });
+            const user = yield this.userModel.findOne({ _id: userId }).populate('following');
             if (!user)
                 throw new common_1.HttpException({ message: `This user doesn't exists!` }, common_1.HttpStatus.NOT_FOUND);
             return user;
@@ -2035,13 +2091,60 @@ let UserService = class UserService {
     }
     getUserByEmailAddress(emailAddress) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            return yield this.userModel.findOne({ emailAddress });
-            ;
+            return yield this.userModel.findOne({ emailAddress }).populate('following');
         });
     }
     registerUser(registerUserDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             return yield this.userModel.create(Object.assign(Object.assign({ _id: new mongoose_2.default.Types.ObjectId() }, registerUserDto), { createdAt: new Date() }));
+        });
+    }
+    followUser(emailAddress, userId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const currentUser = yield this.getUserByEmailAddress(emailAddress);
+            const followUser = yield this.getUserById(userId);
+            const followedUser = yield this.userModel.aggregate([
+                {
+                    '$unwind': {
+                        'path': '$following'
+                    }
+                }, {
+                    '$match': {
+                        'following': userId
+                    }
+                }
+            ]);
+            if (followUser.role === 'customer') {
+                if (followedUser.length === 0) {
+                    return yield this.userModel.findOneAndUpdate({ emailAddress }, { $push: { following: userId } });
+                }
+                else {
+                    throw new common_1.HttpException({ message: `You already follow this customer!` }, common_1.HttpStatus.BAD_REQUEST);
+                }
+            }
+            else {
+                throw new common_1.HttpException({ message: `You can only follow other customers!` }, common_1.HttpStatus.BAD_REQUEST);
+            }
+        });
+    }
+    unfollowUser(emailAddress, userId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const currentUser = yield this.getUserByEmailAddress(emailAddress);
+            const followUser = yield this.getUserById(userId);
+            const followedUser = yield this.userModel.aggregate([
+                {
+                    '$unwind': {
+                        'path': '$following'
+                    }
+                }, {
+                    '$match': {
+                        'following': userId
+                    }
+                }
+            ]);
+            if (followedUser.length > 0)
+                return yield this.userModel.findOneAndUpdate({ emailAddress }, { $pull: { following: userId } });
+            throw new common_1.HttpException({ message: `You don't follow this customer!` }, common_1.HttpStatus.CONFLICT);
         });
     }
 };

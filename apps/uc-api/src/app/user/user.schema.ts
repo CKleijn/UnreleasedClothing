@@ -32,7 +32,7 @@ export class User {
     @Prop({
         ref: 'User'
     })
-    follows: [ObjectId];
+    following: [ObjectId];
 
     @Prop({
         required: [true, 'Role is required!'],
