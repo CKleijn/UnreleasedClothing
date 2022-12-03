@@ -2116,7 +2116,7 @@ let UserService = class UserService {
             ]);
             if (followUser.role === 'customer') {
                 if (followedUser.length === 0) {
-                    return yield this.userModel.findOneAndUpdate({ emailAddress }, { $push: { following: userId } });
+                    return yield this.userModel.findOneAndUpdate({ emailAddress }, { $push: { following: new mongoose_2.default.Types.ObjectId(userId) } });
                 }
                 else {
                     throw new common_1.HttpException({ message: `You already follow this customer!` }, common_1.HttpStatus.BAD_REQUEST);
@@ -2143,7 +2143,7 @@ let UserService = class UserService {
                 }
             ]);
             if (followedUser.length > 0)
-                return yield this.userModel.findOneAndUpdate({ emailAddress }, { $pull: { following: userId } });
+                return yield this.userModel.findOneAndUpdate({ emailAddress }, { $pull: { following: new mongoose_2.default.Types.ObjectId(userId) } });
             throw new common_1.HttpException({ message: `You don't follow this customer!` }, common_1.HttpStatus.CONFLICT);
         });
     }

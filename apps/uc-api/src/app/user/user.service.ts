@@ -10,7 +10,7 @@ export class UserService {
 
     async getUserById(userId: string): Promise<User> {
         const user = await this.userModel.findOne({ _id: userId }).populate('following');
-        
+
         if (!user)
             throw new HttpException({ message: `This user doesn't exists!` }, HttpStatus.NOT_FOUND);
 
@@ -46,7 +46,7 @@ export class UserService {
 
         if (followUser.role === 'customer') {
             if (followedUser.length === 0) {
-                return await this.userModel.findOneAndUpdate({ emailAddress }, { $push: { following: userId } });
+                return await this.userModel.findOneAndUpdate({ emailAddress }, { $push: { following: new mongoose.Types.ObjectId(userId) } });
             } else {
                 throw new HttpException({ message: `You already follow this customer!` }, HttpStatus.BAD_REQUEST);
             }
@@ -71,7 +71,7 @@ export class UserService {
         ])
 
         if (followedUser.length > 0)
-            return await this.userModel.findOneAndUpdate({ emailAddress }, { $pull: { following: userId } });
+            return await this.userModel.findOneAndUpdate({ emailAddress }, { $pull: { following: new mongoose.Types.ObjectId(userId) } });
 
         throw new HttpException({ message: `You don't follow this customer!` }, HttpStatus.CONFLICT);
     }
