@@ -14,7 +14,7 @@ export class ProductService {
             description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
             brand: 'Daily Paper',
             category: {
-                _id: 1,
+                _id: '1',
                 title: 'T-shirts',
                 description: 'This is a category for t-shirts.',
                 icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
@@ -31,7 +31,7 @@ export class ProductService {
             description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
             brand: 'Diesel',
             category: {
-                _id: 1,
+                _id: '1',
                 title: 'T-shirts',
                 description: 'This is a category for t-shirts.',
                 icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
@@ -48,7 +48,7 @@ export class ProductService {
             description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
             brand: 'Balr',
             category: {
-                _id: 1,
+                _id: '1',
                 title: 'T-shirts',
                 description: 'This is a category for t-shirts.',
                 icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
@@ -65,7 +65,7 @@ export class ProductService {
             description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
             brand: 'Calvin Klein',
             category: {
-                _id: 1,
+                _id: '1',
                 title: 'T-shirts',
                 description: 'This is a category for t-shirts.',
                 icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
@@ -82,7 +82,7 @@ export class ProductService {
             description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
             brand: 'In Gold We Trust',
             category: {
-                _id: 1,
+                _id: '1',
                 title: 'T-shirts',
                 description: 'This is a category for t-shirts.',
                 icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
@@ -103,8 +103,9 @@ export class ProductService {
         return this.products.filter(product => product._id === productId)[0];
     }
 
-    getProductsByCategoryId(categoryId: number): Product[] {
-        return this.products.filter(product => product.category._id === categoryId);
+    getProductsByCategoryId(categoryId: number): any {
+        // return this.products.filter(product => product.category._id === categoryId);
+        return null;
     }
 
     getNewIndex(): number {

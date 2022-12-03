@@ -1,5 +1,5 @@
 export interface ICategory {
-    _id: number;
+    _id: string;
     title: string;
     description: string;
     icon: string;
@@ -7,7 +7,7 @@ export interface ICategory {
 }
 
 export class Category implements ICategory {
-    _id: number = 0;
+    _id: string = '';
     title: string = '';
     description: string = '';
     icon: string = '';

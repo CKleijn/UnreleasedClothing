@@ -13,7 +13,7 @@ import { RegisterUserDto } from './register.dto';
 export class RegisterComponent implements OnInit, OnDestroy {
   subscription: Subscription | undefined;
   registerUserDto: RegisterUserDto | undefined;
-  error = null;
+  error: string | null = null;
 
   constructor(private authService: AuthService, private router: Router) { }
 
@@ -22,16 +22,15 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-    this.subscription = this.authService.registerUser(this.registerUserDto!).subscribe(
-    (registerUser) => {
-      if (registerUser) {
-        this.authService.userDtoFromRegister = new LoginUserDto(this.registerUserDto?.emailAddress, this.registerUserDto?.password);
-        this.router.navigate(['login']);
-      }
-    }, 
-    (error) => {
-      this.error = error.message;
-    });
+    this.subscription = this.authService.registerUser(this.registerUserDto!).subscribe({
+      next: (registerUser) => {
+        if (registerUser) {
+          this.authService.userDtoFromRegister = new LoginUserDto(this.registerUserDto?.emailAddress, this.registerUserDto?.password);
+          this.router.navigate(['login']);
+        }
+      },
+      error: (error) => this.error = error.message
+    })
   }
 
   ngOnDestroy(): void {
