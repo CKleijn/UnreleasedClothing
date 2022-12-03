@@ -3,6 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from "../auth/auth.service";
 import { Role } from "../auth/roles/role.enum";
 import { Roles } from "../auth/roles/roles.decorator";
+import { RolesGuard } from "../auth/roles/roles.guard";
 import { LoginUserDto } from "./dtos/loginUser.dto";
 import { RegisterUserDto } from "./dtos/registerUser.dto";
 import { User } from "./user.schema";
@@ -10,7 +11,7 @@ import { UserService } from "./user.service";
 
 @Controller('user')
 export class UserController {
-    constructor(private authService: AuthService, private userService: UserService) {}
+    constructor(private authService: AuthService, private userService: UserService) { }
 
     @UseGuards(AuthGuard('local'))
     @Post('login')
@@ -37,7 +38,6 @@ export class UserController {
                 message: 'User has been successfully registered!'
             }
         } catch (error) {
-            console.log(error)
             this.generateUserExceptions(error);
         }
     }
@@ -57,26 +57,67 @@ export class UserController {
         }
     }
 
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.CUSTOMER)
+    @Post(':userId/follow')
+    async followUser(@Request() req: any, @Param('userId') userId: string): Promise<Object> {
+        try {
+            await this.userService.followUser(req.user.emailAddress, userId);
+
+            return {
+                status: 200,
+                message: 'User has been successfully followed!'
+            }
+        } catch (error) {
+            this.generateUserExceptions(error);
+        }
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.CUSTOMER)
+    @Post(':userId/unfollow')
+    async unfollowUser(@Request() req: any, @Param('userId') userId: string): Promise<Object> {
+        try {
+            await this.userService.unfollowUser(req.user.emailAddress, userId);
+
+            return {
+                status: 200,
+                message: 'User has been successfully unfollowed!'
+            }
+        } catch (error) {
+            this.generateUserExceptions(error);
+        }
+    }
+
     generateUserExceptions(error: any) {
-        if(error?.name === 'CastError')
+        if (error?.name === 'CastError')
             throw new HttpException(`This user doesn't exists!`, HttpStatus.NOT_FOUND)
 
-        if(error?.response === 'This user already exists!')
+        if (error?.response === 'This user already exists!')
             throw new HttpException(`This user already exists!`, HttpStatus.CONFLICT)
 
-        if(error?.errors?.name)
+        if (error?.response?.message === `You don't follow this customer!`)
+            throw new HttpException(`You don't follow this customer!`, HttpStatus.CONFLICT)
+
+        if (error?.response?.message === `You can only follow other customers!`)
+            throw new HttpException(`You can only follow other customers!`, HttpStatus.BAD_REQUEST)
+
+        if (error?.response?.message === `You already follow this customer!`)
+            throw new HttpException(`You already follow this customer!`, HttpStatus.BAD_REQUEST)
+
+        if (error?.errors?.name)
             throw new HttpException(error.errors.name.message, HttpStatus.CONFLICT);
 
-        if(error?.errors?.emailAddress)
+        if (error?.errors?.emailAddress)
             throw new HttpException(error.errors.emailAddress.message, HttpStatus.CONFLICT);
 
-        if(error?.errors?.picture)
+        if (error?.errors?.picture)
             throw new HttpException(error.errors.picture.message, HttpStatus.CONFLICT);
-        
-        if(error?.errors?.role)
+
+        if (error?.errors?.role)
             throw new HttpException(error.errors.role.message, HttpStatus.CONFLICT);
 
-        if(error?.errors?.password)
+        if (error?.errors?.password)
             throw new HttpException(error.errors.password.message, HttpStatus.CONFLICT);
     }
 }
