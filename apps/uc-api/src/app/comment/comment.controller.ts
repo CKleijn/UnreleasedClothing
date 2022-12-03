@@ -16,6 +16,11 @@ export class CommentController {
         return await this.commentService.getAllComments();
     }
 
+    @Get('comments/:userId')
+    async getAllCommentsFromUser(@Param('userId') userId: string): Promise<Comment[]> {
+        return await this.commentService.getAllCommentsFromUser(userId);
+    }
+
     @Get('product/:productId/comments')
     async getAllCommentsFromProduct(@Param('productId') productId: string): Promise<Comment[]> {
         return await this.commentService.getAllCommentsFromProduct(productId);
@@ -79,7 +84,7 @@ export class CommentController {
     }
 
     generateCommentExceptions(error: any) {
-        if(error?.response || error?.name === 'CastError')
+        if(error?.name === 'CastError')
             throw new HttpException(`This comment doesn't exists!`, HttpStatus.NOT_FOUND)
 
         if(error?.response?.message)

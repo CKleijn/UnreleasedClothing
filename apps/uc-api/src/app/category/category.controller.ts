@@ -74,8 +74,11 @@ export class CategoryController {
     }
 
     generateCategoryExceptions(error: any) {
-        if(error?.response || error?.name === 'CastError')
+        if(error?.name === 'CastError')
             throw new HttpException(`This category doesn't exists!`, HttpStatus.NOT_FOUND)
+
+        if(error?.response === 'This category title already exists!')
+            throw new HttpException('This category title already exists!', HttpStatus.CONFLICT);
 
         if(error?.response?.message)
             throw new UnauthorizedException(error?.response?.message);

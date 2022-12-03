@@ -45,6 +45,7 @@ export class User {
 
     @Prop({
         required: [true, 'Password is required!'],
+        min: [8, 'Password needs atleast 8 characters!']
     })
     password: String;
 

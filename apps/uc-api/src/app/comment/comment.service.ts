@@ -1,7 +1,5 @@
-import { HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import mongoose, { Model } from "mongoose";
-import { Product } from "../product/product.schema";
+import { Injectable} from "@nestjs/common";
+import mongoose from "mongoose";
 import { ProductService } from "../product/product.service";
 import { RatingService } from "../rating/rating.service";
 import { CommentDto } from "./comment.dto";
@@ -9,10 +7,14 @@ import { Comment } from "./comment.schema";
 
 @Injectable()
 export class CommentService {
-    constructor(@InjectModel(Comment.name) private commentModel: Model<Comment>, private ratingService: RatingService, private productService: ProductService) {}
+    constructor(private ratingService: RatingService, private productService: ProductService) {}
 
     async getAllComments(): Promise<Comment[]> {
         return await this.productService.getAllComments();
+    }
+
+    async getAllCommentsFromUser(userId: string): Promise<Comment[]> {
+        return await this.productService.getAllCommentsFromUser(userId);
     }
     
     async getAllCommentsFromProduct(productId: string): Promise<Comment[]> {
@@ -32,7 +34,7 @@ export class CommentService {
             createdBy: user._id,
             createdAt: new Date()
         }
-        
+
         await this.productService.addCommentToProduct(productId, comment);
     }
 
@@ -44,6 +46,6 @@ export class CommentService {
     }
 
     async deleteComment(user: any, productId: string, commentId: string): Promise<void> {
-        await this.productService.deleteCommentFromProduct(user, productId, commentId);
+        return await this.productService.deleteCommentFromProduct(user, productId, commentId);
     }
 }

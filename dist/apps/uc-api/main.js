@@ -396,8 +396,10 @@ let CategoryController = class CategoryController {
     }
     generateCategoryExceptions(error) {
         var _a, _b, _c, _d, _e;
-        if ((error === null || error === void 0 ? void 0 : error.response) || (error === null || error === void 0 ? void 0 : error.name) === 'CastError')
+        if ((error === null || error === void 0 ? void 0 : error.name) === 'CastError')
             throw new common_1.HttpException(`This category doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
+        if ((error === null || error === void 0 ? void 0 : error.response) === 'This category title already exists!')
+            throw new common_1.HttpException('This category title already exists!', common_1.HttpStatus.CONFLICT);
         if ((_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.message)
             throw new common_1.UnauthorizedException((_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.message);
         if ((_c = error === null || error === void 0 ? void 0 : error.errors) === null || _c === void 0 ? void 0 : _c.title)
@@ -529,6 +531,7 @@ tslib_1.__decorate([
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Icon is required!'],
+        default: 'https://www.simplelaw.com/hubfs/Blog_Media/cdn2.hubspot.nethubfs5154887Blog_Mediaimage_not_found.png'
     }),
     tslib_1.__metadata("design:type", typeof (_c = typeof String !== "undefined" && String) === "function" ? _c : Object)
 ], Category.prototype, "icon", void 0);
@@ -569,72 +572,39 @@ let CategoryService = class CategoryService {
     }
     getAllCategories() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const categories = yield this.categoryModel.aggregate([
-                {
-                    '$lookup': {
-                        'from': 'users',
-                        'localField': 'createdBy',
-                        'foreignField': '_id',
-                        'as': 'user'
-                    }
-                }, {
-                    '$set': {
-                        'createdBy': {
-                            '$first': '$user'
-                        }
-                    }
-                }, {
-                    '$project': {
-                        'user': 0
-                    }
-                }
-            ]);
-            return categories;
+            return yield this.categoryModel.find({}).populate('createdBy');
         });
     }
     getCategoryById(categoryId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const category = yield this.categoryModel.aggregate([
-                {
-                    '$match': {
-                        '_id': new mongoose_2.default.Types.ObjectId(categoryId)
-                    }
-                },
-                {
-                    '$lookup': {
-                        'from': 'users',
-                        'localField': 'createdBy',
-                        'foreignField': '_id',
-                        'as': 'user'
-                    }
-                }, {
-                    '$set': {
-                        'createdBy': {
-                            '$first': '$user'
-                        }
-                    }
-                }, {
-                    '$project': {
-                        'user': 0
-                    }
-                }
-            ]);
+            const category = yield this.categoryModel.findById({ _id: new mongoose_2.default.Types.ObjectId(categoryId) }).populate('createdBy');
             if (!category)
                 throw new common_1.HttpException(`This category doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
-            return category[0];
+            return category;
         });
     }
     createCategory(user, categoryDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const uniqueCategory = this.categoryModel.findOne({ title: categoryDto.title });
+            if (uniqueCategory)
+                throw new common_1.HttpException('This category title already exists!', common_1.HttpStatus.CONFLICT);
             yield this.categoryModel.create(Object.assign(Object.assign({}, categoryDto), { createdAt: new Date(), createdBy: user._id }));
         });
     }
     updateCategory(user, categoryId, newCategory) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const category = yield this.categoryModel.findById({ _id: categoryId });
+            const uniqueCategory = this.categoryModel.findOne({ title: newCategory === null || newCategory === void 0 ? void 0 : newCategory.title });
             if (!user._id.equals(category.createdBy))
                 throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
-            yield this.categoryModel.findOneAndUpdate({ _id: categoryId }, newCategory, { new: true });
+            if (uniqueCategory)
+                throw new common_1.HttpException('This category title already exists!', common_1.HttpStatus.CONFLICT);
+            yield this.categoryModel.findOneAndUpdate({ _id: categoryId }, newCategory, {
+                upsert: true,
+                new: true,
+                runValidators: true,
+                setDefaultsOnInsert: true
+            });
         });
     }
     deleteCategory(user, categoryId) {
@@ -660,7 +630,7 @@ exports.CategoryService = CategoryService;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CommentController = void 0;
 const tslib_1 = __webpack_require__("tslib");
@@ -678,6 +648,11 @@ let CommentController = class CommentController {
     getAllComments() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             return yield this.commentService.getAllComments();
+        });
+    }
+    getAllCommentsFromUser(userId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.commentService.getAllCommentsFromUser(userId);
         });
     }
     getAllCommentsFromProduct(productId) {
@@ -739,7 +714,7 @@ let CommentController = class CommentController {
     }
     generateCommentExceptions(error) {
         var _a, _b, _c, _d, _e;
-        if ((error === null || error === void 0 ? void 0 : error.response) || (error === null || error === void 0 ? void 0 : error.name) === 'CastError')
+        if ((error === null || error === void 0 ? void 0 : error.name) === 'CastError')
             throw new common_1.HttpException(`This comment doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
         if ((_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.message)
             throw new common_1.UnauthorizedException((_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.message);
@@ -758,11 +733,18 @@ tslib_1.__decorate([
     tslib_1.__metadata("design:returntype", typeof (_b = typeof Promise !== "undefined" && Promise) === "function" ? _b : Object)
 ], CommentController.prototype, "getAllComments", null);
 tslib_1.__decorate([
+    (0, common_1.Get)('comments/:userId'),
+    tslib_1.__param(0, (0, common_1.Param)('userId')),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [String]),
+    tslib_1.__metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
+], CommentController.prototype, "getAllCommentsFromUser", null);
+tslib_1.__decorate([
     (0, common_1.Get)('product/:productId/comments'),
     tslib_1.__param(0, (0, common_1.Param)('productId')),
     tslib_1.__metadata("design:type", Function),
     tslib_1.__metadata("design:paramtypes", [String]),
-    tslib_1.__metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
+    tslib_1.__metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
 ], CommentController.prototype, "getAllCommentsFromProduct", null);
 tslib_1.__decorate([
     (0, common_1.Get)('product/:productId/comment/:commentId'),
@@ -770,7 +752,7 @@ tslib_1.__decorate([
     tslib_1.__param(1, (0, common_1.Param)('commentId')),
     tslib_1.__metadata("design:type", Function),
     tslib_1.__metadata("design:paramtypes", [String, String]),
-    tslib_1.__metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
+    tslib_1.__metadata("design:returntype", typeof (_e = typeof Promise !== "undefined" && Promise) === "function" ? _e : Object)
 ], CommentController.prototype, "getCommentById", null);
 tslib_1.__decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
@@ -780,8 +762,8 @@ tslib_1.__decorate([
     tslib_1.__param(1, (0, common_1.Param)('productId')),
     tslib_1.__param(2, (0, common_1.Body)()),
     tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", [Object, String, typeof (_e = typeof comment_dto_1.CommentDto !== "undefined" && comment_dto_1.CommentDto) === "function" ? _e : Object]),
-    tslib_1.__metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
+    tslib_1.__metadata("design:paramtypes", [Object, String, typeof (_f = typeof comment_dto_1.CommentDto !== "undefined" && comment_dto_1.CommentDto) === "function" ? _f : Object]),
+    tslib_1.__metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
 ], CommentController.prototype, "createComment", null);
 tslib_1.__decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
@@ -792,8 +774,8 @@ tslib_1.__decorate([
     tslib_1.__param(2, (0, common_1.Param)('commentId')),
     tslib_1.__param(3, (0, common_1.Body)()),
     tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", [Object, String, String, typeof (_g = typeof Partial !== "undefined" && Partial) === "function" ? _g : Object]),
-    tslib_1.__metadata("design:returntype", typeof (_h = typeof Promise !== "undefined" && Promise) === "function" ? _h : Object)
+    tslib_1.__metadata("design:paramtypes", [Object, String, String, typeof (_h = typeof Partial !== "undefined" && Partial) === "function" ? _h : Object]),
+    tslib_1.__metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
 ], CommentController.prototype, "updateComment", null);
 tslib_1.__decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
@@ -804,7 +786,7 @@ tslib_1.__decorate([
     tslib_1.__param(2, (0, common_1.Param)('commentId')),
     tslib_1.__metadata("design:type", Function),
     tslib_1.__metadata("design:paramtypes", [Object, String, String]),
-    tslib_1.__metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
+    tslib_1.__metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
 ], CommentController.prototype, "deleteComment", null);
 CommentController = tslib_1.__decorate([
     (0, common_1.Controller)(),
@@ -836,17 +818,15 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CommentModule = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
-const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const product_module_1 = __webpack_require__("./apps/uc-api/src/app/product/product.module.ts");
 const rating_module_1 = __webpack_require__("./apps/uc-api/src/app/rating/rating.module.ts");
 const comment_controller_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.controller.ts");
-const comment_schema_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.schema.ts");
 const comment_service_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.service.ts");
 let CommentModule = class CommentModule {
 };
 CommentModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: comment_schema_1.Comment.name, schema: comment_schema_1.CommentSchema }]), product_module_1.ProductModule, rating_module_1.RatingModule],
+        imports: [product_module_1.ProductModule, rating_module_1.RatingModule],
         controllers: [comment_controller_1.CommentController],
         providers: [comment_service_1.CommentService],
         exports: [comment_service_1.CommentService]
@@ -858,84 +838,31 @@ exports.CommentModule = CommentModule;
 
 /***/ }),
 
-/***/ "./apps/uc-api/src/app/comment/comment.schema.ts":
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-var _a, _b, _c, _d, _e, _f;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CommentSchema = exports.Comment = void 0;
-const tslib_1 = __webpack_require__("tslib");
-const mongoose_1 = __webpack_require__("@nestjs/mongoose");
-const mongoose_2 = __webpack_require__("mongoose");
-const rating_schema_1 = __webpack_require__("./apps/uc-api/src/app/rating/rating.schema.ts");
-const user_schema_1 = __webpack_require__("./apps/uc-api/src/app/user/user.schema.ts");
-let Comment = class Comment {
-};
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_a = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _a : Object)
-], Comment.prototype, "_id", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)({
-        required: [true, 'Title is required!'],
-    }),
-    tslib_1.__metadata("design:type", typeof (_b = typeof String !== "undefined" && String) === "function" ? _b : Object)
-], Comment.prototype, "title", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)({
-        required: [true, 'Body is required!'],
-    }),
-    tslib_1.__metadata("design:type", typeof (_c = typeof String !== "undefined" && String) === "function" ? _c : Object)
-], Comment.prototype, "body", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)({
-        required: [true, 'Rating is required!'],
-    }),
-    tslib_1.__metadata("design:type", typeof (_d = typeof rating_schema_1.Rating !== "undefined" && rating_schema_1.Rating) === "function" ? _d : Object)
-], Comment.prototype, "rating", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)({
-        ref: 'User'
-    }),
-    tslib_1.__metadata("design:type", typeof (_e = typeof user_schema_1.User !== "undefined" && user_schema_1.User) === "function" ? _e : Object)
-], Comment.prototype, "createdBy", void 0);
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_f = typeof Date !== "undefined" && Date) === "function" ? _f : Object)
-], Comment.prototype, "createdAt", void 0);
-Comment = tslib_1.__decorate([
-    (0, mongoose_1.Schema)()
-], Comment);
-exports.Comment = Comment;
-exports.CommentSchema = mongoose_1.SchemaFactory.createForClass(Comment);
-
-
-/***/ }),
-
 /***/ "./apps/uc-api/src/app/comment/comment.service.ts":
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c;
+var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CommentService = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
-const mongoose_1 = __webpack_require__("@nestjs/mongoose");
-const mongoose_2 = __webpack_require__("mongoose");
+const mongoose_1 = __webpack_require__("mongoose");
 const product_service_1 = __webpack_require__("./apps/uc-api/src/app/product/product.service.ts");
 const rating_service_1 = __webpack_require__("./apps/uc-api/src/app/rating/rating.service.ts");
-const comment_schema_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.schema.ts");
 let CommentService = class CommentService {
-    constructor(commentModel, ratingService, productService) {
-        this.commentModel = commentModel;
+    constructor(ratingService, productService) {
         this.ratingService = ratingService;
         this.productService = productService;
     }
     getAllComments() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             return yield this.productService.getAllComments();
+        });
+    }
+    getAllCommentsFromUser(userId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.productService.getAllCommentsFromUser(userId);
         });
     }
     getAllCommentsFromProduct(productId) {
@@ -951,7 +878,7 @@ let CommentService = class CommentService {
     createComment(user, productId, commentDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const comment = {
-                _id: new mongoose_2.default.Types.ObjectId(),
+                _id: new mongoose_1.default.Types.ObjectId(),
                 title: commentDto.title,
                 body: commentDto.body,
                 rating: yield this.ratingService.getRatingById(commentDto.ratingId),
@@ -970,14 +897,13 @@ let CommentService = class CommentService {
     }
     deleteComment(user, productId, commentId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            yield this.productService.deleteCommentFromProduct(user, productId, commentId);
+            return yield this.productService.deleteCommentFromProduct(user, productId, commentId);
         });
     }
 };
 CommentService = tslib_1.__decorate([
     (0, common_1.Injectable)(),
-    tslib_1.__param(0, (0, mongoose_1.InjectModel)(comment_schema_1.Comment.name)),
-    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof rating_service_1.RatingService !== "undefined" && rating_service_1.RatingService) === "function" ? _b : Object, typeof (_c = typeof product_service_1.ProductService !== "undefined" && product_service_1.ProductService) === "function" ? _c : Object])
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof rating_service_1.RatingService !== "undefined" && rating_service_1.RatingService) === "function" ? _a : Object, typeof (_b = typeof product_service_1.ProductService !== "undefined" && product_service_1.ProductService) === "function" ? _b : Object])
 ], CommentService);
 exports.CommentService = CommentService;
 
@@ -1062,7 +988,7 @@ let ProductController = class ProductController {
     }
     generateProductExceptions(error) {
         var _a, _b, _c, _d, _e, _f;
-        if ((error === null || error === void 0 ? void 0 : error.response) || (error === null || error === void 0 ? void 0 : error.name) === 'CastError')
+        if ((error === null || error === void 0 ? void 0 : error.name) === 'CastError')
             throw new common_1.HttpException(`This product doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
         if ((_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.message)
             throw new common_1.UnauthorizedException((_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.message);
@@ -1269,12 +1195,22 @@ let ProductService = class ProductService {
                 }, {
                     '$lookup': {
                         'from': 'users',
+                        'localField': 'category.createdBy',
+                        'foreignField': '_id',
+                        'as': 'category.createdBy'
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'users',
                         'localField': 'comments.createdBy',
                         'foreignField': '_id',
                         'as': 'comment.createdBy'
                     }
                 }, {
                     '$set': {
+                        'category.createdBy': {
+                            '$first': '$category.createdBy'
+                        },
                         'comments.createdBy': {
                             '$first': '$comment.createdBy'
                         }
@@ -1283,34 +1219,34 @@ let ProductService = class ProductService {
                     '$group': {
                         '_id': '$_id',
                         'name': {
-                            $first: '$name'
+                            '$first': '$name'
                         },
                         'picture': {
-                            $first: '$picture'
+                            '$first': '$picture'
                         },
                         'price': {
-                            $first: '$price'
+                            '$first': '$price'
                         },
                         'description': {
-                            $first: '$description'
+                            '$first': '$description'
                         },
                         'category': {
-                            $first: '$category'
+                            '$first': '$category'
                         },
                         'comments': {
                             '$push': '$comments'
                         },
                         'isActive': {
-                            $first: '$isActive'
+                            '$first': '$isActive'
                         },
                         'createdBy': {
-                            $first: '$createdBy'
+                            '$first': '$createdBy'
                         },
                         'createdAt': {
-                            $first: '$createdAt'
+                            '$first': '$createdAt'
                         },
                         '__v': {
-                            $first: '$__v'
+                            '$first': '$__v'
                         }
                     }
                 }
@@ -1324,6 +1260,47 @@ let ProductService = class ProductService {
                 {
                     '$unwind': {
                         'path': '$comments'
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'users',
+                        'localField': 'comments.createdBy',
+                        'foreignField': '_id',
+                        'as': 'comment.createdBy'
+                    }
+                }, {
+                    '$set': {
+                        'comments.createdBy': {
+                            '$first': '$comment.createdBy'
+                        }
+                    }
+                }, {
+                    '$group': {
+                        '_id': '$_id',
+                        'comments': {
+                            '$push': '$comments'
+                        }
+                    }
+                }, {
+                    '$project': {
+                        '_id': 0,
+                        'comments': 1
+                    }
+                }
+            ]);
+            return comments[0].comments;
+        });
+    }
+    getAllCommentsFromUser(userId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const comments = yield this.productModel.aggregate([
+                {
+                    '$unwind': {
+                        'path': '$comments'
+                    }
+                }, {
+                    '$match': {
+                        'comments.createdBy': new mongoose_2.default.Types.ObjectId(userId)
                     }
                 }, {
                     '$lookup': {
@@ -1411,12 +1388,22 @@ let ProductService = class ProductService {
                 }, {
                     '$lookup': {
                         'from': 'users',
+                        'localField': 'category.createdBy',
+                        'foreignField': '_id',
+                        'as': 'category.createdBy'
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'users',
                         'localField': 'comments.createdBy',
                         'foreignField': '_id',
                         'as': 'comment.createdBy'
                     }
                 }, {
                     '$set': {
+                        'category.createdBy': {
+                            '$first': '$category.createdBy'
+                        },
                         'comments.createdBy': {
                             '$first': '$comment.createdBy'
                         }
@@ -1463,6 +1450,7 @@ let ProductService = class ProductService {
         });
     }
     getCommentById(productId, commentId) {
+        var _a;
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const comment = yield this.productModel.aggregate([
                 {
@@ -1497,7 +1485,7 @@ let ProductService = class ProductService {
                     }
                 }
             ]);
-            if (!comment[0].comments)
+            if (!((_a = comment[0]) === null || _a === void 0 ? void 0 : _a.comments) || !comment[0])
                 throw new common_1.HttpException(`This comment doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
             return comment[0].comments;
         });
@@ -1519,7 +1507,12 @@ let ProductService = class ProductService {
     }
     addCommentToProduct(productId, newComment) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            yield this.productModel.findOneAndUpdate({ _id: productId }, { $push: { comments: newComment } });
+            yield this.productModel.findOneAndUpdate({ _id: productId }, { $push: { comments: newComment } }, {
+                upsert: true,
+                new: true,
+                runValidators: true,
+                setDefaultsOnInsert: true
+            });
         });
     }
     updateProduct(user, productId, newProduct) {
@@ -1527,7 +1520,12 @@ let ProductService = class ProductService {
             const product = yield this.productModel.findById({ _id: productId });
             if (!user._id.equals(product.createdBy._id))
                 throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
-            yield this.productModel.findOneAndUpdate({ _id: productId }, newProduct);
+            yield this.productModel.findOneAndUpdate({ _id: productId }, newProduct, {
+                upsert: true,
+                new: true,
+                runValidators: true,
+                setDefaultsOnInsert: true
+            });
         });
     }
     updateCommentFromProduct(user, productId, commentId, newComment) {
@@ -1535,7 +1533,12 @@ let ProductService = class ProductService {
             const oldComment = yield this.getCommentById(productId, commentId);
             if (!user._id.equals(oldComment.createdBy._id))
                 throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
-            yield this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose_2.default.Types.ObjectId(commentId) }, { $set: { 'comments.$.title': newComment === null || newComment === void 0 ? void 0 : newComment.title, 'comments.$.body': newComment === null || newComment === void 0 ? void 0 : newComment.body, 'comments.$.rating': newComment === null || newComment === void 0 ? void 0 : newComment.rating } });
+            yield this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose_2.default.Types.ObjectId(commentId) }, { $set: { 'comments.$.title': newComment === null || newComment === void 0 ? void 0 : newComment.title, 'comments.$.body': newComment === null || newComment === void 0 ? void 0 : newComment.body, 'comments.$.rating': newComment === null || newComment === void 0 ? void 0 : newComment.rating } }, {
+                upsert: true,
+                new: true,
+                runValidators: true,
+                setDefaultsOnInsert: true
+            });
         });
     }
     deleteProduct(user, productId) {
@@ -1551,7 +1554,12 @@ let ProductService = class ProductService {
             const comment = yield this.getCommentById(productId, commentId);
             if (!user._id.equals(comment.createdBy._id))
                 throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
-            yield this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose_2.default.Types.ObjectId(commentId) }, { $pull: { 'comments': { _id: new mongoose_2.default.Types.ObjectId(commentId) } } }, { new: true });
+            yield this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose_2.default.Types.ObjectId(commentId) }, { $pull: { 'comments': { _id: new mongoose_2.default.Types.ObjectId(commentId) } } }, {
+                upsert: true,
+                new: true,
+                runValidators: true,
+                setDefaultsOnInsert: true
+            });
         });
     }
 };
@@ -2043,6 +2051,7 @@ tslib_1.__decorate([
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Password is required!'],
+        min: [8, 'Password needs atleast 8 characters!']
     }),
     tslib_1.__metadata("design:type", typeof (_f = typeof String !== "undefined" && String) === "function" ? _f : Object)
 ], User.prototype, "password", void 0);

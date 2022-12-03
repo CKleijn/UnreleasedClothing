@@ -21,12 +21,22 @@ export class ProductService {
             }, {
                 '$lookup': {
                     'from': 'users',
+                    'localField': 'category.createdBy',
+                    'foreignField': '_id',
+                    'as': 'category.createdBy'
+                }
+            }, {
+                '$lookup': {
+                    'from': 'users',
                     'localField': 'comments.createdBy',
                     'foreignField': '_id',
                     'as': 'comment.createdBy'
                 }
             }, {
                 '$set': {
+                    'category.createdBy': {
+                        '$first': '$category.createdBy'
+                    },
                     'comments.createdBy': {
                         '$first': '$comment.createdBy'
                     }
@@ -35,34 +45,34 @@ export class ProductService {
                 '$group': {
                     '_id': '$_id',
                     'name': {
-                        $first: '$name'
+                        '$first': '$name'
                     },
                     'picture': {
-                        $first: '$picture'
+                        '$first': '$picture'
                     },
                     'price': {
-                        $first: '$price'
+                        '$first': '$price'
                     },
                     'description': {
-                        $first: '$description'
+                        '$first': '$description'
                     },
                     'category': {
-                        $first: '$category'
+                        '$first': '$category'
                     },
                     'comments': {
                         '$push': '$comments'
                     },
                     'isActive': {
-                        $first: '$isActive'
+                        '$first': '$isActive'
                     },
                     'createdBy': {
-                        $first: '$createdBy'
+                        '$first': '$createdBy'
                     },
                     'createdAt': {
-                        $first: '$createdAt'
+                        '$first': '$createdAt'
                     },
                     '__v': {
-                        $first: '$__v'
+                        '$first': '$__v'
                     }
                 }
             }
@@ -76,6 +86,47 @@ export class ProductService {
             {
                 '$unwind': {
                     'path': '$comments'
+                }
+            }, {
+                '$lookup': {
+                    'from': 'users',
+                    'localField': 'comments.createdBy',
+                    'foreignField': '_id',
+                    'as': 'comment.createdBy'
+                }
+            }, {
+                '$set': {
+                    'comments.createdBy': {
+                        '$first': '$comment.createdBy'
+                    }
+                }
+            }, {
+                '$group': {
+                    '_id': '$_id',
+                    'comments': {
+                        '$push': '$comments'
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0,
+                    'comments': 1
+                }
+            }
+        ]);
+
+        return comments[0].comments;
+    }
+
+    async getAllCommentsFromUser(userId: string): Promise<Comment[]> {
+        const comments = await this.productModel.aggregate([
+            {
+                '$unwind': {
+                    'path': '$comments'
+                }
+            }, {
+                '$match': {
+                    'comments.createdBy': new mongoose.Types.ObjectId(userId)
                 }
             }, {
                 '$lookup': {
@@ -163,12 +214,22 @@ export class ProductService {
             }, {
                 '$lookup': {
                     'from': 'users',
+                    'localField': 'category.createdBy',
+                    'foreignField': '_id',
+                    'as': 'category.createdBy'
+                }
+            }, {
+                '$lookup': {
+                    'from': 'users',
                     'localField': 'comments.createdBy',
                     'foreignField': '_id',
                     'as': 'comment.createdBy'
                 }
             }, {
                 '$set': {
+                    'category.createdBy': {
+                        '$first': '$category.createdBy'
+                    },
                     'comments.createdBy': {
                         '$first': '$comment.createdBy'
                     }
@@ -251,7 +312,7 @@ export class ProductService {
             }
         ]);
 
-        if (!comment[0].comments)
+        if (!comment[0]?.comments || !comment[0])
             throw new HttpException(`This comment doesn't exists!`, HttpStatus.NOT_FOUND)
 
         return comment[0].comments;
@@ -272,7 +333,12 @@ export class ProductService {
     }
 
     async addCommentToProduct(productId: string, newComment: Partial<CommentDto>): Promise<void> {
-        await this.productModel.findOneAndUpdate({ _id: productId }, { $push: { comments: newComment } });
+        await this.productModel.findOneAndUpdate({ _id: productId }, { $push: { comments: newComment } }, {
+            upsert: true,
+            new: true,
+            runValidators: true,
+            setDefaultsOnInsert: true
+        });
     }
 
     async updateProduct(user: any, productId: string, newProduct: Partial<ProductDto>): Promise<void> {
@@ -280,8 +346,13 @@ export class ProductService {
 
         if (!user._id.equals(product.createdBy._id))
             throw new UnauthorizedException({ message: `This user don't have access to this method!` });
-        
-        await this.productModel.findOneAndUpdate({ _id: productId }, newProduct);
+
+        await this.productModel.findOneAndUpdate({ _id: productId }, newProduct, {
+            upsert: true,
+            new: true,
+            runValidators: true,
+            setDefaultsOnInsert: true
+        });
     }
 
     async updateCommentFromProduct(user: any, productId: string, commentId: string, newComment: Partial<CommentDto>): Promise<void> {
@@ -289,8 +360,13 @@ export class ProductService {
 
         if (!user._id.equals(oldComment.createdBy._id))
             throw new UnauthorizedException({ message: `This user don't have access to this method!` });
-            
-        await this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose.Types.ObjectId(commentId) }, { $set: { 'comments.$.title': newComment?.title, 'comments.$.body': newComment?.body, 'comments.$.rating': newComment?.rating } });
+
+        await this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose.Types.ObjectId(commentId) }, { $set: { 'comments.$.title': newComment?.title, 'comments.$.body': newComment?.body, 'comments.$.rating': newComment?.rating } }, {
+            upsert: true,
+            new: true,
+            runValidators: true,
+            setDefaultsOnInsert: true
+        });
     }
 
     async deleteProduct(user: any, productId: string): Promise<void> {
@@ -308,6 +384,11 @@ export class ProductService {
         if (!user._id.equals(comment.createdBy._id))
             throw new UnauthorizedException({ message: `This user don't have access to this method!` });
 
-        await this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose.Types.ObjectId(commentId) }, { $pull: { 'comments': { _id: new mongoose.Types.ObjectId(commentId) } } }, { new: true });
+        await this.productModel.findOneAndUpdate({ _id: productId, 'comments._id': new mongoose.Types.ObjectId(commentId) }, { $pull: { 'comments': { _id: new mongoose.Types.ObjectId(commentId) } } }, {
+            upsert: true,
+            new: true,
+            runValidators: true,
+            setDefaultsOnInsert: true
+        });
     }
 }
