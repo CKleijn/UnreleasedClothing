@@ -11,6 +11,7 @@ import { RatingComponent } from './pages/rating/rating.component';
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { HasRoleGuard, IsAuthenticatedGuard } from './auth/auth.guard';
+import { CommentFormComponent } from './pages/comment/form/form.component';
 
 export const appRoutes: Route[] = [
     { path: '', pathMatch: 'full', redirectTo: 'products' },
@@ -20,9 +21,11 @@ export const appRoutes: Route[] = [
     { path: 'products/create', pathMatch: 'full', component: ProductFormComponent, canActivate: [IsAuthenticatedGuard, HasRoleGuard], data: { role: 'brand' } },
     { path: 'products/:productId', pathMatch: 'full', component: ProductDetailComponent, canActivate: [IsAuthenticatedGuard] },
     { path: 'products/:productId/edit', pathMatch: 'full', component: ProductFormComponent, canActivate: [IsAuthenticatedGuard, HasRoleGuard], data: { role: 'brand' } },
-    { path: 'categories', pathMatch: 'full', component: CategoryComponent, canActivate: [IsAuthenticatedGuard, HasRoleGuard], data: { role: 'brand' } },
+    { path: 'products/:productId/comment/create', pathMatch: 'full', component: CommentFormComponent, canActivate: [IsAuthenticatedGuard, HasRoleGuard], data: { role: 'customer' } },
+    { path: 'products/:productId/comment/:commentId/edit', pathMatch: 'full', component: CommentFormComponent, canActivate: [IsAuthenticatedGuard, HasRoleGuard], data: { role: 'customer' } },
+    { path: 'categories', pathMatch: 'full', component: CategoryComponent, canActivate: [IsAuthenticatedGuard] },
     { path: 'categories/create', pathMatch: 'full', component: CategoryFormComponent, canActivate: [IsAuthenticatedGuard, HasRoleGuard], data: { role: 'brand' } },
-    { path: 'categories/:categoryId', pathMatch: 'full', component: CategoryDetailComponent, canActivate: [IsAuthenticatedGuard, HasRoleGuard], data: { role: 'brand' } },
+    { path: 'categories/:categoryId', pathMatch: 'full', component: CategoryDetailComponent, canActivate: [IsAuthenticatedGuard] },
     { path: 'categories/:categoryId/edit', pathMatch: 'full', component: CategoryFormComponent, canActivate: [IsAuthenticatedGuard, HasRoleGuard], data: { role: 'brand' } },
     { path: 'ratings', pathMatch: 'full', component: RatingComponent, canActivate: [IsAuthenticatedGuard] },
     { path: 'about', pathMatch: 'full', component: AboutComponent },
@@ -30,7 +33,7 @@ export const appRoutes: Route[] = [
 ];
 
 @NgModule({
-    imports: [RouterModule.forRoot(appRoutes)],
+    imports: [RouterModule.forRoot(appRoutes, {onSameUrlNavigation: 'reload'})],
     exports: [RouterModule]
 })
 export class AppRoutingModule { }

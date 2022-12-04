@@ -17,12 +17,12 @@ export class CategoryService {
 
         if (!category)
             throw new HttpException(`This category doesn't exists!`, HttpStatus.NOT_FOUND)
-
+            
         return category;
     }
 
     async createCategory(user: any, categoryDto: CategoryDto): Promise<void> {
-        const uniqueCategory = this.categoryModel.findOne({ title: categoryDto.title });
+        const uniqueCategory = await this.categoryModel.findOne({ title: categoryDto.title });
 
         if (uniqueCategory)
             throw new HttpException('This category title already exists!', HttpStatus.CONFLICT);
@@ -36,12 +36,12 @@ export class CategoryService {
 
     async updateCategory(user: any, categoryId: string, newCategory: Partial<CategoryDto>): Promise<void> {
         const category = await this.categoryModel.findById({ _id: categoryId });
-        const uniqueCategory = this.categoryModel.findOne({ title: newCategory?.title });
+        const uniqueCategory = await this.categoryModel.findOne({ title: newCategory?.title });
 
         if (!user._id.equals(category.createdBy))
             throw new UnauthorizedException({ message: `This user don't have access to this method!` });
 
-        if (uniqueCategory)
+        if (uniqueCategory && newCategory?.title !== category.title)
             throw new HttpException('This category title already exists!', HttpStatus.CONFLICT);
 
         await this.categoryModel.findOneAndUpdate({ _id: categoryId }, newCategory, {

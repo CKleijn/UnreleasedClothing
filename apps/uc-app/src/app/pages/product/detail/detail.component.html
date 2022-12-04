@@ -1,23 +1,29 @@
-<h1>({{ product?.brand }}) {{ product?.name }}</h1>
+<div *ngIf="product$ | async as product">
+    <h1>({{ product?.createdBy?.name }}) {{ product?.name }}</h1>
 
-<div class="row">
-    <div class="col-md-6 col-sm-12 mb-4">
-        <div class="card">
-            <img class="card-img-top" src="{{ product?.picture }}" alt="{{ product?.name }}">
+    <div class="row">
+        <div class="col-md-6 col-sm-12 mb-4">
+            <div class="card">
+                <img class="card-img-top" src="{{ product?.picture }}" alt="{{ product?.name }}">
+            </div>
         </div>
-    </div>
-    <div class="col-md-6 col-sm-12 mb-4">
-        <div class="card">
-            <div class="card-body">
-                <h6 class="card-title"><b>{{ product?.brand }}</b> - <a routerLink="../../categories/{{ product?.category?._id }}">{{ product?.category?.title }} <img class="pb-1" src="{{ product?.category?.icon }}" width="15" /></a></h6>
-                <h5 class="card-title">{{ product?.name }}</h5>
-                <p class="card-text">€{{ product?.price }}</p>
-                <p class="card-text">{{ product?.description }}</p>
-                <p class="card-text" *ngIf="product?.isActive === true">Active product <i class="bi bi-check2"></i></p>
-                <p class="card-text" *ngIf="product?.isActive === false">Inactive product <i class="bi bi-x"></i></p>
-                <button class="btn" routerLink="edit">Edit <i class="bi bi-pencil"></i></button>
-                <button class="btn mx-2" (click)="delete()">Delete <i class="bi bi-trash"></i></button>
+        <div class="col-md-6 col-sm-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title"><b>{{ product?.createdBy?.name }}</b> - <a
+                            routerLink="../../categories/{{ product?.category?._id }}">{{ product?.category?.title }}
+                            <img class="pb-1" src="{{ product?.category?.icon }}" width="15" /></a></h6>
+                    <h5 class="card-title">{{ product?.name }}</h5>
+                    <p class="card-text">€{{ product?.price }}</p>
+                    <p class="card-text">{{ product?.description }}</p>
+                    <p class="card-text" *ngIf="product?.isActive === true">Active product <i class="bi bi-check2"></i></p>
+                    <p class="card-text" *ngIf="product?.isActive === false">Inactive product <i class="bi bi-x"></i></p>
+                    <button class="btn" routerLink="edit">Edit <i class="bi bi-pencil"></i></button>
+                    <button class="btn mx-2" (click)="delete()">Delete <i class="bi bi-trash"></i></button>
+                    <p *ngIf="error" class="error-msg">{{ error }}</p>
+                </div>
             </div>
         </div>
     </div>
+    <uc-app-comment-product></uc-app-comment-product>
 </div>

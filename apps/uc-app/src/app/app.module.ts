@@ -17,6 +17,9 @@ import { CategoryFormComponent } from './pages/category/form/form.component';
 import { RatingComponent } from './pages/rating/rating.component';
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
+import { CommentComponent } from './pages/comment/comment.component';
+import { CommentProductComponent } from './pages/comment/product/product.component';
+import { CommentFormComponent } from './pages/comment/form/form.component';
 
 @NgModule({
   declarations: [
@@ -33,6 +36,9 @@ import { RegisterComponent } from './auth/register/register.component';
     RatingComponent,
     LoginComponent,
     RegisterComponent,
+    CommentComponent,
+    CommentProductComponent,
+    CommentFormComponent,
   ],
   imports: [
     BrowserModule,

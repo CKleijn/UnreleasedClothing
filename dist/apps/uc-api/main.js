@@ -109,7 +109,7 @@ AuthModule = tslib_1.__decorate([
     (0, common_1.Module)({
         imports: [mongoose_1.MongooseModule.forFeature([{ name: user_schema_1.User.name, schema: user_schema_1.UserSchema }]), (0, common_1.forwardRef)(() => user_module_1.UserModule), passport_1.PassportModule, jwt_1.JwtModule.register({
                 secret: 'S1e2C3r4E5t',
-                signOptions: { expiresIn: '1h' },
+                signOptions: { expiresIn: '7d' },
             }),
         ],
         providers: [auth_service_1.AuthService, local_strategy_1.LocalStrategy, jwt_strategy_1.JwtStrategy],
@@ -585,7 +585,7 @@ let CategoryService = class CategoryService {
     }
     createCategory(user, categoryDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const uniqueCategory = this.categoryModel.findOne({ title: categoryDto.title });
+            const uniqueCategory = yield this.categoryModel.findOne({ title: categoryDto.title });
             if (uniqueCategory)
                 throw new common_1.HttpException('This category title already exists!', common_1.HttpStatus.CONFLICT);
             yield this.categoryModel.create(Object.assign(Object.assign({}, categoryDto), { createdAt: new Date(), createdBy: user._id }));
@@ -594,10 +594,10 @@ let CategoryService = class CategoryService {
     updateCategory(user, categoryId, newCategory) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const category = yield this.categoryModel.findById({ _id: categoryId });
-            const uniqueCategory = this.categoryModel.findOne({ title: newCategory === null || newCategory === void 0 ? void 0 : newCategory.title });
+            const uniqueCategory = yield this.categoryModel.findOne({ title: newCategory === null || newCategory === void 0 ? void 0 : newCategory.title });
             if (!user._id.equals(category.createdBy))
                 throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
-            if (uniqueCategory)
+            if (uniqueCategory && (newCategory === null || newCategory === void 0 ? void 0 : newCategory.title) !== category.title)
                 throw new common_1.HttpException('This category title already exists!', common_1.HttpStatus.CONFLICT);
             yield this.categoryModel.findOneAndUpdate({ _id: categoryId }, newCategory, {
                 upsert: true,
@@ -881,7 +881,7 @@ let CommentService = class CommentService {
                 _id: new mongoose_1.default.Types.ObjectId(),
                 title: commentDto.title,
                 body: commentDto.body,
-                rating: yield this.ratingService.getRatingById(commentDto.ratingId),
+                rating: yield this.ratingService.getRatingById(commentDto.rating.toString()),
                 createdBy: user._id,
                 createdAt: new Date()
             };
@@ -890,8 +890,8 @@ let CommentService = class CommentService {
     }
     updateComment(user, productId, commentId, newComment) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            if (newComment.ratingId)
-                newComment.rating = yield this.ratingService.getRatingById(newComment.ratingId);
+            if (newComment === null || newComment === void 0 ? void 0 : newComment.rating)
+                newComment.rating = yield this.ratingService.getRatingById(newComment.rating.toString());
             yield this.productService.updateCommentFromProduct(user, productId, commentId, newComment);
         });
     }
@@ -1190,7 +1190,8 @@ let ProductService = class ProductService {
             const products = yield this.productModel.aggregate([
                 {
                     '$unwind': {
-                        'path': '$comments'
+                        'path': '$comments',
+                        'preserveNullAndEmptyArrays': true
                     }
                 }, {
                     '$lookup': {
@@ -1249,12 +1250,17 @@ let ProductService = class ProductService {
                             '$first': '$__v'
                         }
                     }
+                }, {
+                    '$sort': {
+                        'createdAt': -1
+                    }
                 }
             ]);
             return products;
         });
     }
     getAllComments() {
+        var _a;
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const comments = yield this.productModel.aggregate([
                 {
@@ -1288,10 +1294,11 @@ let ProductService = class ProductService {
                     }
                 }
             ]);
-            return comments[0].comments;
+            return (_a = comments[0]) === null || _a === void 0 ? void 0 : _a.comments;
         });
     }
     getAllCommentsFromUser(userId) {
+        var _a;
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const comments = yield this.productModel.aggregate([
                 {
@@ -1329,10 +1336,11 @@ let ProductService = class ProductService {
                     }
                 }
             ]);
-            return comments[0].comments;
+            return (_a = comments[0]) === null || _a === void 0 ? void 0 : _a.comments;
         });
     }
     getAllCommentsFromProduct(productId) {
+        var _a;
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const comments = yield this.productModel.aggregate([
                 {
@@ -1370,7 +1378,7 @@ let ProductService = class ProductService {
                     }
                 }
             ]);
-            return comments[0].comments;
+            return (_a = comments[0]) === null || _a === void 0 ? void 0 : _a.comments;
         });
     }
     getProductById(productId) {
@@ -1383,7 +1391,8 @@ let ProductService = class ProductService {
                 },
                 {
                     '$unwind': {
-                        'path': '$comments'
+                        'path': '$comments',
+                        'preserveNullAndEmptyArrays': true
                     }
                 }, {
                     '$lookup': {
@@ -1520,7 +1529,13 @@ let ProductService = class ProductService {
             const product = yield this.productModel.findById({ _id: productId });
             if (!user._id.equals(product.createdBy._id))
                 throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
-            yield this.productModel.findOneAndUpdate({ _id: productId }, newProduct, {
+            if (product)
+                product.name = newProduct === null || newProduct === void 0 ? void 0 : newProduct.name;
+            product.picture = newProduct === null || newProduct === void 0 ? void 0 : newProduct.picture;
+            product.price = newProduct === null || newProduct === void 0 ? void 0 : newProduct.price;
+            product.description = newProduct === null || newProduct === void 0 ? void 0 : newProduct.description;
+            product.category = yield this.categoryService.getCategoryById(newProduct.category);
+            yield this.productModel.findOneAndUpdate({ _id: productId }, product, {
                 upsert: true,
                 new: true,
                 runValidators: true,
