@@ -1,0 +1,23 @@
+<div class="row my-2">
+    <div class="col-md-8 col-sm-12">
+        <h1>All comments</h1>
+    </div>
+    <div class="col-md-4 col-sm-12">
+        <button class="btn pull-right" routerLink="comment/create">Add comment <i class="bi bi-plus-lg"></i></button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 mb-4" *ngFor="let comment of comments$ | async">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ comment.title }}</h5>
+                <h6 class="card-title"><b>{{ comment.createdBy.name }}</b></h6>
+                <p class="card-text">{{ comment.body }}</p>
+                <button class="btn" [routerLink]="['comment', comment._id, 'edit']">Edit <i class="bi bi-pencil"></i></button>
+                <button class="btn mx-2" (click)="deleteComment(comment._id)">Delete <i class="bi bi-trash"></i></button>
+                <p *ngIf="error" class="error-msg">{{ error }}</p>
+            </div>
+        </div>
+    </div>
+</div>

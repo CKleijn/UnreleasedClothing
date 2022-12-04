@@ -3,31 +3,29 @@ import { Injectable } from '@angular/core';
 import { environment } from 'apps/uc-app/src/environments/environment';
 import { catchError, Observable, tap } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
-import { ProductDto } from './product.dto';
-import { Product } from './product.model';
+import { CommentDto } from './comment.dto';
+import { Comment } from './comment.model';
 
 @Injectable({
     providedIn: 'root'
 })
-export class ProductService {
+export class CommentService {
     constructor(private httpClient: HttpClient, private authService: AuthService) { }
 
-    getProducts(): Observable<Product[]> {
-        return this.httpClient.get(environment.API_URL + 'products') as Observable<Product[]>;
+    getAllCommentsFromProduct(productId: string): Observable<Comment[]> {
+        return this.httpClient.get(environment.API_URL + 'product/' + productId + '/comments') as Observable<Comment[]>;
     }
 
-    getProductById(productId: string): Observable<Product> {
-        return this.httpClient.get(environment.API_URL + 'product/' + productId) as Observable<Product>;
+    getCommentById(productId: string, commentId: string): Observable<Comment> {
+        return this.httpClient.get(environment.API_URL + 'product/' + productId + '/comment/' + commentId) as Observable<Comment>;
     }
 
-    createProduct(productDto: ProductDto): Observable<Object> {
-        return this.httpClient.post(environment.API_URL + 'product', 
+    createComment(productId: string, commentDto: CommentDto): Observable<Object> {
+        return this.httpClient.post(environment.API_URL + 'product/' + productId + '/comment', 
         {
-            name: productDto.name,
-            picture: productDto.picture,
-            price: productDto.price,
-            description: productDto.description,
-            category: productDto.category._id
+            title: commentDto.title,
+            body: commentDto.body,
+            rating: commentDto.rating._id,
         }, {
             headers: new HttpHeaders({
                 'Content-Type': 'application/json',
@@ -40,14 +38,12 @@ export class ProductService {
         ) as Observable<Object>
     }
 
-    updateProduct(productId: string, newProduct: ProductDto): Observable<Object> {
-        return this.httpClient.put(environment.API_URL + 'product/' + productId, 
+    updateComment(productId: string, commentId: string, newComment: CommentDto): Observable<Object> {
+        return this.httpClient.put(environment.API_URL + 'product/' + productId + '/comment/' + commentId, 
         {
-            name: newProduct?.name,
-            picture: newProduct?.picture,
-            price: newProduct?.price,
-            description: newProduct?.description,
-            category: newProduct?.category?._id
+            title: newComment?.title,
+            body: newComment?.body,
+            rating: newComment?.rating?._id,
         }, {
             headers: new HttpHeaders({
                 'Content-Type': 'application/json',
@@ -60,8 +56,8 @@ export class ProductService {
         ) as Observable<Object>
     }
 
-    deleteProduct(productId: string): Observable<Object> {
-        return this.httpClient.delete(environment.API_URL + 'product/' + productId, {
+    deleteComment(productId: string, commentId: string): Observable<Object> {
+        return this.httpClient.delete(environment.API_URL + 'product/' + productId + '/comment/' + commentId, {
             headers: new HttpHeaders({
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + this.authService.getToken()

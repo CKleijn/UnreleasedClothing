@@ -16,7 +16,8 @@ export class ProductService {
         const products = await this.productModel.aggregate([
             {
                 '$unwind': {
-                    'path': '$comments'
+                    'path': '$comments',
+                    'preserveNullAndEmptyArrays': true
                 }
             }, {
                 '$lookup': {
@@ -75,6 +76,10 @@ export class ProductService {
                         '$first': '$__v'
                     }
                 }
+            }, {
+                '$sort': {
+                    'createdAt': -1
+                }
             }
         ]);
 
@@ -115,7 +120,7 @@ export class ProductService {
             }
         ]);
 
-        return comments[0].comments;
+        return comments[0]?.comments;
     }
 
     async getAllCommentsFromUser(userId: string): Promise<Comment[]> {
@@ -156,7 +161,7 @@ export class ProductService {
             }
         ]);
 
-        return comments[0].comments;
+        return comments[0]?.comments;
     }
 
     async getAllCommentsFromProduct(productId: string): Promise<Comment[]> {
@@ -197,7 +202,7 @@ export class ProductService {
             }
         ]);
 
-        return comments[0].comments;
+        return comments[0]?.comments;
     }
 
     async getProductById(productId: string): Promise<Product> {
@@ -209,7 +214,8 @@ export class ProductService {
             },
             {
                 '$unwind': {
-                    'path': '$comments'
+                    'path': '$comments',
+                    'preserveNullAndEmptyArrays': true
                 }
             }, {
                 '$lookup': {
@@ -343,11 +349,18 @@ export class ProductService {
 
     async updateProduct(user: any, productId: string, newProduct: Partial<ProductDto>): Promise<void> {
         const product = await this.productModel.findById({ _id: productId })
-
+        
         if (!user._id.equals(product.createdBy._id))
             throw new UnauthorizedException({ message: `This user don't have access to this method!` });
+        
+        if(product)
+            product.name = newProduct?.name;
+            product.picture = newProduct?.picture;
+            product.price = newProduct?.price;
+            product.description = newProduct?.description;
+            product.category = await this.categoryService.getCategoryById(newProduct.category);
 
-        await this.productModel.findOneAndUpdate({ _id: productId }, newProduct, {
+        await this.productModel.findOneAndUpdate({ _id: productId }, product, {
             upsert: true,
             new: true,
             runValidators: true,
@@ -374,7 +387,6 @@ export class ProductService {
 
         if (!user._id.equals(product.createdBy._id))
             throw new UnauthorizedException({ message: `This user don't have access to this method!` });
-
         await this.productModel.findOneAndDelete({ _id: productId });
     }
 

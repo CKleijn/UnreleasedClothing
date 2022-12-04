@@ -1,0 +1,45 @@
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1 *ngIf="commentExists === true">Edit</h1>
+        <h1 *ngIf="commentExists === false">Create new comment</h1>
+        <form #commentForm="ngForm" class="my-5" (ngSubmit)="onSubmit()">
+            <div class="row mb-3">
+                <label class="form-label col-md-4 col-sm-12 col-form-label">Title</label>
+                <div class="col-md-8 col-sm-12">
+                    <input type="text" class="form-control" name="title" #title="ngModel" [(ngModel)]="comment!.title" required [ngClass]="{'is-invalid': title.invalid && title.touched}">
+                    <div *ngIf="title.invalid && title.touched" class="invalid-feedback">
+                        <div *ngIf="title.errors!['required']">
+                            Title is required!
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="form-label col-md-4 col-sm-12 col-form-label">Body</label>
+                <div class="col-md-8 col-sm-12">
+                    <input type="text" class="form-control" name="body" #body="ngModel" [(ngModel)]="comment!.body" required [ngClass]="{'is-invalid': body.invalid && body.touched}">
+                    <div *ngIf="body.invalid && body.touched" class="invalid-feedback">
+                        <div *ngIf="body.errors!['required']">
+                            Body is required!
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <label class="form-label col-md-4 col-sm-12 col-form-label">Rating</label>
+                <div class="col-md-8 col-sm-12">
+                    <select class="form-control" name="rating" #rating="ngModel" [(ngModel)]="comment!.rating._id" required [ngClass]="{'is-invalid': rating.invalid && rating.touched}">
+                        <option *ngFor="let rating of ratings$ | async" [ngValue]="rating._id">{{ rating.grade }}</option>
+                    </select>
+                    <div *ngIf="rating.invalid && rating.touched" class="invalid-feedback">
+                        <div *ngIf="rating.errors!['required']">
+                            Rating is required!
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button *ngIf="commentExists === false" type="submit" [disabled]="!commentForm.valid" class="btn pull-right">Submit</button>
+            <button *ngIf="commentExists === true" type="submit" [disabled]="!commentForm.valid" class="btn pull-right">Update</button>
+        </form>
+    </div>
+</div>

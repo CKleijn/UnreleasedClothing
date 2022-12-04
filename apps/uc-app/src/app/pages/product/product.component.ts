@@ -1,9 +1,9 @@
-import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { CategoryService } from '../category/category.service';
 import { Product } from './product.model';
 import { ProductService } from './product.service';
-import { environment } from '../../../environments/environment';
+import { Observable } from 'rxjs';
+import { User } from '../../auth/user.model';
+import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'uc-app-product',
@@ -11,15 +11,13 @@ import { environment } from '../../../environments/environment';
   styleUrls: ['./product.component.scss'],
 })
 export class ProductComponent implements OnInit {
-  products: Product[] = [];
+  loggedInUser$: Observable<User | undefined> | undefined;
+  products$: Observable<Product[]> | undefined; 
 
-  constructor(private productService: ProductService, private categoryService: CategoryService) { }
+  constructor(private authService: AuthService, private productService: ProductService) { }
 
   ngOnInit(): void {
-    this.products = this.productService.getProducts();
-    // this.products.forEach(product => {
-    //   product.category.title = this.categoryService.getCategoryById(product.category._id).title;
-    //   product.category.icon = this.categoryService.getCategoryById(product.category._id).icon;
-    // })
+    this.loggedInUser$ = this.authService.currentUser$;
+    this.products$ = this.productService.getProducts();
   }
 }

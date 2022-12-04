@@ -1,6 +1,6 @@
 <div class="row mb-4">
     <div class="col-md-12">
-        <h1 *ngIf="productExists === true">Edit {{ productName }}</h1>
+        <h1 *ngIf="productExists === true">Edit</h1>
         <h1 *ngIf="productExists === false">Create new product</h1>
         <form #productForm="ngForm" class="my-5" (ngSubmit)="onSubmit()">
             <div class="row mb-3">
@@ -51,21 +51,10 @@
                 </div>
             </div>
             <div class="row mb-3">
-                <label class="form-label col-md-4 col-sm-12 col-form-label">Brand</label>
-                <div class="col-md-8 col-sm-12">
-                    <input type="text" class="form-control" name="brand" #brand="ngModel" [(ngModel)]="product!.brand" required [ngClass]="{'is-invalid': brand.invalid && brand.touched}">
-                    <div *ngIf="brand.invalid && brand.touched" class="invalid-feedback">
-                        <div *ngIf="brand.errors!['required']">
-                            Brand is required!
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row mb-3">
                 <label class="form-label col-md-4 col-sm-12 col-form-label">Category</label>
                 <div class="col-md-8 col-sm-12">
                     <select class="form-control" name="category" #category="ngModel" [(ngModel)]="product!.category._id" required [ngClass]="{'is-invalid': category.invalid && category.touched}">
-                        <option *ngFor="let category of categories" [ngValue]="category._id">{{ category.title }}</option>
+                        <option *ngFor="let category of categories$ | async" [ngValue]="category._id">{{ category.title }}</option>
                     </select>
                     <div *ngIf="category.invalid && category.touched" class="invalid-feedback">
                         <div *ngIf="category.errors!['required']">

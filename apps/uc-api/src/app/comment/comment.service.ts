@@ -30,7 +30,7 @@ export class CommentService {
             _id: new mongoose.Types.ObjectId(),
             title: commentDto.title,
             body: commentDto.body,
-            rating: await this.ratingService.getRatingById(commentDto.ratingId),
+            rating: await this.ratingService.getRatingById(commentDto.rating.toString()),
             createdBy: user._id,
             createdAt: new Date()
         }
@@ -39,9 +39,9 @@ export class CommentService {
     }
 
     async updateComment(user: any, productId: string, commentId: string, newComment: Partial<CommentDto>): Promise<void> {
-        if(newComment.ratingId)
-            newComment.rating = await this.ratingService.getRatingById(newComment.ratingId);
-
+        if(newComment?.rating)
+            newComment.rating = await this.ratingService.getRatingById(newComment.rating.toString());
+        
         await this.productService.updateCommentFromProduct(user, productId, commentId, newComment);
     }
 
