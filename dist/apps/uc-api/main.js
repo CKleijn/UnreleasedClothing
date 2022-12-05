@@ -47,11 +47,11 @@ const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const app_controller_1 = __webpack_require__("./apps/uc-api/src/app/app.controller.ts");
 const app_service_1 = __webpack_require__("./apps/uc-api/src/app/app.service.ts");
 const auth_module_1 = __webpack_require__("./apps/uc-api/src/app/auth/auth.module.ts");
+const user_module_1 = __webpack_require__("./apps/uc-api/src/app/user/user.module.ts");
 const category_module_1 = __webpack_require__("./apps/uc-api/src/app/category/category.module.ts");
 const comment_module_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.module.ts");
 const product_module_1 = __webpack_require__("./apps/uc-api/src/app/product/product.module.ts");
 const rating_module_1 = __webpack_require__("./apps/uc-api/src/app/rating/rating.module.ts");
-const user_module_1 = __webpack_require__("./apps/uc-api/src/app/user/user.module.ts");
 let AppModule = class AppModule {
 };
 AppModule = tslib_1.__decorate([
@@ -1799,7 +1799,7 @@ exports.RegisterUserDto = RegisterUserDto;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserController = void 0;
 const tslib_1 = __webpack_require__("tslib");
@@ -1860,10 +1860,10 @@ let UserController = class UserController {
             }
         });
     }
-    followUser(req, userId) {
+    followUser(userId, emailAddress) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                yield this.userService.followUser(req.user.emailAddress, userId);
+                yield this.userService.followUser(Object(emailAddress)['emailAddress'], userId);
                 return {
                     status: 200,
                     message: 'User has been successfully followed!'
@@ -1874,10 +1874,10 @@ let UserController = class UserController {
             }
         });
     }
-    unfollowUser(req, userId) {
+    unfollowUser(userId, emailAddress) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             try {
-                yield this.userService.unfollowUser(req.user.emailAddress, userId);
+                yield this.userService.unfollowUser(Object(emailAddress)['emailAddress'], userId);
                 return {
                     status: 200,
                     message: 'User has been successfully unfollowed!'
@@ -1888,8 +1888,19 @@ let UserController = class UserController {
             }
         });
     }
+    checkFollowStatus(req, userId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield this.userService.alreadyFollowingUser(req.user.emailAddress, userId);
+            }
+            catch (error) {
+                this.generateUserExceptions(error);
+            }
+        });
+    }
     generateUserExceptions(error) {
         var _a, _b, _c, _d, _e, _f, _g, _h;
+        console.log(error);
         if ((error === null || error === void 0 ? void 0 : error.name) === 'CastError')
             throw new common_1.HttpException(`This user doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
         if ((error === null || error === void 0 ? void 0 : error.response) === 'This user already exists!')
@@ -1946,22 +1957,32 @@ tslib_1.__decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.CUSTOMER),
     (0, common_1.Post)(':userId/follow'),
-    tslib_1.__param(0, (0, common_1.Request)()),
-    tslib_1.__param(1, (0, common_1.Param)('userId')),
+    tslib_1.__param(0, (0, common_1.Param)('userId')),
+    tslib_1.__param(1, (0, common_1.Body)()),
     tslib_1.__metadata("design:type", Function),
-    tslib_1.__metadata("design:paramtypes", [Object, String]),
-    tslib_1.__metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
+    tslib_1.__metadata("design:paramtypes", [String, typeof (_j = typeof Object !== "undefined" && Object) === "function" ? _j : Object]),
+    tslib_1.__metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
 ], UserController.prototype, "followUser", null);
 tslib_1.__decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)(role_enum_1.Role.CUSTOMER),
     (0, common_1.Post)(':userId/unfollow'),
+    tslib_1.__param(0, (0, common_1.Param)('userId')),
+    tslib_1.__param(1, (0, common_1.Body)()),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [String, typeof (_l = typeof Object !== "undefined" && Object) === "function" ? _l : Object]),
+    tslib_1.__metadata("design:returntype", typeof (_m = typeof Promise !== "undefined" && Promise) === "function" ? _m : Object)
+], UserController.prototype, "unfollowUser", null);
+tslib_1.__decorate([
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt'), roles_guard_1.RolesGuard),
+    (0, roles_decorator_1.Roles)(role_enum_1.Role.CUSTOMER),
+    (0, common_1.Get)(':userId/status'),
     tslib_1.__param(0, (0, common_1.Request)()),
     tslib_1.__param(1, (0, common_1.Param)('userId')),
     tslib_1.__metadata("design:type", Function),
     tslib_1.__metadata("design:paramtypes", [Object, String]),
-    tslib_1.__metadata("design:returntype", typeof (_k = typeof Promise !== "undefined" && Promise) === "function" ? _k : Object)
-], UserController.prototype, "unfollowUser", null);
+    tslib_1.__metadata("design:returntype", typeof (_o = typeof Promise !== "undefined" && Promise) === "function" ? _o : Object)
+], UserController.prototype, "checkFollowStatus", null);
 UserController = tslib_1.__decorate([
     (0, common_1.Controller)('user'),
     tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof auth_service_1.AuthService !== "undefined" && auth_service_1.AuthService) === "function" ? _a : Object, typeof (_b = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _b : Object])
@@ -1992,7 +2013,7 @@ UserModule = tslib_1.__decorate([
     (0, common_1.Module)({
         imports: [mongoose_1.MongooseModule.forFeature([{ name: user_schema_1.User.name, schema: user_schema_1.UserSchema }]), (0, common_1.forwardRef)(() => auth_module_1.AuthModule), passport_1.PassportModule, jwt_1.JwtModule.register({
                 secret: 'S1e2C3r4E5t',
-                signOptions: { expiresIn: '1h' },
+                signOptions: { expiresIn: '7d' },
             })],
         controllers: [user_controller_1.UserController],
         providers: [user_service_1.UserService],
@@ -2134,7 +2155,8 @@ let UserService = class UserService {
                     }
                 }, {
                     '$match': {
-                        'following': userId
+                        '_id': currentUser._id,
+                        'following': new mongoose_2.default.Types.ObjectId(userId)
                     }
                 }
             ]);
@@ -2162,13 +2184,35 @@ let UserService = class UserService {
                     }
                 }, {
                     '$match': {
-                        'following': userId
+                        '_id': currentUser._id,
+                        'following': new mongoose_2.default.Types.ObjectId(userId)
                     }
                 }
             ]);
             if (followedUser.length > 0)
                 return yield this.userModel.findOneAndUpdate({ emailAddress }, { $pull: { following: new mongoose_2.default.Types.ObjectId(userId) } });
             throw new common_1.HttpException({ message: `You don't follow this customer!` }, common_1.HttpStatus.CONFLICT);
+        });
+    }
+    alreadyFollowingUser(emailAddress, userId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const currentUser = yield this.getUserByEmailAddress(emailAddress);
+            const followUser = yield this.getUserById(userId);
+            const followedUser = yield this.userModel.aggregate([
+                {
+                    '$unwind': {
+                        'path': '$following'
+                    }
+                }, {
+                    '$match': {
+                        '_id': currentUser._id,
+                        'following': new mongoose_2.default.Types.ObjectId(userId)
+                    }
+                }
+            ]);
+            if (followedUser.length > 0)
+                return true;
+            return false;
         });
     }
 };

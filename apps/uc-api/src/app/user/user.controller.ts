@@ -60,9 +60,9 @@ export class UserController {
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.CUSTOMER)
     @Post(':userId/follow')
-    async followUser(@Request() req: any, @Param('userId') userId: string): Promise<Object> {
+    async followUser(@Param('userId') userId: string, @Body() emailAddress: Object): Promise<Object> {
         try {
-            await this.userService.followUser(req.user.emailAddress, userId);
+            await this.userService.followUser(Object(emailAddress)['emailAddress'], userId);
 
             return {
                 status: 200,
@@ -76,9 +76,9 @@ export class UserController {
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.CUSTOMER)
     @Post(':userId/unfollow')
-    async unfollowUser(@Request() req: any, @Param('userId') userId: string): Promise<Object> {
+    async unfollowUser(@Param('userId') userId: string, @Body() emailAddress: Object): Promise<Object> {
         try {
-            await this.userService.unfollowUser(req.user.emailAddress, userId);
+            await this.userService.unfollowUser(Object(emailAddress)['emailAddress'], userId);
 
             return {
                 status: 200,
@@ -89,7 +89,19 @@ export class UserController {
         }
     }
 
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.CUSTOMER)
+    @Get(':userId/status')
+    async checkFollowStatus(@Request() req: any, @Param('userId') userId: string): Promise<boolean> {
+        try {
+            return await this.userService.alreadyFollowingUser(req.user.emailAddress, userId);
+        } catch (error) {
+            this.generateUserExceptions(error);
+        }
+    }
+
     generateUserExceptions(error: any) {
+        console.log(error)
         if (error?.name === 'CastError')
             throw new HttpException(`This user doesn't exists!`, HttpStatus.NOT_FOUND)
 

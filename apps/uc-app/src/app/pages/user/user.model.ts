@@ -3,7 +3,7 @@ export interface IUser {
     name: string;
     emailAddress: string;
     picture: string;
-    // follows: User[];
+    following: User[];
     role: string;
     password: string;
     isActive: boolean;
@@ -15,7 +15,7 @@ export class User implements IUser {
     name: string = '';
     emailAddress: string = '';
     picture: string = '';
-    // follows: User[] = new User[];
+    following: User[] = <User[]>{};
     role: string = '';
     password: string = '';
     isActive: boolean = false;

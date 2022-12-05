@@ -1,4 +1,4 @@
-import { User } from "../../auth/user.model";
+import { User } from "../user/user.model";
 import { Category } from "../category/category.model";
 
 export interface IProduct {

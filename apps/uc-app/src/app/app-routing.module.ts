@@ -12,6 +12,8 @@ import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { HasRoleGuard, IsAuthenticatedGuard } from './auth/auth.guard';
 import { CommentFormComponent } from './pages/comment/form/form.component';
+import { ProfileComponent } from './pages/user/profile/profile.component';
+import { UserComponent } from './pages/user/user.component';
 
 export const appRoutes: Route[] = [
     { path: '', pathMatch: 'full', redirectTo: 'products' },
@@ -29,6 +31,8 @@ export const appRoutes: Route[] = [
     { path: 'categories/:categoryId/edit', pathMatch: 'full', component: CategoryFormComponent, canActivate: [IsAuthenticatedGuard, HasRoleGuard], data: { role: 'brand' } },
     { path: 'ratings', pathMatch: 'full', component: RatingComponent, canActivate: [IsAuthenticatedGuard] },
     { path: 'about', pathMatch: 'full', component: AboutComponent },
+    { path: 'profile', pathMatch: 'full', component: ProfileComponent, canActivate: [IsAuthenticatedGuard] },
+    { path: 'user/:userId', pathMatch: 'full', component: UserComponent, canActivate: [IsAuthenticatedGuard] },
     { path: '**', pathMatch: 'full', redirectTo: 'products' }
 ];
 
