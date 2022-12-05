@@ -1,0 +1,7 @@
+<div *ngIf="user$ | async as user">
+    <h1>{{ user.name }}</h1>
+    <p *ngFor="let user of user.following">{{ user.name }}</p>
+    <button class="btn" *ngIf="!status" (click)="followUser(user._id)">Follow</button>
+    <button class="btn" *ngIf="status" (click)="unfollowUser(user._id)">Unfollow</button>
+    <p *ngIf="error" class="error-msg">{{ error }}</p>
+</div>

@@ -1,4 +1,4 @@
-import { User } from "../../auth/user.model";
+import { User } from "../user/user.model";
 import { Rating } from "../rating/rating.model";
 
 export interface IComment {

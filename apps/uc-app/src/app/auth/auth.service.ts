@@ -4,7 +4,7 @@ import { BehaviorSubject, catchError, from, map, Observable, of, Subscription, t
 import { environment } from '../../environments/environment';
 import { LoginUserDto } from './login/login.dto';
 import { RegisterUserDto } from './register/register.dto';
-import { User } from './user.model';
+import { User } from '../pages/user/user.model';
 
 const TOKEN_KEY = 'JWT';
 const USER_KEY = 'USER'

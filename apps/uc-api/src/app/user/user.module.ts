@@ -10,7 +10,7 @@ import { AuthModule } from "../auth/auth.module";
 @Module({
     imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]), forwardRef(() => AuthModule), PassportModule, JwtModule.register({
         secret: 'S1e2C3r4E5t',
-        signOptions: { expiresIn: '1h' },
+        signOptions: { expiresIn: '7d' },
     })],
     controllers: [UserController],
     providers: [UserService],

@@ -13,7 +13,7 @@ export class UserService {
 
         if (!user)
             throw new HttpException({ message: `This user doesn't exists!` }, HttpStatus.NOT_FOUND);
-
+            
         return user;
     }
 
@@ -39,7 +39,8 @@ export class UserService {
                 }
             }, {
                 '$match': {
-                    'following': userId
+                    '_id': currentUser._id,
+                    'following': new mongoose.Types.ObjectId(userId)
                 }
             }
         ])
@@ -65,7 +66,8 @@ export class UserService {
                 }
             }, {
                 '$match': {
-                    'following': userId
+                    '_id': currentUser._id,
+                    'following': new mongoose.Types.ObjectId(userId)
                 }
             }
         ])
@@ -74,5 +76,27 @@ export class UserService {
             return await this.userModel.findOneAndUpdate({ emailAddress }, { $pull: { following: new mongoose.Types.ObjectId(userId) } });
 
         throw new HttpException({ message: `You don't follow this customer!` }, HttpStatus.CONFLICT);
+    }
+
+    async alreadyFollowingUser(emailAddress: string, userId: string): Promise<boolean> {
+        const currentUser = await this.getUserByEmailAddress(emailAddress);
+        const followUser = await this.getUserById(userId);
+        const followedUser = await this.userModel.aggregate([
+            {
+                '$unwind': {
+                    'path': '$following'
+                }
+            }, {
+                '$match': {
+                    '_id': currentUser._id,
+                    'following': new mongoose.Types.ObjectId(userId)
+                }
+            }
+        ])
+
+        if (followedUser.length > 0)
+            return true;
+
+        return false;
     }
 }
