@@ -13,7 +13,7 @@ export class UserService {
 
         if (!user)
             throw new HttpException({ message: `This user doesn't exists!` }, HttpStatus.NOT_FOUND);
-            
+
         return user;
     }
 
@@ -21,12 +21,45 @@ export class UserService {
         return await this.userModel.findOne({ emailAddress }).populate('following');
     }
 
-    async registerUser(registerUserDto: RegisterUserDto): Promise<User> {
-        return await this.userModel.create({
+    async registerUser(registerUserDto: RegisterUserDto): Promise<void> {
+        await this.userModel.create({
             _id: new mongoose.Types.ObjectId(),
             ...registerUserDto,
             createdAt: new Date()
         });
+    }
+
+    async getFollowers(userId: string): Promise<User[]> {
+        const checkUser = await this.getUserById(userId);
+
+        return this.userModel.aggregate([
+            {
+                '$unwind': {
+                    'path': '$following',
+                    'preserveNullAndEmptyArrays': true
+                }
+            }, {
+                '$match': {
+                    'following': new mongoose.Types.ObjectId(userId)
+                }
+            }, {
+                '$group': {
+                    '_id': '$role',
+                    'following': {
+                        '$push': {
+                            '_id': '$_id',
+                            'name': '$name',
+                            'picture': '$picture'
+                        }
+                    }
+                }
+            }, {
+                '$project': {
+                    '_id': 0,
+                    'following': 1
+                }
+            }
+        ])
     }
 
     async followUser(emailAddress: string, userId: string): Promise<User> {

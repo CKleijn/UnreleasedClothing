@@ -1,12 +1,18 @@
 <div class="row mb-4">
     <div class="col-md-12">
-        <h1 *ngIf="productExists === true">Edit</h1>
-        <h1 *ngIf="productExists === false">Create new product</h1>
+        <div class="alert alert-primary" *ngIf="error" role="alert">
+            {{ error }}
+        </div>
+    </div>
+    <div class="col-md-12">
+        <h1 *ngIf="productExists === true">Edit product</h1>
+        <h1 *ngIf="productExists === false">Create product</h1>
         <form #productForm="ngForm" class="my-5" (ngSubmit)="onSubmit()">
             <div class="row mb-3">
                 <label class="form-label col-md-4 col-sm-12 col-form-label">Name</label>
                 <div class="col-md-8 col-sm-12">
-                    <input type="text" class="form-control" name="name" #name="ngModel" [(ngModel)]="product!.name" required [ngClass]="{'is-invalid': name.invalid && name.touched}">
+                    <input type="text" class="form-control" name="name" #name="ngModel" [(ngModel)]="product!.name"
+                        required [ngClass]="{'is-invalid': name.invalid && name.touched}">
                     <div *ngIf="name.invalid && name.touched" class="invalid-feedback">
                         <div *ngIf="name.errors!['required']">
                             Name is required!
@@ -17,7 +23,9 @@
             <div class="row mb-3">
                 <label class="form-label col-md-4 col-sm-12 col-form-label">Picture URL</label>
                 <div class="col-md-8 col-sm-12">
-                    <input type="text" class="form-control" name="picture" #picture="ngModel" [(ngModel)]="product!.picture" required [ngClass]="{'is-invalid': picture.invalid && picture.touched}">
+                    <input type="text" class="form-control" name="picture" #picture="ngModel"
+                        [(ngModel)]="product!.picture" required
+                        [ngClass]="{'is-invalid': picture.invalid && picture.touched}">
                     <div *ngIf="picture.invalid && picture.touched" class="invalid-feedback">
                         <div *ngIf="picture.errors!['required']">
                             Picture URL is required!
@@ -28,7 +36,9 @@
             <div class="row mb-3">
                 <label class="form-label col-md-4 col-sm-12 col-form-label">Price</label>
                 <div class="col-md-8 col-sm-12">
-                    <input type="number" step="0.01" class="form-control" name="price" #price="ngModel" [(ngModel)]="product!.price" required min="0" [ngClass]="{'is-invalid': price.invalid && price.touched}">
+                    <input type="number" step="0.01" class="form-control" name="price" #price="ngModel"
+                        [(ngModel)]="product!.price" required min="0"
+                        [ngClass]="{'is-invalid': price.invalid && price.touched}">
                     <div *ngIf="price.invalid && price.touched" class="invalid-feedback">
                         <div *ngIf="price.errors!['required']">
                             Price is required!
@@ -42,7 +52,9 @@
             <div class="row mb-3">
                 <label class="form-label col-md-4 col-sm-12 col-form-label">Description</label>
                 <div class="col-md-8 col-sm-12">
-                    <textarea type="text" class="form-control" name="description" #description="ngModel" [(ngModel)]="product!.description" rows="5" required [ngClass]="{'is-invalid': description.invalid && description.touched}"></textarea>
+                    <textarea type="text" class="form-control" name="description" #description="ngModel"
+                        [(ngModel)]="product!.description" rows="5" required
+                        [ngClass]="{'is-invalid': description.invalid && description.touched}"></textarea>
                     <div *ngIf="description.invalid && description.touched" class="invalid-feedback">
                         <div *ngIf="description.errors!['required']">
                             Description is required!
@@ -53,23 +65,23 @@
             <div class="row mb-3">
                 <label class="form-label col-md-4 col-sm-12 col-form-label">Category</label>
                 <div class="col-md-8 col-sm-12">
-                    <select class="form-control" name="category" #category="ngModel" [(ngModel)]="product!.category._id" required [ngClass]="{'is-invalid': category.invalid && category.touched}">
-                        <option *ngFor="let category of categories$ | async" [ngValue]="category._id">{{ category.title }}</option>
+                    <select class="form-control" name="category" #category="ngModel" [(ngModel)]="product!.category._id"
+                        required [ngClass]="{'is-invalid': category.invalid && category.touched}">
+                        <option *ngFor="let category of categories$ | async" [ngValue]="category._id">{{ category.title
+                            }}</option>
                     </select>
                     <div *ngIf="category.invalid && category.touched" class="invalid-feedback">
                         <div *ngIf="category.errors!['required']">
                             Category is required!
                         </div>
                     </div>
-                    <button type="button" class="btn mt-2" (click)="triggerCategoryForm()" *ngIf="!showComponent">Show create new category</button>
-                    <button type="button" class="btn mt-2" (click)="triggerCategoryForm()" *ngIf="showComponent">Don't show create new category</button>
+                    <small><i>Click on the input field to see the category options!</i></small><br>
                 </div>
             </div>
-            <button *ngIf="productExists === false" type="submit" [disabled]="!productForm.valid" class="btn pull-right">Submit</button>
-            <button *ngIf="productExists === true" type="submit" [disabled]="!productForm.valid" class="btn pull-right">Update</button>
+            <button *ngIf="productExists === false" type="submit" [disabled]="!productForm.valid"
+                class="btn pull-right">Submit</button>
+            <button *ngIf="productExists === true" type="submit" [disabled]="!productForm.valid"
+                class="btn pull-right">Update</button>
         </form>
-    </div>
-    <div class="col-md-12">
-        <uc-app-form-category *ngIf="showComponent"></uc-app-form-category>
     </div>
 </div>

@@ -5,6 +5,7 @@ import { AuthService } from '../../auth/auth.service';
 import { Category } from './category.model';
 import { catchError, map, Observable, tap } from 'rxjs';
 import { CategoryDto } from './category.dto';
+import { Product } from '../product/product.model';
 
 @Injectable({
     providedIn: 'root'
@@ -17,6 +18,14 @@ export class CategoryService {
         return this.httpClient.get(environment.API_URL + 'categories') as Observable<Category[]>;
     }
 
+    getAllCategories(): Observable<Category[]> {
+        return this.httpClient.get(environment.API_URL + 'categories/all') as Observable<Category[]>;
+    }
+
+    getProductsByCategory(categoryId: string): Observable<Product[]> {
+        return this.httpClient.get(environment.API_URL + 'products/category/' + categoryId) as Observable<Product[]>;
+    }
+
     getCategoryById(categoryId: string): Observable<Category> {
         return this.httpClient.get(environment.API_URL + 'category/' + categoryId) as Observable<Category>;
     }
@@ -26,7 +35,8 @@ export class CategoryService {
         {
             title: categoryDto.title,
             description: categoryDto.description,
-            icon: categoryDto.icon
+            icon: categoryDto.icon,
+            isActive: categoryDto.isActive
         }, {
             headers: new HttpHeaders({
                 'Content-Type': 'application/json',
@@ -44,7 +54,8 @@ export class CategoryService {
         {
             title: categoryDto?.title,
             description: categoryDto?.description,
-            icon: categoryDto?.icon
+            icon: categoryDto?.icon,
+            isActive: categoryDto?.isActive
         }, {
             headers: new HttpHeaders({
                 'Content-Type': 'application/json',

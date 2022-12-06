@@ -1,5 +1,11 @@
 <div class="row mb-4">
   <div class="col-md-12">
+    <div class="alert alert-primary" *ngIf="error" role="alert">
+      {{ error }}
+    </div>
+  </div>
+  <div class="col-md-12">
+    <h1>Sign in</h1>
     <form #signInForm="ngForm" (ngSubmit)="onSubmit()">
       <div class="row mb-3">
         <div class="col-md-12">
@@ -30,7 +36,6 @@
           </div>
         </div>
       </div>
-      <p *ngIf="error" class="error-msg">{{ error }}</p>
       <button type="submit" [disabled]="!signInForm.valid" class="btn btn-primary">Sign in</button>
     </form>
   </div>

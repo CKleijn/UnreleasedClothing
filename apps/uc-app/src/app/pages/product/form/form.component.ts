@@ -3,7 +3,7 @@ import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { Observable, of, Subscription, switchMap } from 'rxjs';
 import { Category } from '../../category/category.model';
 import { CategoryService } from '../../category/category.service';
-import { ProductDto } from '../product.dto';
+import { ProductDto } from '../dtos/product.dto';
 import { ProductService } from '../product.service';
 
 @Component({
@@ -20,7 +20,6 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   error: string | null = null;
   productExists: boolean = false;
   categories$: Observable<Category[]> | undefined;
-  showComponent: boolean = false;
 
   constructor(private route: ActivatedRoute, private router: Router, private productService: ProductService, private categoryService: CategoryService) { }
 
@@ -46,14 +45,10 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     this.categories$ = this.categoryService.getCategories();
   }
 
-  triggerCategoryForm(): void {
-    this.showComponent = this.showComponent ? false : true;
-  }
-
   onSubmit(): void {
     if (this.productExists) {
       this.updateSubscription = this.productService.updateProduct(this.productId!, this.product!).subscribe({
-        next: () => this.router.navigate(['products']),
+        next: () => this.router.navigate(['products', this.productId]),
         error: (error) => this.error = error.message
       })
     }

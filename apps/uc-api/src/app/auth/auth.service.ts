@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from "../user/dtos/loginUser.dto";
 import { User } from "../user/user.schema";
@@ -8,7 +8,7 @@ import { RegisterUserDto } from "../user/dtos/registerUser.dto";
 
 @Injectable()
 export class AuthService {
-    constructor(private userService: UserService, private jwtService: JwtService) {}
+    constructor(@Inject(UserService) private userService: UserService, @Inject(JwtService) private jwtService: JwtService) {}
 
     async login(loginUserDto: LoginUserDto): Promise<string> {
         return await this.jwtService.signAsync({ name: loginUserDto.username });

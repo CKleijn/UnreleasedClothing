@@ -2,8 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, ParamMap } from '@angular/router';
 import { Subscription, Observable, switchMap, of } from 'rxjs';
 import { ProductService } from '../../product/product.service';
-import { Rating } from '../../rating/rating.model';
-import { RatingService } from '../../rating/rating.service';
 import { CommentDto } from '../comment.dto';
 import { CommentService } from '../comment.service';
 
@@ -21,9 +19,8 @@ export class CommentFormComponent implements OnInit {
   comment = new CommentDto();
   error: string | null = null;
   commentExists: boolean = false;
-  ratings$: Observable<Rating[]> | undefined;
 
-  constructor(private route: ActivatedRoute, private router: Router, private productService: ProductService, private ratingService: RatingService, private commentService: CommentService) { }
+  constructor(private route: ActivatedRoute, private router: Router, private productService: ProductService, private commentService: CommentService) { }
 
   ngOnInit(): void {
     this.paramSubscription = this.route.paramMap
@@ -44,8 +41,6 @@ export class CommentFormComponent implements OnInit {
           ...comment
         }
       })
-
-    this.ratings$ = this.ratingService.getRatings();
   }
 
   onSubmit(): void {

@@ -57,6 +57,7 @@ export class AuthService implements OnDestroy {
     registerUser(user: RegisterUserDto): Observable<boolean> {
         return this.httpClient.post(environment.API_URL + 'user/register', {
             name: user.name,
+            age: user.age,
             emailAddress: user.emailAddress,
             picture: user.picture,
             role: user.role,

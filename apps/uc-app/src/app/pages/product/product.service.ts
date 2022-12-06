@@ -3,7 +3,8 @@ import { Injectable } from '@angular/core';
 import { environment } from 'apps/uc-app/src/environments/environment';
 import { catchError, Observable, tap } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
-import { ProductDto } from './product.dto';
+import { AdviceDto } from './dtos/advice.dto';
+import { ProductDto } from './dtos/product.dto';
 import { Product } from './product.model';
 
 @Injectable({
@@ -20,6 +21,10 @@ export class ProductService {
         return this.httpClient.get(environment.API_URL + 'product/' + productId) as Observable<Product>;
     }
 
+    getProductAdvice(productId: string): Observable<AdviceDto> {
+        return this.httpClient.get(environment.API_URL + 'product/' + productId + '/advice') as Observable<AdviceDto>;
+    }
+
     createProduct(productDto: ProductDto): Observable<Object> {
         return this.httpClient.post(environment.API_URL + 'product', 
         {
@@ -27,7 +32,7 @@ export class ProductService {
             picture: productDto.picture,
             price: productDto.price,
             description: productDto.description,
-            category: productDto.category._id
+            category: productDto.category._id,
         }, {
             headers: new HttpHeaders({
                 'Content-Type': 'application/json',
@@ -47,7 +52,7 @@ export class ProductService {
             picture: newProduct?.picture,
             price: newProduct?.price,
             description: newProduct?.description,
-            category: newProduct?.category?._id
+            category: newProduct?.category?._id,
         }, {
             headers: new HttpHeaders({
                 'Content-Type': 'application/json',

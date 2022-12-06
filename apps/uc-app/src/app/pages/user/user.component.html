@@ -1,7 +1,116 @@
-<div *ngIf="user$ | async as user">
-    <h1>{{ user.name }}</h1>
-    <p *ngFor="let user of user.following">{{ user.name }}</p>
-    <button class="btn" *ngIf="!status" (click)="followUser(user._id)">Follow</button>
-    <button class="btn" *ngIf="status" (click)="unfollowUser(user._id)">Unfollow</button>
-    <p *ngIf="error" class="error-msg">{{ error }}</p>
+<div class="row mb-2">
+    <div class="col-md-12">
+        <div class="alert alert-primary" *ngIf="error" role="alert">
+            {{ error }}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card flex-md-row mb-4 box-shadow h-md-250">
+            <img class="card-img-left flex-auto d-none d-md-block m-3" src="{{ user?.picture }}" width="250"
+                style="object-fit: cover;">
+            <div class="card-body d-flex flex-column align-items-start">
+                <h3 class="mb-0">
+                    {{ user?.name }}
+                </h3>
+                <div class="mb-1 text-muted" *ngIf="user?.role === 'customer'">Customer</div>
+                <div class="mb-1 text-muted" *ngIf="user?.role === 'brand'">Brand</div>
+                <p class="card-text mb-auto">{{ user?.emailAddress }}</p>
+                <i class="card-text" *ngIf="user?.role === 'customer'">Customer on this platform since {{
+                    user?.createdAt | date: 'dd/MM/yyyy' }}</i>
+                <i class="card-text" *ngIf="user?.role === 'brand'">Brand on this platform since {{ user?.createdAt |
+                    date: 'dd/MM/yyyy' }}</i>
+                <div *ngIf="loggedInUser$ | async as loggedInUser">
+                    <button class="btn"
+                        *ngIf="!status && user?.role === 'customer' && loggedInUser.name !== user?.name && loggedInUser.role === 'customer'"
+                        (click)="followUser(user?._id!)">Follow</button>
+                    <button class="btn"
+                        *ngIf="status && user?.role === 'customer' && loggedInUser.name !== user?.name && loggedInUser.role === 'customer'"
+                        (click)="unfollowUser(user?._id!)">Unfollow</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6" *ngIf="user?.role === 'customer'">
+        <div class="bg-white rounded box-shadow mb-4">
+            <h5 class="border-bottom border-gray pb-2 mb-0">Following ({{ user?.following?.length }})</h5>
+            <div class="media text-muted pt-3" *ngFor="let following of user?.following">
+                <div class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                    <img src="{{ following.picture }}" class="mr-5 rounded" height="50">
+                    <strong class="text-gray-dark">{{ following.name }}</strong>
+                    <a class="pull-right mt-3" [routerLink]="['/', 'user', following._id]">Profile</a>
+                </div>
+            </div>
+            <div class="media text-muted pt-3" *ngIf="user?.following?.length === 0">
+                <div class="media-body pb-3 mb-0 small lh-125 border-gray">
+                    <strong class="text-gray-dark">This customer isn't following anyone yet!</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6" *ngIf="user?.role === 'customer'">
+        <div class="bg-white rounded box-shadow mb-4">
+            <h5 class="border-bottom border-gray pb-2 mb-0">Followers ({{ followers?.length || 0 }})</h5>
+            <div *ngFor="let followers of followers">
+                <div class="media text-muted pt-3" *ngFor="let follower of followers">
+                    <div class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                        <img src="{{ follower.picture }}" class="mr-5 rounded" height="50">
+                        <strong class="text-gray-dark">{{ follower.name }}</strong>
+                        <a class="pull-right mt-3" [routerLink]="['/', 'user', follower._id]">Profile</a>
+                    </div>
+                </div>
+            </div>
+            <div class="media text-muted pt-3" *ngIf="followers?.length === 0 || !followers">
+                <div class="media-body pb-3 mb-0 small lh-125 border-gray">
+                    <strong class="text-gray-dark">This customer hasn't any followers yet!</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6" *ngIf="user?.role === 'brand'">
+        <div class="bg-white rounded box-shadow mb-4">
+            <h5 class="border-bottom border-gray pb-2 mb-0">Products</h5>
+            <div class="media text-muted pt-3" *ngFor="let product of products">
+                <div class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                    <img src="{{ product.picture }}" class="mr-5 rounded" height="50">
+                    <strong class="text-gray-dark">{{ product.name }}</strong>
+                    <a class="pull-right mt-3" [routerLink]="['/', 'products', product._id]">Show product</a>
+                </div>
+            </div>
+            <div class="media text-muted pt-3" *ngIf="products?.length === 0">
+                <div class="media-body pb-3 mb-0 small lh-125 border-gray">
+                    <strong class="text-gray-dark">This brand hasn't any products yet!</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6" *ngIf="user?.role === 'brand'">
+        <div class="bg-white rounded box-shadow mb-4">
+            <h5 class="border-bottom border-gray pb-2 mb-0">Categories</h5>
+            <div class="media text-muted pt-3" *ngFor="let category of categories">
+                <div class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                    <img src="{{ category.icon }}" class="mr-5 rounded" height="50">
+                    <strong class="text-gray-dark">{{ category.title }}</strong>
+                    <a class="pull-right mt-3" [routerLink]="['/', 'categories', category._id]">Show category</a>
+                </div>
+            </div>
+            <div class="media text-muted pt-3" *ngIf="categories?.length === 0">
+                <div class="media-body pb-3 mb-0 small lh-125 border-gray">
+                    <strong class="text-gray-dark">This brand hasn't any categories yet!</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row" *ngIf="comments">
+    <h5>All comments ({{ comments.length }})</h5>
+    <div class="col-md-6 mb-4" *ngFor="let comment of comments">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ comment.title }}</h5>
+                <p class="card-text">{{ comment.body }}</p>
+            </div>
+        </div>
+    </div>
 </div>

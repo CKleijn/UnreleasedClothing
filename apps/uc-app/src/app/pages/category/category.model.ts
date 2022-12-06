@@ -1,15 +1,11 @@
-export interface ICategory {
-    _id: string;
-    title: string;
-    description: string;
-    icon: string;
-    createdAt: Date;
-}
+import { User } from "../user/user.model";
 
-export class Category implements ICategory {
+export class Category {
     _id: string = '';
     title: string = '';
     description: string = '';
     icon: string = '';
+    isActive: boolean = true;
     createdAt: Date = <Date>{};
+    createdBy: User = <User>{};
 }

@@ -48,7 +48,7 @@ export class CategoryFormComponent implements OnInit, OnDestroy {
       })
     } else {
       this.updateSubscription = this.categoryService.updateCategory(this.categoryId, this.category).subscribe({
-        next: () => this.router.navigate(['categories']),
+        next: () => this.router.navigate(['/', 'categories', this.categoryId]),
         error: (error) => this.error = error.message
       })
     }

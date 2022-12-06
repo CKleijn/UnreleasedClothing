@@ -25,7 +25,7 @@ export class CommentService {
         {
             title: commentDto.title,
             body: commentDto.body,
-            rating: commentDto.rating._id,
+            rating: commentDto.rating,
         }, {
             headers: new HttpHeaders({
                 'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ export class CommentService {
         {
             title: newComment?.title,
             body: newComment?.body,
-            rating: newComment?.rating?._id,
+            rating: newComment?.rating,
         }, {
             headers: new HttpHeaders({
                 'Content-Type': 'application/json',

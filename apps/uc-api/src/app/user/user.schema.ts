@@ -13,6 +13,11 @@ export class User {
     name: String;
 
     @Prop({
+        required: [true, 'Age is required!'],
+    })
+    age: Number;
+
+    @Prop({
         required: [true, 'Emailaddress is required!'],
         validate: {
             validator: function (v: any) {
@@ -44,15 +49,9 @@ export class User {
     role: String;
 
     @Prop({
-        required: [true, 'Password is required!'],
-        min: [8, 'Password needs atleast 8 characters!']
+        required: [true, 'Password is required!']
     })
     password: String;
-
-    @Prop({
-        default: true
-    })
-    isActive: Boolean;
 
     @Prop()
     createdAt: Date;

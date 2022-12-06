@@ -1,5 +1,11 @@
 <div class="row mb-4">
     <div class="col-md-12">
+        <div class="alert alert-primary" *ngIf="error" role="alert">
+            {{ error }}
+        </div>
+    </div>
+    <div class="col-md-12">
+        <h1>Register account</h1>
         <form #registerForm="ngForm" (ngSubmit)="onSubmit()">
             <div class="row mb-3">
                 <div class="col-md-12">
@@ -65,6 +71,23 @@
             <div class="row mb-3">
                 <div class="col-md-12">
                     <div class="form-group">
+                        <label *ngIf="!registerUserDto!.role">Age of customer</label>
+                        <label *ngIf="registerUserDto!.role === 'customer'">Age of customer</label>
+                        <label *ngIf="registerUserDto!.role === 'brand'">Age of brand</label>
+                        <input type="number" class="form-control" name="age" #age="ngModel"
+                            [(ngModel)]="registerUserDto!.age" required
+                            [ngClass]="{'is-invalid': age.invalid && age.touched}">
+                        <div *ngIf="age.invalid && age.touched" class="invalid-feedback">
+                            <div *ngIf="age.errors!['required']">
+                                Age is required!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="form-group">
                         <label>Password</label>
                         <input type="password" class="form-control" name="password" #password="ngModel"
                             [(ngModel)]="registerUserDto!.password" required
@@ -77,7 +100,6 @@
                     </div>
                 </div>
             </div>
-            <p *ngIf="error" class="error-msg">{{ error }}</p>
             <button type="submit" [disabled]="!registerForm.valid" class="btn btn-primary">Register</button>
         </form>
     </div>

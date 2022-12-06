@@ -1,20 +1,10 @@
 import { User } from "../user/user.model";
-import { Rating } from "../rating/rating.model";
 
-export interface IComment {
-    _id: string;
-    title: string;
-    body: string;
-    rating: Rating;
-    createdBy: User;
-    createdAt: Date;
-}
-
-export class Comment implements IComment {
+export class Comment {
     _id: string = '';
     title: string = '';
     body: string = '';
-    rating: Rating = <Rating>{};
+    rating: number = 0;
     createdBy: User = <User>{};
     createdAt: Date = <Date>{};
 }

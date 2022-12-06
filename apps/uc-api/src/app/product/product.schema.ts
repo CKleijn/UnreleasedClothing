@@ -1,9 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { ObjectId } from 'mongoose';
 import { Category } from '../category/category.schema';
 import { User } from '../user/user.schema';
 
 @Schema()
 export class Product {
+    @Prop()
+    _id: ObjectId
+
     @Prop({
         required: [true, 'Name is required!'],
     })
@@ -29,9 +33,6 @@ export class Product {
 
     @Prop()
     comments: [Comment];
-
-    @Prop()
-    isActive: Boolean;
 
     @Prop()
     createdBy: User;
