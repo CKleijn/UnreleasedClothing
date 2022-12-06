@@ -4,5 +4,5 @@ export class ProductDto {
     price: number;
     description: string;
     category: string;
-    comments: [Comment]
+    comments: [Comment];
 }

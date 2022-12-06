@@ -1,5 +1,0 @@
-<div *ngIf="user$ | async as user">
-    <h1>{{ user.name }}</h1>
-    <p *ngFor="let user of user.following">{{ user.name }}</p>
-    <pre>{{ user | json }}</pre>
-</div>

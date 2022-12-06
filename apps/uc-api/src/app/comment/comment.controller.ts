@@ -16,6 +16,7 @@ export class CommentController {
         return await this.commentService.getAllComments();
     }
 
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Get('comments/:userId')
     async getAllCommentsFromUser(@Param('userId') userId: string): Promise<Comment[]> {
         return await this.commentService.getAllCommentsFromUser(userId);

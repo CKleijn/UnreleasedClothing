@@ -16,10 +16,30 @@ export class ProductController {
         return await this.productService.getAllProducts();
     }
 
+    @UseGuards(AuthGuard('jwt'))
+    @Get('products/:brandId')
+    async getAllProductsFromBrand(@Param('brandId') brandId: string): Promise<Product[]> {
+        return await this.productService.getAllProductsFromBrand(brandId);
+    }
+
+    @Get('products/category/:categoryId')
+    async getAllProductsFromCategory(@Param('categoryId') categoryId: string): Promise<Product[]> {
+        return await this.productService.getAllProductsFromCategory(categoryId);
+    }
+
     @Get('product/:productId')
     async getProductById(@Param('productId') productId: string): Promise<Product> {
         try {
             return await this.productService.getProductById(productId);
+        } catch (error) {
+            this.generateProductExceptions(error);
+        }
+    }
+
+    @Get('product/:productId/advice')
+    async getProductAdvice(@Param('productId') productId: string): Promise<Object> {
+        try {
+            return await this.productService.calculateAdvice(productId);
         } catch (error) {
             this.generateProductExceptions(error);
         }
@@ -91,5 +111,8 @@ export class ProductController {
             
         if(error?.errors?.description)
             throw new HttpException(error.errors.description.message, HttpStatus.CONFLICT);
+
+        if(error?.errors?.isActive)
+            throw new HttpException(error.errors.isActive.message, HttpStatus.CONFLICT);
     }
 }

@@ -1,7 +1,12 @@
 <div class="row mb-4">
+    <div class="col-md-12">
+        <div class="alert alert-primary" *ngIf="error" role="alert">
+            {{ error }}
+        </div>
+    </div>
     <div class="col-md-12 col-sm-12">
-        <h1 *ngIf="!categoryExists">Create</h1>
-        <h1 *ngIf="categoryExists">Edit</h1>
+        <h1 *ngIf="!categoryExists">Create category</h1>
+        <h1 *ngIf="categoryExists">Edit category</h1>
         <form #categoryForm="ngForm" class="my-5" (ngSubmit)="onSubmit()">
             <div class="row mb-3">
                 <label class="form-label col-md-4 col-sm-12 col-form-label">Title</label>
@@ -37,12 +42,22 @@
                     <small><i><a href="https://www.flaticon.com/free-icons/clothes" target="_blank">https://www.flaticon.com/free-icons/clothes</a></i></small>
                 </div>
             </div>
-            <p *ngIf="error" class="error-msg">{{ error }}</p>
+            <div class="row mb-3">
+                <label class="form-label col-md-4 col-sm-12 col-form-label">Publish</label>
+                <div class="col-md-8 col-sm-12">
+                    <select class="form-control" name="isActive" #isActive="ngModel" [(ngModel)]="category!.isActive" required [ngClass]="{'is-invalid': isActive.invalid && isActive.touched}">
+                        <option [ngValue]="true">Yes</option>
+                        <option [ngValue]="false">No</option>
+                    </select>
+                    <div *ngIf="isActive.invalid && isActive.touched" class="invalid-feedback">
+                        <div *ngIf="isActive.errors!['required']">
+                            Publish is required!
+                        </div>
+                    </div>
+                </div>
+            </div>
             <button *ngIf="!categoryExists" type="submit" [disabled]="!categoryForm.valid" class="btn pull-right">Submit</button>
             <button *ngIf="categoryExists" type="submit" [disabled]="!categoryForm.valid" class="btn pull-right">Update</button>
         </form>
-        <!-- <div *ngIf="categoryCreated" class="alert alert-success mt-5" role="alert">
-            You've created a new category!
-        </div> -->
     </div>
 </div>

@@ -1,13 +1,12 @@
-import { Injectable} from "@nestjs/common";
+import { Inject, Injectable} from "@nestjs/common";
 import mongoose from "mongoose";
 import { ProductService } from "../product/product.service";
-import { RatingService } from "../rating/rating.service";
 import { CommentDto } from "./comment.dto";
 import { Comment } from "./comment.schema";
 
 @Injectable()
 export class CommentService {
-    constructor(private ratingService: RatingService, private productService: ProductService) {}
+    constructor(@Inject(ProductService) private productService: ProductService) {}
 
     async getAllComments(): Promise<Comment[]> {
         return await this.productService.getAllComments();
@@ -30,7 +29,7 @@ export class CommentService {
             _id: new mongoose.Types.ObjectId(),
             title: commentDto.title,
             body: commentDto.body,
-            rating: await this.ratingService.getRatingById(commentDto.rating.toString()),
+            rating: commentDto.rating,
             createdBy: user._id,
             createdAt: new Date()
         }
@@ -39,9 +38,6 @@ export class CommentService {
     }
 
     async updateComment(user: any, productId: string, commentId: string, newComment: Partial<CommentDto>): Promise<void> {
-        if(newComment?.rating)
-            newComment.rating = await this.ratingService.getRatingById(newComment.rating.toString());
-        
         await this.productService.updateCommentFromProduct(user, productId, commentId, newComment);
     }
 

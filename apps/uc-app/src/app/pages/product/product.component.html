@@ -8,14 +8,13 @@
 </div>
 
 <div class="row">
-    <div class="col-md-4 col-sm-12 mb-4" *ngFor="let product of products$ | async">
+    <div class="col-md-3 col-sm-12 mb-4" *ngFor="let product of products$ | async">
         <div class="card">
-            <img class="card-img-top" src="{{ product.picture }}" alt="{{ product.name }}">
-            <div class="card-body">
-                <h6 class="card-title"><b>{{ product.createdBy.name }}</b> - <a routerLink="../categories/{{ product.category._id }}">{{ product.category.title }} <img class="pb-1" src="{{ product.category.icon }}" width="15" /></a></h6>
+            <img class="card-img-top" src="{{ product.picture }}" alt="{{ product.name }}" style="height: 400px;">
+            <div class="card-body" style="border-top: 1px solid rgba(0, 0, 0, 0.175);">
+                <h6 class="card-title"><b><a [routerLink]="['/', 'user', product.createdBy._id]">{{ product.createdBy.name }}</a></b> - <a routerLink="../categories/{{ product.category._id }}">{{ product.category.title }} <img class="pb-1" src="{{ product.category.icon }}" width="15" /></a></h6>
                 <h5 class="card-title">{{ product.name }}</h5>
-                <p class="card-text">€{{ product.price }}</p>
-                <a routerLink="{{ product._id }}" class="btn">Details <i class="bi bi-arrow-right"></i></a>
+                <a routerLink="{{ product._id }}" class="btn form-control input-block-level">Details <i class="bi bi-arrow-right"></i></a>
             </div>
         </div>
     </div>

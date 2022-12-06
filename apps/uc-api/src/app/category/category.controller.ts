@@ -12,8 +12,19 @@ export class CategoryController {
     constructor(private readonly categoryService: CategoryService) {}
 
     @Get('categories')
+    async getCategories(): Promise<Category[]> {
+        return await this.categoryService.getCategories();
+    }
+
+    @Get('categories/all')
     async getAllCategories(): Promise<Category[]> {
         return await this.categoryService.getAllCategories();
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Get('categories/:userId')
+    async getAllCategoriesFromUser(@Param('userId') userId: string): Promise<Category[]> {
+        return await this.categoryService.getAllCategoriesFromUser(userId);
     }
 
     @Get('category/:categoryId')
@@ -77,8 +88,14 @@ export class CategoryController {
         if(error?.name === 'CastError')
             throw new HttpException(`This category doesn't exists!`, HttpStatus.NOT_FOUND)
 
+        if(error?.response === `This category can't be deleted, because products are linked to this category!`)
+            throw new HttpException(`This category can't be deleted, because products are linked to this category!`, HttpStatus.CONFLICT);
+
         if(error?.response === 'This category title already exists!')
             throw new HttpException('This category title already exists!', HttpStatus.CONFLICT);
+
+        if(error?.response === `This category can't be put offline, because it's connected to products!`)
+            throw new HttpException(`This category can't be put offline, because it's connected to products!`, HttpStatus.CONFLICT);
 
         if(error?.response?.message)
             throw new UnauthorizedException(error?.response?.message);
@@ -91,5 +108,8 @@ export class CategoryController {
 
         if(error?.errors?.icon)
             throw new HttpException(error.errors.icon.message, HttpStatus.CONFLICT);
+
+        if(error?.errors?.isActive)
+            throw new HttpException(error.errors.isActive.message, HttpStatus.CONFLICT);
     }
 }

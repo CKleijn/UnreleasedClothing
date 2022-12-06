@@ -1,22 +1,45 @@
-<div *ngIf="category$ | async as category">
-    <h1>{{ category.title }}</h1>
-
-    <div class="row">
-        <div class="col-md-12 mb-4">
-            <div class="row">
-                <div class="col-md-4 col-sm-12 mb-4">
-                    <div class="card">
-                        <img class="card-img-top p-5" src="{{ category?.icon }}" alt="{{ category?.title }}">
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-primary" *ngIf="error" role="alert">
+            {{ error }}
+        </div>
+    </div>
+    <div class="col-md-12 mb-4">
+        <div class="row">
+            <div class="col-md-4 col-sm-12 mb-4">
+                <div class="card">
+                    <img class="card-img-top p-5" src="{{ category?.icon }}" alt="{{ category?.title }}">
+                </div>
+            </div>
+            <div class="col-md-8 col-sm-12 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h1 class="card-title">{{ category?.title }}</h1>
+                        <p class="card-text">{{ category?.description }}</p>
+                        <p class="card-text"><b>Created by </b><a
+                                [routerLink]="['/', 'user', category?.createdBy?._id]">{{ category?.createdBy?.name
+                                }}</a></p>
+                        <p class="card-text"><b>Created at </b>{{ category?.createdAt | date: 'dd/MM/yyyy' }}</p>
+                        <div *ngIf="loggedInUser$ | async as user">
+                            <button class="btn" *ngIf="user._id === category?.createdBy?._id" routerLink="edit">Edit <i
+                                    class="bi bi-pencil"></i></button>
+                            <button class="btn mx-2" *ngIf="user._id === category?.createdBy?._id"
+                                (click)="delete()">Delete <i class="bi bi-trash"></i></button>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-8 col-sm-12 mb-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ category?.title }}</h5>
-                            <p class="card-text">{{ category?.description }}</p>
-                            <button class="btn" routerLink="edit">Edit <i class="bi bi-pencil"></i></button>
-                            <button class="btn mx-2" (click)="delete()">Delete <i class="bi bi-trash"></i></button>
-                            <p *ngIf="error" class="error-msg">{{ error }}</p>
+                <div class="my-3 bg-white rounded box-shadow">
+                    <h6 class="border-bottom border-gray pb-2 mb-0">Using products ({{ products?.length }})</h6>
+                    <div class="media text-muted pt-3" *ngFor="let product of products">
+                        <div class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                            <img src="{{ product.picture }}" class="mr-5 rounded" height="40">
+                            <strong class="text-gray-dark">{{ product.name }}</strong>
+                            <a class="pull-right mt-2" [routerLink]="['/', 'products', product._id]">Show product</a>
+                        </div>
+                    </div>
+                    <div class="media text-muted pt-3" *ngIf="products?.length === 0">
+                        <div class="media-body pb-3 mb-0 small lh-125  border-gray">
+                            <strong class="text-gray-dark">This category hasn't any products yet!</strong>
                         </div>
                     </div>
                 </div>

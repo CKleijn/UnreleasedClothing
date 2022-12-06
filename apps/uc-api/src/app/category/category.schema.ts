@@ -3,6 +3,9 @@ import { ObjectId } from 'mongoose';
 
 @Schema()
 export class Category {
+    @Prop()
+    _id: ObjectId;
+
     @Prop({
         required: [true, 'Title is required!'],
     })
@@ -18,6 +21,11 @@ export class Category {
         default: 'https://www.simplelaw.com/hubfs/Blog_Media/cdn2.hubspot.nethubfs5154887Blog_Mediaimage_not_found.png'
     })
     icon: String;
+
+    @Prop({
+        required: [true, 'isActive is required!'],
+    })
+    isActive: Boolean;
 
     @Prop()
     createdAt: Date;

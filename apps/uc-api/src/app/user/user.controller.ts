@@ -57,6 +57,16 @@ export class UserController {
         }
     }
 
+    @UseGuards(AuthGuard('jwt'))
+    @Get(':userId/followers')
+    async getUserFollowers(@Param('userId') userId: string): Promise<User[]> {
+        try {
+            return await this.userService.getFollowers(userId);
+        } catch (error) {
+            this.generateUserExceptions(error);
+        }
+    }
+
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.CUSTOMER)
     @Post(':userId/follow')
@@ -90,7 +100,6 @@ export class UserController {
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
-    @Roles(Role.CUSTOMER)
     @Get(':userId/status')
     async checkFollowStatus(@Request() req: any, @Param('userId') userId: string): Promise<boolean> {
         try {
@@ -101,7 +110,6 @@ export class UserController {
     }
 
     generateUserExceptions(error: any) {
-        console.log(error)
         if (error?.name === 'CastError')
             throw new HttpException(`This user doesn't exists!`, HttpStatus.NOT_FOUND)
 

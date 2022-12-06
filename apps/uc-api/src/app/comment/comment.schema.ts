@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ObjectId } from 'mongoose';
-import { Rating } from '../rating/rating.schema';
 import { User } from '../user/user.schema';
 
 @Schema()
@@ -21,7 +20,7 @@ export class Comment {
     @Prop({
         required: [true, 'Rating is required!'],
     })
-    rating: Rating;
+    rating: Number;
 
     @Prop({
         ref: 'User'
