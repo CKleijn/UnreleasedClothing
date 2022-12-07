@@ -6,6 +6,7 @@ import { Category } from './category.model';
 import { catchError, map, Observable, tap } from 'rxjs';
 import { CategoryDto } from './category.dto';
 import { Product } from '../product/product.model';
+import { Icon } from '../../shared/icon/icon.model';
 
 @Injectable({
     providedIn: 'root'
@@ -22,6 +23,10 @@ export class CategoryService {
         return this.httpClient.get(environment.API_URL + 'categories/all') as Observable<Category[]>;
     }
 
+    getIcons(): Observable<Icon[]> {
+        return this.httpClient.get(environment.API_URL + 'icons') as Observable<Icon[]>;
+    }
+
     getProductsByCategory(categoryId: string): Observable<Product[]> {
         return this.httpClient.get(environment.API_URL + 'products/category/' + categoryId) as Observable<Product[]>;
     }
@@ -35,7 +40,7 @@ export class CategoryService {
         {
             title: categoryDto.title,
             description: categoryDto.description,
-            icon: categoryDto.icon,
+            icon: categoryDto.icon._id,
             isActive: categoryDto.isActive
         }, {
             headers: new HttpHeaders({
@@ -54,7 +59,7 @@ export class CategoryService {
         {
             title: categoryDto?.title,
             description: categoryDto?.description,
-            icon: categoryDto?.icon,
+            icon: categoryDto?.icon._id,
             isActive: categoryDto?.isActive
         }, {
             headers: new HttpHeaders({

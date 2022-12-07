@@ -90,7 +90,7 @@
             <h5 class="border-bottom border-gray pb-2 mb-0">Categories</h5>
             <div class="media text-muted pt-3" *ngFor="let category of categories">
                 <div class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
-                    <img src="{{ category.icon }}" class="mr-5 rounded" height="50">
+                    <img src="{{ category.icon.icon }}" class="mr-5 rounded" height="50">
                     <strong class="text-gray-dark">{{ category.title }}</strong>
                     <a class="pull-right mt-3" [routerLink]="['/', 'categories', category._id]">Show category</a>
                 </div>

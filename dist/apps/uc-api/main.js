@@ -51,11 +51,12 @@ const user_module_1 = __webpack_require__("./apps/uc-api/src/app/user/user.modul
 const category_module_1 = __webpack_require__("./apps/uc-api/src/app/category/category.module.ts");
 const comment_module_1 = __webpack_require__("./apps/uc-api/src/app/comment/comment.module.ts");
 const product_module_1 = __webpack_require__("./apps/uc-api/src/app/product/product.module.ts");
+const icon_module_1 = __webpack_require__("./apps/uc-api/src/app/icon/icon.module.ts");
 let AppModule = class AppModule {
 };
 AppModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), auth_module_1.AuthModule, user_module_1.UserModule, product_module_1.ProductModule, category_module_1.CategoryModule, comment_module_1.CommentModule],
+        imports: [mongoose_1.MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), auth_module_1.AuthModule, user_module_1.UserModule, product_module_1.ProductModule, category_module_1.CategoryModule, comment_module_1.CommentModule, icon_module_1.IconModule],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })
@@ -518,6 +519,7 @@ exports.CategoryModule = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const icon_module_1 = __webpack_require__("./apps/uc-api/src/app/icon/icon.module.ts");
 const product_module_1 = __webpack_require__("./apps/uc-api/src/app/product/product.module.ts");
 const category_controller_1 = __webpack_require__("./apps/uc-api/src/app/category/category.controller.ts");
 const category_schema_1 = __webpack_require__("./apps/uc-api/src/app/category/category.schema.ts");
@@ -526,7 +528,7 @@ let CategoryModule = class CategoryModule {
 };
 CategoryModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: category_schema_1.Category.name, schema: category_schema_1.CategorySchema }]), (0, common_1.forwardRef)(() => product_module_1.ProductModule)],
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: category_schema_1.Category.name, schema: category_schema_1.CategorySchema }]), (0, common_1.forwardRef)(() => product_module_1.ProductModule), icon_module_1.IconModule],
         controllers: [category_controller_1.CategoryController],
         providers: [category_service_1.CategoryService],
         exports: [category_service_1.CategoryService]
@@ -548,6 +550,7 @@ exports.CategorySchema = exports.Category = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const mongoose_2 = __webpack_require__("mongoose");
+const icon_schema_1 = __webpack_require__("./apps/uc-api/src/app/icon/icon.schema.ts");
 let Category = class Category {
 };
 tslib_1.__decorate([
@@ -571,7 +574,7 @@ tslib_1.__decorate([
         required: [true, 'Icon is required!'],
         default: 'https://www.simplelaw.com/hubfs/Blog_Media/cdn2.hubspot.nethubfs5154887Blog_Mediaimage_not_found.png'
     }),
-    tslib_1.__metadata("design:type", typeof (_d = typeof String !== "undefined" && String) === "function" ? _d : Object)
+    tslib_1.__metadata("design:type", typeof (_d = typeof icon_schema_1.Icon !== "undefined" && icon_schema_1.Icon) === "function" ? _d : Object)
 ], Category.prototype, "icon", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
@@ -602,19 +605,21 @@ exports.CategorySchema = mongoose_1.SchemaFactory.createForClass(Category);
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b;
+var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CategoryService = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const mongoose_2 = __webpack_require__("mongoose");
+const icon_service_1 = __webpack_require__("./apps/uc-api/src/app/icon/icon.service.ts");
 const product_service_1 = __webpack_require__("./apps/uc-api/src/app/product/product.service.ts");
 const category_schema_1 = __webpack_require__("./apps/uc-api/src/app/category/category.schema.ts");
 let CategoryService = class CategoryService {
-    constructor(categoryModel, productService) {
+    constructor(categoryModel, productService, iconService) {
         this.categoryModel = categoryModel;
         this.productService = productService;
+        this.iconService = iconService;
     }
     getCategories() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
@@ -663,7 +668,7 @@ let CategoryService = class CategoryService {
             const uniqueCategory = yield this.categoryModel.findOne({ title: categoryDto.title });
             if (uniqueCategory)
                 throw new common_1.HttpException('This category title already exists!', common_1.HttpStatus.CONFLICT);
-            yield this.categoryModel.create(Object.assign(Object.assign({ _id: new mongoose_2.default.Types.ObjectId() }, categoryDto), { createdAt: new Date(), createdBy: user._id }));
+            yield this.categoryModel.create(Object.assign(Object.assign({ _id: new mongoose_2.default.Types.ObjectId() }, categoryDto), { icon: yield this.iconService.getIconById(categoryDto.icon), createdAt: new Date(), createdBy: user._id }));
         });
     }
     updateCategory(user, categoryId, newCategory) {
@@ -677,11 +682,11 @@ let CategoryService = class CategoryService {
                 throw new common_1.HttpException('This category title already exists!', common_1.HttpStatus.CONFLICT);
             if (products.length > 0 && (newCategory === null || newCategory === void 0 ? void 0 : newCategory.isActive) === false)
                 throw new common_1.HttpException(`This category can't be put offline, because it's connected to products!`, common_1.HttpStatus.CONFLICT);
-            yield this.categoryModel.findOneAndUpdate({ _id: categoryId }, newCategory, {
-                upsert: true,
-                new: true,
-                runValidators: true,
-                setDefaultsOnInsert: true
+            yield this.categoryModel.findOneAndUpdate({ _id: categoryId }, {
+                title: newCategory === null || newCategory === void 0 ? void 0 : newCategory.title,
+                description: newCategory === null || newCategory === void 0 ? void 0 : newCategory.description,
+                icon: yield this.iconService.getIconById(newCategory === null || newCategory === void 0 ? void 0 : newCategory.icon),
+                isActive: newCategory === null || newCategory === void 0 ? void 0 : newCategory.isActive
             });
             if (products)
                 yield this.productService.updateCategoryFromNestedProducts(newCategory, products);
@@ -703,7 +708,8 @@ CategoryService = tslib_1.__decorate([
     (0, common_1.Injectable)(),
     tslib_1.__param(0, (0, mongoose_1.InjectModel)(category_schema_1.Category.name)),
     tslib_1.__param(1, (0, common_1.Inject)((0, common_1.forwardRef)(() => product_service_1.ProductService))),
-    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof product_service_1.ProductService !== "undefined" && product_service_1.ProductService) === "function" ? _b : Object])
+    tslib_1.__param(2, (0, common_1.Inject)(icon_service_1.IconService)),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof product_service_1.ProductService !== "undefined" && product_service_1.ProductService) === "function" ? _b : Object, typeof (_c = typeof icon_service_1.IconService !== "undefined" && icon_service_1.IconService) === "function" ? _c : Object])
 ], CategoryService);
 exports.CategoryService = CategoryService;
 
@@ -991,6 +997,156 @@ exports.CommentService = CommentService;
 
 /***/ }),
 
+/***/ "./apps/uc-api/src/app/icon/icon.controller.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.IconController = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const icon_service_1 = __webpack_require__("./apps/uc-api/src/app/icon/icon.service.ts");
+let IconController = class IconController {
+    constructor(iconService) {
+        this.iconService = iconService;
+    }
+    getIcons() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.iconService.getIcons();
+        });
+    }
+    getIconById(iconId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.iconService.getIconById(iconId);
+        });
+    }
+};
+tslib_1.__decorate([
+    (0, common_1.Get)('icons'),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", []),
+    tslib_1.__metadata("design:returntype", typeof (_b = typeof Promise !== "undefined" && Promise) === "function" ? _b : Object)
+], IconController.prototype, "getIcons", null);
+tslib_1.__decorate([
+    (0, common_1.Get)('icon/:iconId'),
+    tslib_1.__param(0, (0, common_1.Param)('iconId')),
+    tslib_1.__metadata("design:type", Function),
+    tslib_1.__metadata("design:paramtypes", [String]),
+    tslib_1.__metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
+], IconController.prototype, "getIconById", null);
+IconController = tslib_1.__decorate([
+    (0, common_1.Controller)(),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof icon_service_1.IconService !== "undefined" && icon_service_1.IconService) === "function" ? _a : Object])
+], IconController);
+exports.IconController = IconController;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/icon/icon.module.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.IconModule = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const icon_controller_1 = __webpack_require__("./apps/uc-api/src/app/icon/icon.controller.ts");
+const icon_schema_1 = __webpack_require__("./apps/uc-api/src/app/icon/icon.schema.ts");
+const icon_service_1 = __webpack_require__("./apps/uc-api/src/app/icon/icon.service.ts");
+let IconModule = class IconModule {
+};
+IconModule = tslib_1.__decorate([
+    (0, common_1.Module)({
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: icon_schema_1.Icon.name, schema: icon_schema_1.IconSchema }])],
+        controllers: [icon_controller_1.IconController],
+        providers: [icon_service_1.IconService],
+        exports: [icon_service_1.IconService]
+    })
+], IconModule);
+exports.IconModule = IconModule;
+;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/icon/icon.schema.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.IconSchema = exports.Icon = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const mongoose_2 = __webpack_require__("mongoose");
+let Icon = class Icon {
+};
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)(),
+    tslib_1.__metadata("design:type", typeof (_a = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _a : Object)
+], Icon.prototype, "_id", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Title is required!']
+    }),
+    tslib_1.__metadata("design:type", typeof (_b = typeof String !== "undefined" && String) === "function" ? _b : Object)
+], Icon.prototype, "title", void 0);
+tslib_1.__decorate([
+    (0, mongoose_1.Prop)({
+        required: [true, 'Icon is required!'],
+        default: 'https://www.simplelaw.com/hubfs/Blog_Media/cdn2.hubspot.nethubfs5154887Blog_Mediaimage_not_found.png'
+    }),
+    tslib_1.__metadata("design:type", typeof (_c = typeof String !== "undefined" && String) === "function" ? _c : Object)
+], Icon.prototype, "icon", void 0);
+Icon = tslib_1.__decorate([
+    (0, mongoose_1.Schema)()
+], Icon);
+exports.Icon = Icon;
+exports.IconSchema = mongoose_1.SchemaFactory.createForClass(Icon);
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/app/icon/icon.service.ts":
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.IconService = void 0;
+const tslib_1 = __webpack_require__("tslib");
+const common_1 = __webpack_require__("@nestjs/common");
+const mongoose_1 = __webpack_require__("@nestjs/mongoose");
+const mongoose_2 = __webpack_require__("mongoose");
+const icon_schema_1 = __webpack_require__("./apps/uc-api/src/app/icon/icon.schema.ts");
+let IconService = class IconService {
+    constructor(iconModel) {
+        this.iconModel = iconModel;
+    }
+    getIcons() {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.iconModel.find({});
+        });
+    }
+    getIconById(iconId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return yield this.iconModel.findById({ _id: iconId });
+        });
+    }
+};
+IconService = tslib_1.__decorate([
+    (0, common_1.Injectable)(),
+    tslib_1.__param(0, (0, mongoose_1.InjectModel)(icon_schema_1.Icon.name)),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
+], IconService);
+exports.IconService = IconService;
+
+
+/***/ }),
+
 /***/ "./apps/uc-api/src/app/product/product.controller.ts":
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -1203,6 +1359,7 @@ const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const category_module_1 = __webpack_require__("./apps/uc-api/src/app/category/category.module.ts");
+const icon_module_1 = __webpack_require__("./apps/uc-api/src/app/icon/icon.module.ts");
 const user_module_1 = __webpack_require__("./apps/uc-api/src/app/user/user.module.ts");
 const product_controller_1 = __webpack_require__("./apps/uc-api/src/app/product/product.controller.ts");
 const product_schema_1 = __webpack_require__("./apps/uc-api/src/app/product/product.schema.ts");
@@ -1211,7 +1368,7 @@ let ProductModule = class ProductModule {
 };
 ProductModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: product_schema_1.Product.name, schema: product_schema_1.ProductSchema }]), (0, common_1.forwardRef)(() => user_module_1.UserModule), (0, common_1.forwardRef)(() => category_module_1.CategoryModule)],
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: product_schema_1.Product.name, schema: product_schema_1.ProductSchema }]), (0, common_1.forwardRef)(() => user_module_1.UserModule), (0, common_1.forwardRef)(() => category_module_1.CategoryModule), icon_module_1.IconModule],
         controllers: [product_controller_1.ProductController],
         providers: [product_service_1.ProductService],
         exports: [product_service_1.ProductService]
@@ -1294,7 +1451,7 @@ exports.ProductSchema = mongoose_1.SchemaFactory.createForClass(Product);
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c;
+var _a, _b, _c, _d;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProductService = void 0;
 const tslib_1 = __webpack_require__("tslib");
@@ -1304,11 +1461,13 @@ const mongoose_2 = __webpack_require__("mongoose");
 const category_service_1 = __webpack_require__("./apps/uc-api/src/app/category/category.service.ts");
 const user_service_1 = __webpack_require__("./apps/uc-api/src/app/user/user.service.ts");
 const product_schema_1 = __webpack_require__("./apps/uc-api/src/app/product/product.schema.ts");
+const icon_service_1 = __webpack_require__("./apps/uc-api/src/app/icon/icon.service.ts");
 let ProductService = class ProductService {
-    constructor(productModel, categoryService, userService) {
+    constructor(productModel, categoryService, userService, iconService) {
         this.productModel = productModel;
         this.categoryService = categoryService;
         this.userService = userService;
+        this.iconService = iconService;
     }
     getAllProducts() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
@@ -1725,7 +1884,7 @@ let ProductService = class ProductService {
                 yield this.productModel.findOneAndUpdate({ 'category._id': product.category._id }, {
                     'category.title': newCategory === null || newCategory === void 0 ? void 0 : newCategory.title,
                     'category.description': newCategory === null || newCategory === void 0 ? void 0 : newCategory.description,
-                    'category.icon': newCategory === null || newCategory === void 0 ? void 0 : newCategory.icon,
+                    'category.icon': yield this.iconService.getIconById(newCategory === null || newCategory === void 0 ? void 0 : newCategory.icon),
                 }, {
                     upsert: true,
                     new: true,
@@ -1775,7 +1934,8 @@ ProductService = tslib_1.__decorate([
     tslib_1.__param(0, (0, mongoose_1.InjectModel)(product_schema_1.Product.name)),
     tslib_1.__param(1, (0, common_1.Inject)((0, common_1.forwardRef)(() => category_service_1.CategoryService))),
     tslib_1.__param(2, (0, common_1.Inject)((0, common_1.forwardRef)(() => user_service_1.UserService))),
-    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof category_service_1.CategoryService !== "undefined" && category_service_1.CategoryService) === "function" ? _b : Object, typeof (_c = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _c : Object])
+    tslib_1.__param(3, (0, common_1.Inject)(icon_service_1.IconService)),
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof category_service_1.CategoryService !== "undefined" && category_service_1.CategoryService) === "function" ? _b : Object, typeof (_c = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _c : Object, typeof (_d = typeof icon_service_1.IconService !== "undefined" && icon_service_1.IconService) === "function" ? _d : Object])
 ], ProductService);
 exports.ProductService = ProductService;
 
