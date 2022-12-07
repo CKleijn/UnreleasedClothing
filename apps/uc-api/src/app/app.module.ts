@@ -8,9 +8,17 @@ import { CategoryModule } from './category/category.module';
 import { CommentModule } from './comment/comment.module';
 import { ProductModule } from './product/product.module';
 import { IconModule } from './icon/icon.module';
+import { Neo4jModule } from './neo4j/neo4j.module';
 
 @Module({
-  imports: [MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), AuthModule, UserModule, ProductModule, CategoryModule, CommentModule, IconModule],
+  imports: [MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), AuthModule, UserModule, ProductModule, CategoryModule, CommentModule, IconModule, 
+  Neo4jModule.forRoot({
+    scheme: 'bolt',
+    host: '127.0.0.1',
+    port: 7687,
+    username: 'neo4j',
+    password: 'password',
+  })],
   controllers: [AppController],
   providers: [AppService],
 })

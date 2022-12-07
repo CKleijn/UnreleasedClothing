@@ -1,12 +1,13 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import mongoose, { Model } from "mongoose";
+import { Neo4jService } from "../neo4j/neo4j.service";
 import { RegisterUserDto } from "./dtos/registerUser.dto";
 import { User } from "./user.schema";
 
 @Injectable()
 export class UserService {
-    constructor(@InjectModel(User.name) private userModel: Model<User>) { }
+    constructor(@InjectModel(User.name) private userModel: Model<User>, private neo4jService: Neo4jService) { }
 
     async getUserById(userId: string): Promise<User> {
         const user = await this.userModel.findOne({ _id: userId }).populate('following');
@@ -22,11 +23,14 @@ export class UserService {
     }
 
     async registerUser(registerUserDto: RegisterUserDto): Promise<void> {
-        await this.userModel.create({
+        const user = await this.userModel.create({
             _id: new mongoose.Types.ObjectId(),
             ...registerUserDto,
             createdAt: new Date()
         });
+
+        if(registerUserDto.role === 'customer')
+           await this.neo4jService.write(`CREATE (n:Customer {id: '${user._id.toString()}', name: '${user.name}', following: '${user.following}'})`, {})
     }
 
     async getFollowers(userId: string): Promise<User[]> {
