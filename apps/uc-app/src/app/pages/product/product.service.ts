@@ -1,127 +1,80 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { environment } from 'apps/uc-app/src/environments/environment';
+import { catchError, Observable, tap } from 'rxjs';
+import { AuthService } from '../../auth/auth.service';
+import { AdviceDto } from './dtos/advice.dto';
+import { ProductDto } from './dtos/product.dto';
 import { Product } from './product.model';
 
 @Injectable({
     providedIn: 'root'
 })
 export class ProductService {
-    products: Product[] = [
+    constructor(private httpClient: HttpClient, private authService: AuthService) { }
+
+    getProducts(): Observable<Product[]> {
+        return this.httpClient.get(environment.API_URL + 'products') as Observable<Product[]>;
+    }
+
+    getProductById(productId: string): Observable<Product> {
+        return this.httpClient.get(environment.API_URL + 'product/' + productId) as Observable<Product>;
+    }
+
+    getProductAdvice(productId: string): Observable<AdviceDto> {
+        return this.httpClient.get(environment.API_URL + 'product/' + productId + '/advice') as Observable<AdviceDto>;
+    }
+
+    createProduct(productDto: ProductDto): Observable<Object> {
+        return this.httpClient.post(environment.API_URL + 'product', 
         {
-            _id: 1,
-            name: 'T-shirt with logo embroidery',
-            picture: 'https://cdn-1.debijenkorf.nl/web_detail_2x/daily-paper-alias-t-shirt-met-logoborduring/?reference=039/040/0390408002985002_pro_mod_frt_01_1108_1528_7156711.jpg',
-            price: 49.99,
-            description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
-            brand: 'Daily Paper',
-            category: {
-                _id: 1,
-                title: 'T-shirts',
-                description: 'This is a category for t-shirts.',
-                icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
-                createdAt: new Date()
-            },
-            isActive: true,
-            createdAt: new Date()
-        },
+            name: productDto.name,
+            picture: productDto.picture,
+            price: productDto.price,
+            description: productDto.description,
+            category: productDto.category._id,
+        }, {
+            headers: new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.authService.getToken()
+            })
+        }).pipe(
+            catchError((error: any) => {
+                throw new Error(error.error.message);
+            })
+        ) as Observable<Object>
+    }
+
+    updateProduct(productId: string, newProduct: ProductDto): Observable<Object> {
+        return this.httpClient.put(environment.API_URL + 'product/' + productId, 
         {
-            _id: 2,
-            name: 'T-shirt with logo print',
-            picture: 'https://cdn-1.debijenkorf.nl/web_detail_2x/diesel-t-wash-t-shirt-met-logoprint/?reference=068/970/0689703513300000_pro_mod_frt_01_1108_1528_7102611.jpg',
-            price: 79.99,
-            description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
-            brand: 'Diesel',
-            category: {
-                _id: 1,
-                title: 'T-shirts',
-                description: 'This is a category for t-shirts.',
-                icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
-                createdAt: new Date()
-            },
-            isActive: false,
-            createdAt: new Date()
-        },
-        {
-            _id: 3,
-            name: 'T-shirt with logo print',
-            picture: 'https://cdn-1.debijenkorf.nl/web_detail_2x/balr-t-shirt-van-biologisch-katoen-met-logoprint/?reference=035/480/0354809000567002_pro_mod_frt_01_1108_1528_5550214.jpg',
-            price: 74.99,
-            description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
-            brand: 'Balr',
-            category: {
-                _id: 1,
-                title: 'T-shirts',
-                description: 'This is a category for t-shirts.',
-                icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
-                createdAt: new Date()
-            },
-            isActive: true,
-            createdAt: new Date()
-        },
-        {
-            _id: 4,
-            name: 'T-shirt with logo- and back print',
-            picture: 'https://cdn-1.debijenkorf.nl/web_detail_2x/calvin-klein-t-shirt-met-flock-logo-en-backprint/?reference=074/750/0747508000212002_pro_mod_frt_01_1108_1528_7315597.jpg',
-            price: 24.99,
-            description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
-            brand: 'Calvin Klein',
-            category: {
-                _id: 1,
-                title: 'T-shirts',
-                description: 'This is a category for t-shirts.',
-                icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
-                createdAt: new Date()
-            },
-            isActive: true,
-            createdAt: new Date()
-        },
-        {
-            _id: 5,
-            name: 'T-shirt with logo- and back print',
-            picture: 'https://cdn-1.debijenkorf.nl/web_detail_2x/in-gold-we-trust-the-pusha-t-shirt-van-biologisch-katoen-met-logo-en-backprint/?reference=050/980/0509808001351003_pro_mod_frt_01_1108_1528_7516704.jpg',
-            price: 69.99,
-            description: 'This is one of our newest products that we plan to launch soon. Before we do this, we would like to ask for your opinion in order to make any adjustments.',
-            brand: 'In Gold We Trust',
-            category: {
-                _id: 1,
-                title: 'T-shirts',
-                description: 'This is a category for t-shirts.',
-                icon: 'https://cdn-icons-png.flaticon.com/512/863/863684.png',
-                createdAt: new Date()
-            },
-            isActive: false,
-            createdAt: new Date()
-        },
-    ];
-
-    constructor() { }
-
-    getProducts(): Product[] {
-        return this.products;
+            name: newProduct?.name,
+            picture: newProduct?.picture,
+            price: newProduct?.price,
+            description: newProduct?.description,
+            category: newProduct?.category?._id,
+        }, {
+            headers: new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.authService.getToken()
+            })
+        }).pipe(
+            catchError((error: any) => {
+                throw new Error(error.error.message);
+            })
+        ) as Observable<Object>
     }
 
-    getProductById(productId: number): Product {
-        return this.products.filter(product => product._id === productId)[0];
-    }
-
-    getProductsByCategoryId(categoryId: number): Product[] {
-        return this.products.filter(product => product.category._id === categoryId);
-    }
-
-    getNewIndex(): number {
-        let lastIndex = this.products[this.products.length - 1]._id;
-        return lastIndex + 1;
-    }
-
-    createProduct(product: Product) {
-        this.products.push(product);
-    }
-
-    updateProduct(productId: number, newProduct: Product) {
-        const productIndex = this.products.findIndex(product => product._id === productId)
-        this.products[productIndex] = newProduct;
-    }
-
-    deleteProduct(productId: number) {
-        this.products = this.products.filter(product => product._id !== productId);
+    deleteProduct(productId: string): Observable<Object> {
+        return this.httpClient.delete(environment.API_URL + 'product/' + productId, {
+            headers: new HttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.authService.getToken()
+            })
+        }).pipe(
+            catchError((error: any) => {
+                throw new Error(error.error.message);
+            })
+        ) as Observable<Object>
     }
 }

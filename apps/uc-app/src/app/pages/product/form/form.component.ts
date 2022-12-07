@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { Observable, of, Subscription, switchMap } from 'rxjs';
 import { Category } from '../../category/category.model';
 import { CategoryService } from '../../category/category.service';
-import { Product } from '../product.model';
+import { ProductDto } from '../dtos/product.dto';
 import { ProductService } from '../product.service';
 
 @Component({
@@ -10,48 +11,58 @@ import { ProductService } from '../product.service';
   templateUrl: './form.component.html',
   styleUrls: ['./form.component.scss'],
 })
-export class ProductFormComponent implements OnInit {
+export class ProductFormComponent implements OnInit, OnDestroy {
+  paramSubscription: Subscription | undefined;
+  createSubscription: Subscription | undefined;
+  updateSubscription: Subscription | undefined;
   productId: string | null = null;
-  productName: string | null = null;
+  product = new ProductDto();
+  error: string | null = null;
   productExists: boolean = false;
-  product: Product | undefined;
-  categories: Category[] = [];
-  showComponent: boolean = false;
+  categories$: Observable<Category[]> | undefined;
 
   constructor(private route: ActivatedRoute, private router: Router, private productService: ProductService, private categoryService: CategoryService) { }
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
-      this.productId = params.get('productId');
+    this.paramSubscription = this.route.paramMap
+      .pipe(
+        switchMap((params: ParamMap) => {
+          this.productId = params.get('productId');
 
-      if (this.productId) {
-        this.productExists = true;
+          if (this.productId) {
+            this.productExists = true;
+            return this.productService.getProductById(this.productId);
+          } else {
+            return of(new ProductDto());
+          }
+        })
+      ).subscribe((product) => {
         this.product = {
-          ...this.productService.getProductById(Number(this.productId))
+          ...product
         }
-        this.productName = '(' + this.product.brand + ') ' + this.product.name;
-      } 
-      else {
-        this.product = new Product();
-        this.product._id = this.productService.getNewIndex();
-      }
+      })
 
-      this.categories = this.categoryService.getCategories();
-    })
-  }
-
-  triggerCategoryForm(): void {
-    this.showComponent = this.showComponent ? false : true;
+    this.categories$ = this.categoryService.getCategories();
   }
 
   onSubmit(): void {
     if (this.productExists) {
-      this.productService.updateProduct(Number(this.productId), this.product!);
-    } 
-    else {
-      this.productService.createProduct(this.product!);
+      this.updateSubscription = this.productService.updateProduct(this.productId!, this.product!).subscribe({
+        next: () => this.router.navigate(['products', this.productId]),
+        error: (error) => this.error = error.message
+      })
     }
+    else {
+      this.createSubscription = this.productService.createProduct(this.product!).subscribe({
+        next: () => this.router.navigate(['products']),
+        error: (error) => this.error = error.message
+      })
+    }
+  }
 
-    this.router.navigate(['products'])
+  ngOnDestroy(): void {
+    this.paramSubscription?.unsubscribe;
+    this.createSubscription?.unsubscribe;
+    this.updateSubscription?.unsubscribe;
   }
 }

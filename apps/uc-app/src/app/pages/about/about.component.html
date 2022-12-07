@@ -9,15 +9,14 @@
         <p>
             Het doel van deze applicatie is dat merken hun onuitgebrachte producten online kunnen zetten waarbij ze hier
             vragen naar de mening van potentiële klanten. De onuitgebrachte producten kunnen ze koppelen aan zowel
-            bestaande als zelfgemaakte categorieën. Daarnaast kunnen ze hun zelfgemaakte categorieën ook alleen
-            beschikbaar stellen voor hun eigen merk. Deze zelfgemaakte categorieën kan het merk alleen bewerken of
+            bestaande als zelfgemaakte categorieën.Deze zelfgemaakte categorieën kan het merk alleen bewerken of
             verwijderen als deze gemaakt is door hun merk. Daarnaast kunnen merken alleen de producten bewerken en
             verwijderen van hun eigen merk. De potentiële klanten kunnen een reactie achter laten op het product. Aan
             deze reactie kunnen ze een rating meegeven. Deze reacties kunnen worden bewerkt en verwijderd alleen als
             deze reactie van de ingelogde klant is. Doormiddel van meerdere meningen en berekende statistieken kunnen de
-            merken concluderen of dat ze het product uit moeten brengen of niet. Daarnaast kunnen potentiële klanten hun
-            favoriete merken volgen om op de hoogte te blijven van hun nieuwe onuitgebrachte producten. Daar tegen over
-            kunnen ze ook merken ontvolgen als deze niet meer hun interesses wekken. Tot slot geeft de applicatie
+            merken concluderen of dat ze het product uit moeten brengen of niet. Daarnaast kunnen potentiële klanten andere potentiële
+            klanten volgen om suggesties te krijgen van vergelijkbare producten waar jou beoordelingen hoog zijn. Daar tegen over
+            kunnen ze ook klanten ontvolgen als deze niet meer hun interesses wekken. Tot slot geeft de applicatie
             suggesties aan de klanten betreft producten die te vergelijken zijn met producten waarop de klanten positief
             hebben gereageerd.
         </p>
@@ -45,46 +44,25 @@
         <h3>Entiteiten toelichting</h3>
         <p>Binnen deze applicatie maak ik gebruik van 5 verschillende entiteiten. Hier tussen zijn meerdere relaties.
             Deze zijn te zien in de ERD hierboven. Daarnaast heb ik meerdere zwakke en sterke entiteiten. De entiteiten
-            brand, customer en category zijn sterke entiteiten en de entiteiten product en comment zijn zwakke
+            user en icon zijn sterke entiteiten en de entiteiten product, comment en category zijn zwakke
             entiteiten.</p>
     </div>
 </div>
 
 <div class="row">
+    <h3>Entiteiten</h3>
     <div class="col-sm-12 col-md-4">
-        <h3>Entiteiten</h3>
-        <p>Customer</p>
-        <ul>
-            <li>_id: (ObjectId voor API, in IMDB is number)</li>
-            <li>firstName: string</li>
-            <li>lastName: number</li>
-            <li>dateOfBirth: date</li>
-            <li>emailAddress: string</li>
-            <li>picture: string</li>
-            <li>street: string</li>
-            <li>houseNumber: number</li>
-            <li>houseNumberAddition: string</li>
-            <li>postalCode: string</li>
-            <li>city: string</li>
-            <li>password: string</li>
-            <li>createdAt: date</li>
-        </ul>
-    </div>
-    <div class="col-sm-12 col-md-4">
-        <p>Brand</p>
+        <p>User</p>
         <ul>
             <li>_id: (ObjectId voor API, in IMDB is number)</li>
             <li>name: string</li>
-            <li>description: string</li>
-            <li>webshop_url: string</li>
+            <li>age: number</li>
+            <li>emailAddress: string</li>
             <li>picture: string</li>
-            <li>street: string</li>
-            <li>houseNumber: number</li>
-            <li>houseNumberAddition: string</li>
-            <li>postalCode: string</li>
-            <li>city: string</li>
+            <li>role: string</li>
+            <li>following: User[]</li>
             <li>password: string</li>
-            <li>createdAt: date</li>
+            <li>createdAt: Date</li>
         </ul>
     </div>
     <div class="col-sm-12 col-md-4">
@@ -95,8 +73,10 @@
             <li>picture: string</li>
             <li>price: number</li>
             <li>description: string</li>
-            <li>isActive: boolean</li>
-            <li>createdAt: date</li>
+            <li>category: Category</li>
+            <li>comments: Comment[]</li>
+            <li>createdAt: Date</li>
+            <li>createdBy: User</li>
         </ul>
     </div>
     <div class="col-sm-12 col-md-4">
@@ -106,7 +86,8 @@
             <li>title: string</li>
             <li>body: string</li>
             <li>rating: number</li>
-            <li>postedAt: date</li>
+            <li>createdAt: Date</li>
+            <li>createdBy: User</li>
         </ul>
     </div>
     <div class="col-sm-12 col-md-4">
@@ -115,14 +96,17 @@
             <li>_id: (ObjectId voor API, in IMDB is number)</li>
             <li>title: string</li>
             <li>description: string</li>
-            <li>icon: string</li>
-            <li>createdAt: date</li>
+            <li>icon: Icon</li>
+            <li>createdAt: Date</li>
+            <li>createdBy: User</li>
         </ul>
     </div>
     <div class="col-sm-12 col-md-4">
-        <p>Brand_Customer</p>
+        <p>Icon</p>
         <ul>
-            <li>followedAt: date</li>
+            <li>_id: ObjectId</li>
+            <li>title: string</li>
+            <li>icon: string</li>
         </ul>
     </div>
 </div>
@@ -175,194 +159,151 @@
                 <tr>
                     <td>6</td>
                     <td>
-                        Als merk wil ik een dashboard hebben waar ik algemene informatie en shortcuts heb staan van
-                        andere pagina’s, zodat ik vanuit hier snel kan navigeren naar belangrijke pagina’s.
-                    </td>
-                </tr>
-                <tr>
-                    <td>7</td>
-                    <td>
                         Als merk wil ik een overzicht hebben van al mijn producten, zodat ik weet welke producten ik
                         allemaal online heb staan.
                     </td>
                 </tr>
                 <tr>
-                    <td>8</td>
+                    <td>7</td>
                     <td>
                         Als merk wil ik een product online kunnen zetten met bijbehorende informatie, zodat klanten hier
                         hun mening op kunnen uitbrengen.
                     </td>
                 </tr>
                 <tr>
-                    <td>9</td>
+                    <td>8</td>
                     <td>
                         Als merk wil ik een overzicht hebben van al mijn gemaakte categorieën, zodat ik weet welke
                         categorieën ik allemaal online heb staan.
                     </td>
                 </tr>
                 <tr>
-                    <td>10</td>
+                    <td>9</td>
                     <td>
                         Als merk wil ik een categorie aan kunnen maken, zodat deze categorie binnen heel de applicatie
                         gebruikt kan worden.
                     </td>
                 </tr>
                 <tr>
-                    <td>11</td>
-                    <td>
-                        Als merk wil ik alleen een categorie aan kunnen maken voor mijn eigen merk, zodat ik deze kan
-                        toevoegen aan mijn product.
-                    </td>
-                </tr>
-                <tr>
-                    <td>12</td>
+                    <td>10</td>
                     <td>
                         Als merk wil ik een categorie kunnen bewerken met nieuwe informatie, zodat wanneer de categorie
                         verandert dit ook online te zien is.
                     </td>
                 </tr>
                 <tr>
-                    <td>13</td>
+                    <td>11</td>
                     <td>
-                        Als merk wil ik een categorie kunnen verwijderen, zodat ik deze categorie niet meer kan
+                        Als merk wil ik een categorie kunnen verwijderen die ik zelf gemaakt heb als die niet gebruikt wordt, zodat ik deze categorie niet meer kan
                         gebruiken.
                     </td>
                 </tr>
                 <tr>
-                    <td>14</td>
+                    <td>12</td>
                     <td>
                         Als merk wil ik alle reacties kunnen zien op een specifiek product, zodat ik vanuit hier kan
                         inzien wat de klanten van het product vinden.
                     </td>
                 </tr>
                 <tr>
-                    <td>15</td>
+                    <td>13</td>
                     <td>
                         Als merk wil ik een product kunnen bewerken met nieuwe informatie, zodat wanneer het product van
                         eigenschappen verandert dit ook online te zien is.
                     </td>
                 </tr>
                 <tr>
-                    <td>16</td>
+                    <td>14</td>
                     <td>
                         Als merk wil ik een product kunnen verwijderen, zodat klanten het product niet meer online
                         kunnen zien.
                     </td>
                 </tr>
                 <tr>
-                    <td>17</td>
+                    <td>15</td>
                     <td>
                         Als merk wil ik kunnen zien of het wordt aangeraden om mijn product wel of niet uit te brengen,
                         zodat ik weet wat eventueel de volgende stap is in het proces van het product.
                     </td>
                 </tr>
                 <tr>
-                    <td>18</td>
+                    <td>16</td>
                     <td>
                         Als merk wil ik het gemiddelde cijfer kunnen zien die alle klanten hebben gegeven, zodat ik weet
                         of het product een voldoende heeft gescoord.
                     </td>
                 </tr>
                 <tr>
+                    <td>17</td>
+                    <td>
+                        Als klant wil ik kunnen zien wie mij volgt, zodat ik weet welke personen mij interessant
+                        vinden.
+                    </td>
+                </tr>
+                <tr>
+                    <td>18</td>
+                    <td>
+                        Als klant wil ik een overzicht kunnen zien van al mijn geplaatste reacties, zodat ik weet welke
+                        reacties ik heb geplaatst.
+                    </td>
+                </tr>
+                <tr>
                     <td>19</td>
                     <td>
-                        Als merk wil ik het gemiddelde cijfer per leeftijdscategorie zien die alle klanten hebben
-                        gegeven, zodat ik weet welke leeftijdscategorieën het product een voldoende geven.
+                        Als gebruiker wil ik een overzicht hebben van alle categorieën, zodat ik weet welke categorieën er
+                        allemaal zijn.
                     </td>
                 </tr>
                 <tr>
                     <td>20</td>
                     <td>
-                        Als merk wil ik kunnen zien wie mij volgt, zodat ik weet welke personen het merk interessant
-                        vinden.
+                        Als gebruiker wil ik een overzicht hebben van alle producten, zodat ik deze kan bekijken.
                     </td>
                 </tr>
                 <tr>
                     <td>21</td>
-                    <td>
-                        Als klant wil ik een dashboard hebben waar ik algemene informatie en shortcuts heb staan van
-                        andere pagina’s, zodat ik vanuit hier snel kan navigeren naar belangrijke pagina’s.
-                    </td>
-                </tr>
-                <tr>
-                    <td>22</td>
-                    <td>
-                        Als klant wil ik een overzicht kunnen zien van al mijn geplaatste reacties, zodat ik weet waar
-                        ik een reactie heb geplaatst.
-                    </td>
-                </tr>
-                <tr>
-                    <td>23</td>
-                    <td>
-                        Als klant wil ik producten kunnen filteren op categorie, zodat ik snel de juiste producten kan
-                        vinden die ik zoek.
-                    </td>
-                </tr>
-                <tr>
-                    <td>24</td>
-                    <td>
-                        Als klant wil ik een overzicht hebben van alle categorieën, zodat ik weet welke categorieën er
-                        allemaal zijn.
-                    </td>
-                </tr>
-                <tr>
-                    <td>25</td>
-                    <td>
-                        Als klant wil ik een overzicht hebben van alle producten, zodat ik deze kan bekijken.
-                    </td>
-                </tr>
-                <tr>
-                    <td>26</td>
-                    <td>
-                        Als klant wil ik een overzicht hebben van alle producten van mijn gevolgde merken, zodat ik deze
-                        kan bekijken.
-                    </td>
-                </tr>
-                <tr>
-                    <td>27</td>
                     <td>
                         Als klant wil ik een pagina kunnen zien van een merk, zodat ik vanaf hier alle informatie over
                         het merk kan zien.
                     </td>
                 </tr>
                 <tr>
-                    <td>28</td>
+                    <td>22</td>
                     <td>
                         Als klant wil ik een reactie kunnen plaatsen met een rating onder een product, zodat het merk
                         weet wat ik van het product vind.
                     </td>
                 </tr>
                 <tr>
-                    <td>29</td>
+                    <td>23</td>
                     <td>
                         Als klant wil ik mijn reactie kunnen bewerken onder een product, zodat wanneer ik van mening
                         veranderd ik dit ook kan veranderen in mijn reactie.
                     </td>
                 </tr>
                 <tr>
-                    <td>30</td>
+                    <td>24</td>
                     <td>
                         Als klant wil ik mijn reactie kunnen verwijderen onder een product, zodat wanneer ik mijn mening
                         niet meer wilen delen, ik deze kan verwijderen.
                     </td>
                 </tr>
                 <tr>
-                    <td>31</td>
+                    <td>25</td>
                     <td>
-                        Als klant wil ik een merk kunnen volgen, zodat ik op de hoogte blijf van hun nieuwe producten.
+                        Als klant wil ik een andere klant kunnen volgen, zodat ik recommendations krijg van producten die de klant interessant vind.
                     </td>
                 </tr>
                 <tr>
-                    <td>32</td>
+                    <td>26</td>
                     <td>
-                        Als klant wil ik een merk kunnen ontvolgen, zodat ik niet meer langer op de hoogte blijf van hun
-                        nieuwe producten.
+                        Als klant wil ik een andere klant kunnen ontvolgen, zodat ik geen recommendations krijg van producten die de klant interessant vind.
                     </td>
                 </tr>
                 <tr>
-                    <td>33</td>
+                    <td>27</td>
                     <td>
-                        Als klant wil ik suggesties krijgen van soort vergelijkbare producten waar ik een positieve
+                        Als klant wil ik suggesties krijgen van soort vergelijkbare producten van een volger waar ik een positieve
                         reactie op heb geplaatst, zodat ik reacties kan plaatsen op producten die overeenkomen met de
                         producten die ik leuk vind.
                     </td>

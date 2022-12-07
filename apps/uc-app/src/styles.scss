@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
 
-$primary-color: #fe6b02;
-$secondary-color: #272c48;
+$primary-color: #5995ED;
+$secondary-color: #292F36;
 $tertiary-color: #ffffff;
 
 body {
@@ -12,8 +12,8 @@ h1, h2, h3, h4, h5 {
     color: $secondary-color;
 }
 
-b {
-    color: $primary-color;
+b, b > a {
+    color: $primary-color !important;
 }
 
 a {
@@ -21,8 +21,20 @@ a {
     text-decoration: none !important;
 }
 
+.error-msg {
+    color: red;
+}
+
+.mr-5 {
+    margin-right: 10px;
+}
+
 .pull-right {
     float: right !important;
+}
+
+.pull-left {
+    float: left !important;
 }
 
 .card {

@@ -1,8 +1,13 @@
 <div class="row mb-4">
+    <div class="col-md-12">
+        <div class="alert alert-primary" *ngIf="error" role="alert">
+            {{ error }}
+        </div>
+    </div>
     <div class="col-md-12 col-sm-12">
-        <h1 *ngIf="categoryExists === true">Edit {{ categoryTitle }}</h1>
-        <h1 *ngIf="categoryExists === false">Create new category</h1>
-        <form *ngIf="!categoryCreated" #categoryForm="ngForm" class="my-5" (ngSubmit)="onSubmit()">
+        <h1 *ngIf="!categoryExists">Create category</h1>
+        <h1 *ngIf="categoryExists">Edit category</h1>
+        <form #categoryForm="ngForm" class="my-5" (ngSubmit)="onSubmit()">
             <div class="row mb-3">
                 <label class="form-label col-md-4 col-sm-12 col-form-label">Title</label>
                 <div class="col-md-8 col-sm-12">
@@ -28,20 +33,34 @@
             <div class="row mb-3">
                 <label class="form-label col-md-4 col-sm-12 col-form-label">Icon</label>
                 <div class="col-md-8 col-sm-12">
-                    <input type="text" class="form-control" name="icon" #icon="ngModel" [(ngModel)]="category!.icon" required min="0" [ngClass]="{'is-invalid': icon.invalid && icon.touched}">
-                    <small><i><a href="https://www.flaticon.com/free-icons/clothes" target="_blank">https://www.flaticon.com/free-icons/clothes</a></i></small>
+                    <select class="form-control" name="icon" #icon="ngModel" [(ngModel)]="category!.icon._id"
+                        required [ngClass]="{'is-invalid': icon.invalid && icon.touched}">
+                        <option *ngFor="let icon of icons" [ngValue]="icon._id">{{ icon.title }} icon</option>
+                    </select>
                     <div *ngIf="icon.invalid && icon.touched" class="invalid-feedback">
                         <div *ngIf="icon.errors!['required']">
                             Icon is required!
                         </div>
                     </div>
+                    <small><i>Click on the input field to see the icon options!</i></small>
                 </div>
             </div>
-            <button *ngIf="categoryExists === false" type="submit" [disabled]="!categoryForm.valid" class="btn pull-right">Submit</button>
-            <button *ngIf="categoryExists === true" type="submit" [disabled]="!categoryForm.valid" class="btn pull-right">Update</button>
+            <div class="row mb-3">
+                <label class="form-label col-md-4 col-sm-12 col-form-label">Publish</label>
+                <div class="col-md-8 col-sm-12">
+                    <select class="form-control" name="isActive" #isActive="ngModel" [(ngModel)]="category!.isActive" required [ngClass]="{'is-invalid': isActive.invalid && isActive.touched}">
+                        <option [ngValue]="true">Yes</option>
+                        <option [ngValue]="false">No</option>
+                    </select>
+                    <div *ngIf="isActive.invalid && isActive.touched" class="invalid-feedback">
+                        <div *ngIf="isActive.errors!['required']">
+                            Publish is required!
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button *ngIf="!categoryExists" type="submit" [disabled]="!categoryForm.valid" class="btn pull-right">Submit</button>
+            <button *ngIf="categoryExists" type="submit" [disabled]="!categoryForm.valid" class="btn pull-right">Update</button>
         </form>
-        <div *ngIf="categoryCreated" class="alert alert-success mt-5" role="alert">
-            You've created a new category!
-        </div>
     </div>
 </div>

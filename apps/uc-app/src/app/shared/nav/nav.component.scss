@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
 
-$primary-color: #fe6b02;
-$secondary-color: #272c48;
+$primary-color: #5995ED;
+$secondary-color: #292F36;
 $tertiary-color: #ffffff;
 
 .navbar {
@@ -23,6 +23,6 @@ $tertiary-color: #ffffff;
     }
 }
 
-.mr-5 {
-    margin-right: 50px !important;
+.ml-5 {
+    margin-left: 50px !important;
 }
