@@ -8,10 +8,11 @@ import { UserService } from "../user/user.service";
 import { ProductDto } from "./product.dto";
 import { Product } from "./product.schema";
 import { CategoryDto } from "../category/category.dto";
+import { IconService } from "../icon/icon.service";
 
 @Injectable()
 export class ProductService {
-    constructor(@InjectModel(Product.name) private productModel: Model<Product>, @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService, @Inject(forwardRef(() => UserService)) private userService: UserService) { }
+    constructor(@InjectModel(Product.name) private productModel: Model<Product>, @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService, @Inject(forwardRef(() => UserService)) private userService: UserService, @Inject(IconService) private iconService: IconService) { }
 
     async getAllProducts(): Promise<Product[]> {
         const products = await this.productModel.aggregate([
@@ -420,7 +421,7 @@ export class ProductService {
                 {
                     'category.title': newCategory?.title,
                     'category.description': newCategory?.description,
-                    'category.icon': newCategory?.icon,
+                    'category.icon': await this.iconService.getIconById(newCategory?.icon),
                 }, {
                 upsert: true,
                 new: true,

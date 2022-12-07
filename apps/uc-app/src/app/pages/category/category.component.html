@@ -10,7 +10,7 @@
 <div class="row">
     <div class="col-md-2 col-sm-4 mb-4" *ngFor="let category of categories$ | async">
         <div class="card">
-            <img class="card-img-top p-4" src="{{ category.icon }}" alt="{{ category.title }}" style="border-bottom: 1px solid rgba(0, 0, 0, 0.175);">
+            <img class="card-img-top p-4" src="{{ category?.icon?.icon }}" alt="{{ category.title }}" style="border-bottom: 1px solid rgba(0, 0, 0, 0.175);">
             <div class="card-body">
                 <h5 class="card-title">{{ category.title }}</h5>
                 <a routerLink="{{ category._id }}" class="btn form-control input-block-level">Details <i class="bi bi-arrow-right"></i></a>

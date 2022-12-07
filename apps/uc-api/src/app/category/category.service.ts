@@ -1,13 +1,14 @@
 import { forwardRef, HttpException, HttpStatus, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import mongoose, { Model } from "mongoose";
+import { IconService } from "../icon/icon.service";
 import { ProductService } from "../product/product.service";
 import { CategoryDto } from "./category.dto";
 import { Category } from "./category.schema";
 
 @Injectable()
 export class CategoryService {
-    constructor(@InjectModel(Category.name) private categoryModel: Model<Category>, @Inject(forwardRef(() => ProductService)) private productService: ProductService) { }
+    constructor(@InjectModel(Category.name) private categoryModel: Model<Category>, @Inject(forwardRef(() => ProductService)) private productService: ProductService, @Inject(IconService) private iconService: IconService) { }
 
     async getCategories(): Promise<Category[]> {
         return await this.categoryModel.find({ isActive: true }).populate('createdBy');
@@ -58,6 +59,7 @@ export class CategoryService {
         await this.categoryModel.create({
             _id: new mongoose.Types.ObjectId(),
             ...categoryDto,
+            icon: await this.iconService.getIconById(categoryDto.icon),
             createdAt: new Date(),
             createdBy: user._id
         })
@@ -77,16 +79,17 @@ export class CategoryService {
         if (products.length > 0 && newCategory?.isActive === false)
             throw new HttpException(`This category can't be put offline, because it's connected to products!`, HttpStatus.CONFLICT);
 
-        await this.categoryModel.findOneAndUpdate({ _id: categoryId }, newCategory, {
-            upsert: true,
-            new: true,
-            runValidators: true,
-            setDefaultsOnInsert: true
-        });
+
+        await this.categoryModel.findOneAndUpdate({ _id: categoryId },
+            {
+                title: newCategory?.title,
+                description: newCategory?.description,
+                icon: await this.iconService.getIconById(newCategory?.icon),
+                isActive: newCategory?.isActive
+            });
 
         if (products)
             await this.productService.updateCategoryFromNestedProducts(newCategory, products);
-
     }
 
     async deleteCategory(user: any, categoryId: string): Promise<void> {

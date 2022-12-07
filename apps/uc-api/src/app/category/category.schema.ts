@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ObjectId } from 'mongoose';
+import { Icon } from '../icon/icon.schema';
 
 @Schema()
 export class Category {
@@ -20,7 +21,7 @@ export class Category {
         required: [true, 'Icon is required!'],
         default: 'https://www.simplelaw.com/hubfs/Blog_Media/cdn2.hubspot.nethubfs5154887Blog_Mediaimage_not_found.png'
     })
-    icon: String;
+    icon: Icon;
 
     @Prop({
         required: [true, 'isActive is required!'],

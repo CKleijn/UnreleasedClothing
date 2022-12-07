@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { of, Subscription, switchMap } from 'rxjs';
+import { Observable, of, Subscription, switchMap } from 'rxjs';
+import { Icon } from '../../../shared/icon/icon.model';
 import { CategoryDto } from '../category.dto';
 import { CategoryService } from '../category.service';
 
@@ -13,8 +14,10 @@ export class CategoryFormComponent implements OnInit, OnDestroy {
   paramSubscription: Subscription | undefined;
   createSubscription: Subscription | undefined;
   updateSubscription: Subscription | undefined;
+  iconSubscription: Subscription | undefined;
   categoryId: string | null = null;
   category = new CategoryDto();
+  icons: Icon[] | undefined;
   categoryExists: boolean = false;
   error: string | null = null;
 
@@ -38,6 +41,11 @@ export class CategoryFormComponent implements OnInit, OnDestroy {
           ...category
         }
       })
+
+    this.iconSubscription = this.categoryService.getIcons().subscribe({
+      next: (icons) => this.icons = icons,
+      error: (error) => this.error = error.message
+    })
   }
 
   onSubmit(): void {
@@ -58,5 +66,6 @@ export class CategoryFormComponent implements OnInit, OnDestroy {
     this.paramSubscription?.unsubscribe;
     this.createSubscription?.unsubscribe;
     this.updateSubscription?.unsubscribe;
+    this.iconSubscription?.unsubscribe;
   }
 }
