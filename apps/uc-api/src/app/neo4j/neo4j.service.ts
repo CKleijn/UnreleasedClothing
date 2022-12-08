@@ -34,8 +34,8 @@ export class Neo4jService {
         return session.run(cypher, params);
     }
 
-    async write(cypher: string, params: Record<string, any>, database?: string): Promise<Result> {
+    write(cypher: string, params: Record<string, any>, database?: string): Result {
         const session = this.getWriteSession(database);
-        return await session.run(cypher, params);
+        return session.run(cypher, params);
     }
 }

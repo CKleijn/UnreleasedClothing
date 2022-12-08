@@ -22908,10 +22908,8 @@ let Neo4jService = class Neo4jService {
         return session.run(cypher, params);
     }
     write(cypher, params, database) {
-        return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const session = this.getWriteSession(database);
-            return yield session.run(cypher, params);
-        });
+        const session = this.getWriteSession(database);
+        return session.run(cypher, params);
     }
 };
 Neo4jService = tslib_1.__decorate([
@@ -23156,6 +23154,7 @@ const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const category_module_1 = __webpack_require__("./apps/uc-api/src/app/category/category.module.ts");
 const icon_module_1 = __webpack_require__("./apps/uc-api/src/app/icon/icon.module.ts");
+const neo4j_module_1 = __webpack_require__("./apps/uc-api/src/app/neo4j/neo4j.module.ts");
 const user_module_1 = __webpack_require__("./apps/uc-api/src/app/user/user.module.ts");
 const product_controller_1 = __webpack_require__("./apps/uc-api/src/app/product/product.controller.ts");
 const product_schema_1 = __webpack_require__("./apps/uc-api/src/app/product/product.schema.ts");
@@ -23164,7 +23163,13 @@ let ProductModule = class ProductModule {
 };
 ProductModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: product_schema_1.Product.name, schema: product_schema_1.ProductSchema }]), (0, common_1.forwardRef)(() => user_module_1.UserModule), (0, common_1.forwardRef)(() => category_module_1.CategoryModule), icon_module_1.IconModule],
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: product_schema_1.Product.name, schema: product_schema_1.ProductSchema }]), (0, common_1.forwardRef)(() => user_module_1.UserModule), (0, common_1.forwardRef)(() => category_module_1.CategoryModule), icon_module_1.IconModule, neo4j_module_1.Neo4jModule.forRoot({
+                scheme: 'bolt',
+                host: '127.0.0.1',
+                port: 7687,
+                username: 'neo4j',
+                password: 'password',
+            })],
         controllers: [product_controller_1.ProductController],
         providers: [product_service_1.ProductService],
         exports: [product_service_1.ProductService]
@@ -23247,7 +23252,7 @@ exports.ProductSchema = mongoose_1.SchemaFactory.createForClass(Product);
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c, _d;
+var _a, _b, _c, _d, _e;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProductService = void 0;
 const tslib_1 = __webpack_require__("tslib");
@@ -23258,12 +23263,14 @@ const category_service_1 = __webpack_require__("./apps/uc-api/src/app/category/c
 const user_service_1 = __webpack_require__("./apps/uc-api/src/app/user/user.service.ts");
 const product_schema_1 = __webpack_require__("./apps/uc-api/src/app/product/product.schema.ts");
 const icon_service_1 = __webpack_require__("./apps/uc-api/src/app/icon/icon.service.ts");
+const neo4j_service_1 = __webpack_require__("./apps/uc-api/src/app/neo4j/neo4j.service.ts");
 let ProductService = class ProductService {
-    constructor(productModel, categoryService, userService, iconService) {
+    constructor(productModel, categoryService, userService, iconService, neo4jService) {
         this.productModel = productModel;
         this.categoryService = categoryService;
         this.userService = userService;
         this.iconService = iconService;
+        this.neo4jService = neo4jService;
     }
     getAllProducts() {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
@@ -23583,6 +23590,36 @@ let ProductService = class ProductService {
             return comment[0].comments;
         });
     }
+    getRecommendations(userId) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const user = yield this.userService.getUserById(userId);
+            // GetAllCustomers
+            const customers = user.following;
+            // Eerst delete alles customers/producten
+            const deleteAll = this.neo4jService.write('MATCH (n) DETACH DELETE n', {});
+            // Voeg ingelogde user toe ?? relatie
+            const addCurrentUser = this.neo4jService.write(`CREATE (n:Customer {id: '${user._id.toString()}'})`, {});
+            // Alle customers toevoegen ?? relatie
+            if (customers.length > 0) {
+                customers.forEach(customer => {
+                    this.neo4jService.write(`CREATE (n:Customer {id: '${customer.toString()}'})`, {});
+                });
+            }
+            else {
+                return null;
+            }
+            // Alle producten toevoegen die volgers hebben gereageerd  ?? relatie
+            // const products = this.
+            // Query voor het verkrijgen van een array van producten - 
+            // Deze producten > Stel ik reageer product 1 en Klaas product 1 en 2, dan krijg ik product 2 recommend!
+            // if(user.following.length > 0) {
+            //     user.following.forEach(follow => {
+            //         this.neo4jService.write(`CREATE (n:Customer {id: '${user._id.toString()}', name: '${user.name}', following: '${user.following}'})`, {})
+            //     });
+            // }
+            return null;
+        });
+    }
     calculateAdvice(productId) {
         var _a, _b, _c, _d;
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
@@ -23731,7 +23768,7 @@ ProductService = tslib_1.__decorate([
     tslib_1.__param(1, (0, common_1.Inject)((0, common_1.forwardRef)(() => category_service_1.CategoryService))),
     tslib_1.__param(2, (0, common_1.Inject)((0, common_1.forwardRef)(() => user_service_1.UserService))),
     tslib_1.__param(3, (0, common_1.Inject)(icon_service_1.IconService)),
-    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof category_service_1.CategoryService !== "undefined" && category_service_1.CategoryService) === "function" ? _b : Object, typeof (_c = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _c : Object, typeof (_d = typeof icon_service_1.IconService !== "undefined" && icon_service_1.IconService) === "function" ? _d : Object])
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof category_service_1.CategoryService !== "undefined" && category_service_1.CategoryService) === "function" ? _b : Object, typeof (_c = typeof user_service_1.UserService !== "undefined" && user_service_1.UserService) === "function" ? _c : Object, typeof (_d = typeof icon_service_1.IconService !== "undefined" && icon_service_1.IconService) === "function" ? _d : Object, typeof (_e = typeof neo4j_service_1.Neo4jService !== "undefined" && neo4j_service_1.Neo4jService) === "function" ? _e : Object])
 ], ProductService);
 exports.ProductService = ProductService;
 
@@ -24004,18 +24041,11 @@ const user_service_1 = __webpack_require__("./apps/uc-api/src/app/user/user.serv
 const jwt_1 = __webpack_require__("@nestjs/jwt");
 const passport_1 = __webpack_require__("@nestjs/passport");
 const auth_module_1 = __webpack_require__("./apps/uc-api/src/app/auth/auth.module.ts");
-const neo4j_module_1 = __webpack_require__("./apps/uc-api/src/app/neo4j/neo4j.module.ts");
 let UserModule = class UserModule {
 };
 UserModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: user_schema_1.User.name, schema: user_schema_1.UserSchema }]), (0, common_1.forwardRef)(() => auth_module_1.AuthModule), passport_1.PassportModule, neo4j_module_1.Neo4jModule.forRoot({
-                scheme: 'bolt',
-                host: '127.0.0.1',
-                port: 7687,
-                username: 'neo4j',
-                password: 'password',
-            }), jwt_1.JwtModule.register({
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: user_schema_1.User.name, schema: user_schema_1.UserSchema }]), (0, common_1.forwardRef)(() => auth_module_1.AuthModule), passport_1.PassportModule, jwt_1.JwtModule.register({
                 secret: 'S1e2C3r4E5t',
                 signOptions: { expiresIn: '7d' },
             })],
@@ -24117,19 +24147,17 @@ exports.UserSchema = mongoose_1.SchemaFactory.createForClass(User);
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b;
+var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserService = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const mongoose_2 = __webpack_require__("mongoose");
-const neo4j_service_1 = __webpack_require__("./apps/uc-api/src/app/neo4j/neo4j.service.ts");
 const user_schema_1 = __webpack_require__("./apps/uc-api/src/app/user/user.schema.ts");
 let UserService = class UserService {
-    constructor(userModel, neo4jService) {
+    constructor(userModel) {
         this.userModel = userModel;
-        this.neo4jService = neo4jService;
     }
     getUserById(userId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
@@ -24147,8 +24175,6 @@ let UserService = class UserService {
     registerUser(registerUserDto) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             const user = yield this.userModel.create(Object.assign(Object.assign({ _id: new mongoose_2.default.Types.ObjectId() }, registerUserDto), { createdAt: new Date() }));
-            if (registerUserDto.role === 'customer')
-                yield this.neo4jService.write(`CREATE (n:Customer {id: '${user._id.toString()}', name: '${user.name}', following: '${user.following}'})`, {});
         });
     }
     getFollowers(userId) {
@@ -24259,7 +24285,7 @@ let UserService = class UserService {
 UserService = tslib_1.__decorate([
     (0, common_1.Injectable)(),
     tslib_1.__param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
-    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof neo4j_service_1.Neo4jService !== "undefined" && neo4j_service_1.Neo4jService) === "function" ? _b : Object])
+    tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
 ], UserService);
 exports.UserService = UserService;
 

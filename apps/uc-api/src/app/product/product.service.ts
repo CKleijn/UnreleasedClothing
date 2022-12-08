@@ -9,10 +9,11 @@ import { ProductDto } from "./product.dto";
 import { Product } from "./product.schema";
 import { CategoryDto } from "../category/category.dto";
 import { IconService } from "../icon/icon.service";
+import { Neo4jService } from "../neo4j/neo4j.service";
 
 @Injectable()
 export class ProductService {
-    constructor(@InjectModel(Product.name) private productModel: Model<Product>, @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService, @Inject(forwardRef(() => UserService)) private userService: UserService, @Inject(IconService) private iconService: IconService) { }
+    constructor(@InjectModel(Product.name) private productModel: Model<Product>, @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService, @Inject(forwardRef(() => UserService)) private userService: UserService, @Inject(IconService) private iconService: IconService, private neo4jService: Neo4jService) { }
 
     async getAllProducts(): Promise<Product[]> {
         const products = await this.productModel.aggregate([
@@ -326,6 +327,38 @@ export class ProductService {
             throw new HttpException(`This comment doesn't exists!`, HttpStatus.NOT_FOUND)
 
         return comment[0].comments;
+    }
+
+    async getRecommendations(userId: string): Promise<Product[]> {
+        const user = await this.userService.getUserById(userId);
+        // GetAllCustomers
+        const customers = user.following;
+        // Eerst delete alles customers/producten
+        const deleteAll = this.neo4jService.write('MATCH (n) DETACH DELETE n', {});
+        // Voeg ingelogde user toe ?? relatie
+        const addCurrentUser = this.neo4jService.write(`CREATE (n:Customer {id: '${user._id.toString()}'})`, {})
+        // Alle customers toevoegen ?? relatie
+        if(customers.length > 0) {
+            customers.forEach(customer => {
+                this.neo4jService.write(`CREATE (n:Customer {id: '${customer.toString()}'})`, {})
+            });
+        } else {
+            return null;
+        }
+        // Alle producten toevoegen die volgers hebben gereageerd  ?? relatie
+        // const products = this.
+
+        // Query voor het verkrijgen van een array van producten - 
+        // Deze producten > Stel ik reageer product 1 en Klaas product 1 en 2, dan krijg ik product 2 recommend!
+
+
+        // if(user.following.length > 0) {
+        //     user.following.forEach(follow => {
+        //         this.neo4jService.write(`CREATE (n:Customer {id: '${user._id.toString()}', name: '${user.name}', following: '${user.following}'})`, {})
+        //     });
+        // }
+
+        return null;
     }
 
     async calculateAdvice(productId: string): Promise<Object> {

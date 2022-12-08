@@ -7,7 +7,7 @@ import { User } from "./user.schema";
 
 @Injectable()
 export class UserService {
-    constructor(@InjectModel(User.name) private userModel: Model<User>, private neo4jService: Neo4jService) { }
+    constructor(@InjectModel(User.name) private userModel: Model<User>) { }
 
     async getUserById(userId: string): Promise<User> {
         const user = await this.userModel.findOne({ _id: userId }).populate('following');
@@ -28,9 +28,6 @@ export class UserService {
             ...registerUserDto,
             createdAt: new Date()
         });
-
-        if(registerUserDto.role === 'customer')
-           await this.neo4jService.write(`CREATE (n:Customer {id: '${user._id.toString()}', name: '${user.name}', following: '${user.following}'})`, {})
     }
 
     async getFollowers(userId: string): Promise<User[]> {
