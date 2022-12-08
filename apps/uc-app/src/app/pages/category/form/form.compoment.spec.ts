@@ -2,23 +2,22 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { BehaviorSubject, of } from 'rxjs';
-import { CategoryDetailComponent } from './detail.component';
 import { CategoryService } from '../category.service';
 import { AuthService } from '../../../auth/auth.service';
 import { Category } from '../category.model';
 import { Icon } from '../../../shared/icon/icon.model';
 import { User } from '../../user/user.model';
 import { ActivatedRoute, convertToParamMap, ParamMap, Router } from '@angular/router';
+import { CategoryFormComponent } from './form.component';
+import { FormsModule } from '@angular/forms';
 
 
-describe('CategoryDetailComponent', () => {
-    let component: CategoryDetailComponent;
-    let fixture: ComponentFixture<CategoryDetailComponent>;
+describe('CategoryFormComponent', () => {
+    let component: CategoryFormComponent;
+    let fixture: ComponentFixture<CategoryFormComponent>;
     let fakeCategoryServiceMock: any;
-    let fakeAuthServiceMock: any;
     let fakeActivatedRouteMock: any;
     let fakeRouterMock: any;
-    let currentUser = new BehaviorSubject<User | undefined>(undefined);
     let category: Category =
     {
         _id: '6391333037ceb01d296c5982',
@@ -30,17 +29,35 @@ describe('CategoryDetailComponent', () => {
         createdBy: new User()
     }
 
+    let icons: Icon[] = [
+        {
+            _id: '6391333037ceb01d296c5982',
+            title: 'Lorem1',
+            icon: 'url1',
+        },
+        {
+            _id: '23523523kahfs98231js2124',
+            title: 'Lorem2',
+            icon: 'url2',
+        },
+    ]
+
+    let createResponse: Object = {
+        status: 201,
+        message: 'Category has been succesfully created!'
+    };
+
+    let updateResponse: Object = {
+        status: 200,
+        message: 'Category has been succesfully updated!'
+    };
+
     beforeEach(async () => {
         fakeCategoryServiceMock = {
             getCategoryById: jest.fn().mockReturnValue(of(category)),
-            deleteCategory: jest.fn().mockReturnValue(of({
-                status: 200,
-                message: 'Category has been succesfully deleted!'
-            }))
-        }
-
-        fakeAuthServiceMock = {
-            currentUser$: currentUser
+            getIcons: jest.fn().mockReturnValue(of(icons)),
+            createCategory: jest.fn().mockReturnValue(of(createResponse)),
+            updateCategory: jest.fn().mockReturnValue(of(updateResponse)),
         }
 
         fakeActivatedRouteMock = {
@@ -52,11 +69,10 @@ describe('CategoryDetailComponent', () => {
         }
 
         await TestBed.configureTestingModule({
-            declarations: [CategoryDetailComponent],
-            imports: [HttpClientTestingModule],
+            declarations: [CategoryFormComponent],
+            imports: [HttpClientTestingModule, FormsModule],
             providers: [
                 { provide: CategoryService, useValue: fakeCategoryServiceMock },
-                { provide: AuthService, useValue: fakeAuthServiceMock },
                 { provide: ActivatedRoute, useValue: fakeActivatedRouteMock },
                 { provide: Router, useValue: fakeRouterMock },
             ],
@@ -65,7 +81,7 @@ describe('CategoryDetailComponent', () => {
     })
 
     beforeEach(() => {
-        fixture = TestBed.createComponent(CategoryDetailComponent);
+        fixture = TestBed.createComponent(CategoryFormComponent);
         component = fixture.componentInstance;
         fixture.detectChanges();
     })
@@ -81,16 +97,28 @@ describe('CategoryDetailComponent', () => {
         done();
     });
 
-    it('Should call current user', (done) => {
+    it('Should call getIcons', (done) => {
         component.ngOnInit();
-        expect(fakeAuthServiceMock.currentUser$).toBeTruthy();
+        expect(fakeCategoryServiceMock.getIcons).toBeCalled();
+        expect(fakeCategoryServiceMock.getIcons).toBeTruthy();
         done();
     });
 
-    it('Should delete category', (done) => {
-        component.delete();
-        expect(fakeCategoryServiceMock.deleteCategory).toBeCalled();
-        expect(fakeCategoryServiceMock.deleteCategory).toBeTruthy();
+    it('Should call createCategory', (done) => {
+        component.categoryId = null;
+        component.onSubmit();
+        expect(fakeCategoryServiceMock.createCategory).toBeCalled();
+        expect(fakeCategoryServiceMock.createCategory).toBeTruthy();
+        expect(fakeRouterMock.navigate).toBeCalled();
+        expect(fakeRouterMock.navigate).toBeTruthy();
+        done();
+    });
+
+    it('Should call updateCategory', (done) => {
+        component.categoryId = '6391333037ceb01d296c5982';
+        component.onSubmit();
+        expect(fakeCategoryServiceMock.updateCategory).toBeCalled();
+        expect(fakeCategoryServiceMock.updateCategory).toBeTruthy();
         expect(fakeRouterMock.navigate).toBeCalled();
         expect(fakeRouterMock.navigate).toBeTruthy();
         done();
