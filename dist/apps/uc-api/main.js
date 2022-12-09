@@ -1174,6 +1174,10 @@ let ProductController = class ProductController {
             return yield this.productService.getAllProducts();
         });
     }
+    // @Get('products/:userId/recommendations')
+    // async getRecommendations(@Param('userId') userId: string): Promise<Product[]> {
+    //     return await this.productService.getRecommendations(userId);
+    // }
     getAllProductsFromBrand(brandId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
             return yield this.productService.getAllProductsFromBrand(brandId);
@@ -1618,7 +1622,7 @@ let ProductService = class ProductService {
                     }
                 }, {
                     '$group': {
-                        '_id': '$_id',
+                        '_id': '$comments.createdBy._id',
                         'comments': {
                             '$push': '$comments'
                         }
@@ -1790,6 +1794,40 @@ let ProductService = class ProductService {
             return comment[0].comments;
         });
     }
+    // async getRecommendations(userId: string): Promise<Product[]> {
+    //     const user = await this.userService.getUserById(userId);
+    //     const customers = user.following;
+    //     await this.neo4jService.write('MATCH (n) DETACH DELETE n', {});
+    //     await this.neo4jService.write(`CREATE (c:Customer {name: '${user._id.toString()}'})`, {})
+    //     let products = await this.getAllProductsFromCustomer(user._id.toString())
+    //     if (products.length > 0) {
+    //         products.forEach(async (product: any) => {
+    //             await this.neo4jService.write(`CREATE (p:Product {name: '${product._id.toString()}'})`, {})
+    //             await this.neo4jService.write(`MATCH (c:Customer {name: '${user._id.toString()}'}) MATCH (p:Product {name: '${product._id.toString()}'}) CREATE(c)-[:COMMENT]->(p)`, {})
+    //         })
+    //     }
+    //     if (customers.length > 0) {
+    //         customers.forEach(async (customer: any) => {
+    //             await this.neo4jService.write(`CREATE (c:Customer {name: '${customer._id.toString()}'})`, {})
+    //             await this.neo4jService.write(`MATCH (c1:Customer {name: '${user._id.toString()}'}) MATCH (c2:Customer {name: '${customer._id.toString()}'}) CREATE(c1)-[:FOLLOWING]->(c2)`, {})
+    //             let products = await this.getAllProductsFromCustomer(customer._id)
+    //             products.forEach(async (product: any) => {
+    //                 await this.neo4jService.write(`CREATE (p:Product {name: '${product._id.toString()}'})`, {})
+    //                 await this.neo4jService.write(`MATCH (c:Customer {name: '${customer._id.toString()}'}) MATCH (p:Product {name: '${product._id.toString()}'}) CREATE(c)-[:COMMENT]->(p)`, {})
+    //             })
+    //         });
+    //         let recommendations = await this.neo4jService.read(`MATCH (c1:Customer {name: '${user._id.toString()}'})-[:FOLLOWING]->(c2:Customer) MATCH (c2)-[:COMMENT]->(p:Product) WHERE NOT (c1)-[:COMMENT]->(p) RETURN p.name`, {});
+    //         let results: Product[] = [];
+    //         if(recommendations) {
+    //             recommendations.records.forEach(async (product: any) => {
+    //                 let fullProduct = await this.getProductById(product.get(0))
+    //                 results.push(fullProduct)
+    //             })
+    //         }
+    //         return results;
+    //     }
+    //     return null;
+    // }
     calculateAdvice(productId) {
         var _a, _b, _c, _d;
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
