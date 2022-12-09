@@ -6,6 +6,7 @@ import { UserService } from "./user.service";
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from "@nestjs/passport"
 import { AuthModule } from "../auth/auth.module";
+import { Neo4jModule } from "../neo4j/neo4j.module";
 
 @Module({
     imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]), forwardRef(() => AuthModule), PassportModule, JwtModule.register({
@@ -16,4 +17,4 @@ import { AuthModule } from "../auth/auth.module";
     providers: [UserService],
     exports: [UserService]
 })
-export class UserModule {};
+export class UserModule { };
