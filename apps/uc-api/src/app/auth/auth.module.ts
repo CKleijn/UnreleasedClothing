@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from "@nestjs/mongoose";
 import { PassportModule } from '@nestjs/passport';
+import { environment } from '../../environments/environment';
 import { UserModule } from '../user/user.module';
 import { User, UserSchema } from '../user/user.schema';
 import { AuthService } from './auth.service';
@@ -10,7 +11,7 @@ import { LocalStrategy } from './strategies/local.strategy';
 
 @Module({
   imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]), forwardRef(() => UserModule), PassportModule, JwtModule.register({
-      secret: 'S1e2C3r4E5t',
+      secret: environment.SECRET_KEY,
       signOptions: { expiresIn: '7d' },
     }),
   ],
