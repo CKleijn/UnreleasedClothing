@@ -76,6 +76,8 @@ describe('CategoryDetailComponent', () => {
 
     it('Should call categoryById', (done) => {
         component.ngOnInit();
+        expect(component.categoryId).toEqual(category._id);
+        expect(component.category).toEqual(category);
         expect(fakeCategoryServiceMock.getCategoryById).toBeCalled();
         expect(fakeCategoryServiceMock.getCategoryById).toBeTruthy();
         done();

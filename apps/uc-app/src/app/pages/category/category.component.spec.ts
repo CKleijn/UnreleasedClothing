@@ -74,6 +74,7 @@ describe('CategoryListComponent', () => {
             done();
         })
         expect(fakeCategoryServiceMock.getCategories).toBeTruthy();
+        expect(fakeCategoryServiceMock.getCategories).toBeCalled();
     });
 
     it('Should call current user', () => {
