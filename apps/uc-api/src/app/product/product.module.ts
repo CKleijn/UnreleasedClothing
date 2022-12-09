@@ -8,15 +8,7 @@ import { Product, ProductSchema } from "./product.schema";
 import { ProductService } from "./product.service";
 
 @Module({
-    imports: [MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]), forwardRef(() => UserModule), forwardRef(() => CategoryModule), IconModule, 
-    // Neo4jModule.forRoot({
-    //     scheme: 'bolt',
-    //     host: '127.0.0.1',
-    //     port: 7687,
-    //     username: 'neo4j',
-    //     password: 'password',
-    // })
-    ],
+    imports: [MongooseModule.forFeature([{ name: Product.name, schema: ProductSchema }]), forwardRef(() => UserModule), forwardRef(() => CategoryModule), IconModule],
     controllers: [ProductController],
     providers: [ProductService],
     exports: [ProductService]

@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  API_URL: 'http://unreleasedclothing.up.railway.app/api/' 
+  API_URL: 'https://unreleasedclothing.up.railway.app/api/' 
 };
 
 /*

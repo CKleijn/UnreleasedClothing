@@ -91,24 +91,6 @@ export class ProductService {
         return await this.productModel.find({ 'createdBy._id': brandId });
     }
 
-    async getAllProductsFromCustomer(userId: string): Promise<Product[]> {
-        return await this.productModel.aggregate([
-            {
-                '$unwind': {
-                    'path': '$comments'
-                }
-            }, {
-                '$match': {
-                    'comments.createdBy': new mongoose.Types.ObjectId(userId)
-                }
-            }, {
-                '$project': {
-                    '_id': 1
-                }
-            }
-        ]);
-    }
-
     async getAllProductsFromCategory(categoryId: string): Promise<Product[]> {
         return await this.productModel.find({ 'category._id': categoryId });
     }
@@ -158,7 +140,7 @@ export class ProductService {
                 }
             }, {
                 '$match': {
-                    'comments.createdBy': userId
+                    'comments.createdBy': new mongoose.Types.ObjectId(userId)
                 }
             }, {
                 '$lookup': {
@@ -348,6 +330,7 @@ export class ProductService {
         return comment[0].comments;
     }
 
+
     // async getRecommendations(userId: string): Promise<Product[]> {
     //     const user = await this.userService.getUserById(userId);
     //     const customers = user.following;
@@ -391,6 +374,7 @@ export class ProductService {
     //     return null;
     // }
 
+
     async calculateAdvice(productId: string): Promise<Object> {
         let advice: string;
         const avg = await this.productModel.aggregate([
@@ -416,13 +400,13 @@ export class ProductService {
             }
         ]);
 
-        if (avg[0]?.avg > 8) {
+        if(avg[0]?.avg > 8) {
             advice = 'The customers wants this product right now!'
-        } else if (avg[0]?.avg > 5.1) {
+        } else if(avg[0]?.avg > 5.1) {
             advice = 'Most of the customers wants this product on the market!'
-        } else if (avg[0]?.avg > 3) {
+        } else if(avg[0]?.avg > 3) {
             advice = `Most of the customers don't want this product on the market!`
-        } else if (avg[0]?.avg > 1) {
+        } else if(avg[0]?.avg > 1) {
             advice = `The customers don't want this product!`
         } else {
             advice = `No advice yet, because no comments!`
@@ -465,10 +449,10 @@ export class ProductService {
 
         if (product)
             product.name = newProduct?.name;
-        product.picture = newProduct?.picture;
-        product.price = newProduct?.price;
-        product.description = newProduct?.description;
-        product.category = await this.categoryService.getCategoryById(newProduct.category);
+            product.picture = newProduct?.picture;
+            product.price = newProduct?.price;
+            product.description = newProduct?.description;
+            product.category = await this.categoryService.getCategoryById(newProduct.category);
 
         await this.productModel.findOneAndUpdate({ _id: productId }, product, {
             upsert: true,

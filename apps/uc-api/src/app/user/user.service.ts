@@ -1,4 +1,4 @@
-import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import mongoose, { Model } from "mongoose";
 import { RegisterUserDto } from "./dtos/registerUser.dto";
@@ -10,7 +10,7 @@ export class UserService {
 
     async getUserById(userId: string): Promise<User> {
         const user = await this.userModel.findOne({ _id: userId }).populate('following');
-        
+
         if (!user)
             throw new HttpException({ message: `This user doesn't exists!` }, HttpStatus.NOT_FOUND);
 
@@ -22,7 +22,7 @@ export class UserService {
     }
 
     async registerUser(registerUserDto: RegisterUserDto): Promise<void> {
-        const user = await this.userModel.create({
+        await this.userModel.create({
             _id: new mongoose.Types.ObjectId(),
             ...registerUserDto,
             createdAt: new Date()
