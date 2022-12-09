@@ -33,6 +33,7 @@
                                 comment.createdBy.name }}</a></b>
                     </h6>
                 </div>
+                <small>Posted at {{ comment.createdAt | date: 'dd/MM/yyyy' }}</small>
                 <div class="pull-right" *ngIf="loggedInUser$ | async as user">
                     <button class="btn" *ngIf="user._id === comment?.createdBy?._id"
                         [routerLink]="['comment', comment._id, 'edit']">Edit <i class="bi bi-pencil"></i></button>

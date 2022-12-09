@@ -52,13 +52,11 @@
     <div class="col-md-6" *ngIf="user?.role === 'customer'">
         <div class="bg-white rounded box-shadow mb-4">
             <h5 class="border-bottom border-gray pb-2 mb-0">Followers ({{ followers?.length || 0 }})</h5>
-            <div *ngFor="let followers of followers">
-                <div class="media text-muted pt-3" *ngFor="let follower of followers">
-                    <div class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
-                        <img src="{{ follower.picture }}" class="mr-5 rounded" height="50">
-                        <strong class="text-gray-dark">{{ follower.name }}</strong>
-                        <a class="pull-right mt-3" [routerLink]="['/', 'user', follower._id]">Profile</a>
-                    </div>
+            <div class="media text-muted pt-3" *ngFor="let follower of followers">
+                <div class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                    <img src="{{ follower.picture }}" class="mr-5 rounded" height="50">
+                    <strong class="text-gray-dark">{{ follower.name }}</strong>
+                    <a class="pull-right mt-3" [routerLink]="['/', 'user', follower._id]">Profile</a>
                 </div>
             </div>
             <div class="media text-muted pt-3" *ngIf="followers?.length === 0 || !followers">
@@ -91,7 +89,8 @@
             <div class="media text-muted pt-3" *ngFor="let category of categories">
                 <div class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
                     <img src="{{ category.icon.icon }}" class="mr-5 rounded" height="50">
-                    <strong class="text-gray-dark">{{ category.title }}</strong>
+                    <strong class="text-gray-dark" *ngIf="category.isActive">{{ category.title }} <i class="bi bi-broadcast"></i></strong>
+                    <strong class="text-gray-dark" *ngIf="!category.isActive">{{ category.title }}</strong>
                     <a class="pull-right mt-3" [routerLink]="['/', 'categories', category._id]">Show category</a>
                 </div>
             </div>
@@ -110,6 +109,7 @@
             <div class="card-body">
                 <h5 class="card-title">{{ comment.title }}</h5>
                 <p class="card-text">{{ comment.body }}</p>
+                <small>Posted at {{ comment.createdAt | date: 'dd/MM/yyyy' }}</small>
             </div>
         </div>
     </div>

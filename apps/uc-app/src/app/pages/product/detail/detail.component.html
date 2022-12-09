@@ -27,7 +27,8 @@
                             <p><b>Advice</b> "{{ advice.advice }}"</p>
                         </div>
                     </div>
-                    <i>The brand {{ product?.createdBy?.name }} is already {{ product?.createdBy?.age }} years one of the best brands out there!</i>
+                    <i>The brand {{ product?.createdBy?.name }} is already {{ product?.createdBy?.age }} years one of the best brands out there!</i><br><br>
+                    <small>Created at {{ product?.createdAt | date: 'dd/MM/yyyy' }}</small>
                     <div class="mt-3" *ngIf="loggedInUser as user">
                         <button class="btn" *ngIf="user._id === product?.createdBy?._id" routerLink="edit">Edit <i class="bi bi-pencil"></i></button>
                         <button class="btn mx-2" *ngIf="user._id === product?.createdBy?._id" (click)="delete()">Delete <i class="bi bi-trash"></i></button>

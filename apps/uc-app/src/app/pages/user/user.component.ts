@@ -27,7 +27,7 @@ export class UserComponent implements OnInit, OnDestroy {
   userId: string | null = null;
   user: User | undefined;
   products: Product[] | undefined;
-  followers: User[][] | undefined;
+  followers: User[] | undefined;
   comments: Comment[] | undefined;
   categories: Category[] | undefined;
   status: boolean = false;
@@ -66,7 +66,7 @@ export class UserComponent implements OnInit, OnDestroy {
 
       this.followersSubscription = this.userService.getFollowers(this.userId!).subscribe({
         next: (followers) => {
-          this.followers = followers.map(f => f.following);
+          this.followers = followers.find(x => x !== undefined)?.following;
         },
         error: (error) => this.error = error.message
       })
