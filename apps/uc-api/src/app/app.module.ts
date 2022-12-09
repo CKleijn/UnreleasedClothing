@@ -9,7 +9,6 @@ import { CategoryModule } from './category/category.module';
 import { CommentModule } from './comment/comment.module';
 import { ProductModule } from './product/product.module';
 import { IconModule } from './icon/icon.module';
-import { Neo4jModule } from './neo4j/neo4j.module';
 
 @Module({
   imports: [MongooseModule.forRoot(environment.MONGO_DB), AuthModule, UserModule, ProductModule, CategoryModule, CommentModule, IconModule,

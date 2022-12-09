@@ -2,7 +2,6 @@ import { forwardRef, Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { CategoryModule } from "../category/category.module";
 import { IconModule } from "../icon/icon.module";
-import { Neo4jModule } from "../neo4j/neo4j.module";
 import { UserModule } from "../user/user.module";
 import { ProductController } from "./product.controller";
 import { Product, ProductSchema } from "./product.schema";

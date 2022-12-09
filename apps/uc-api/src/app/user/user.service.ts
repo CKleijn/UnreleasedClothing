@@ -1,7 +1,6 @@
 import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import mongoose, { Model } from "mongoose";
-import { Neo4jService } from "../neo4j/neo4j.service";
 import { RegisterUserDto } from "./dtos/registerUser.dto";
 import { User } from "./user.schema";
 
