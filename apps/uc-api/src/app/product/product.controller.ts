@@ -16,6 +16,11 @@ export class ProductController {
         return await this.productService.getAllProducts();
     }
 
+    @Get('products/:userId/recommendations')
+    async getRecommendations(@Param('userId') userId: string): Promise<Product[]> {
+        return await this.productService.getRecommendations(userId);
+    }
+
     @UseGuards(AuthGuard('jwt'))
     @Get('products/:brandId')
     async getAllProductsFromBrand(@Param('brandId') brandId: string): Promise<Product[]> {

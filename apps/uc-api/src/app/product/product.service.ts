@@ -10,6 +10,7 @@ import { Product } from "./product.schema";
 import { CategoryDto } from "../category/category.dto";
 import { IconService } from "../icon/icon.service";
 import { Neo4jService } from "../neo4j/neo4j.service";
+import { User } from "../user/user.schema";
 
 @Injectable()
 export class ProductService {
@@ -90,6 +91,24 @@ export class ProductService {
         return await this.productModel.find({ 'createdBy._id': brandId });
     }
 
+    async getAllProductsFromCustomer(userId: string): Promise<Product[]> {
+        return await this.productModel.aggregate([
+            {
+                '$unwind': {
+                    'path': '$comments'
+                }
+            }, {
+                '$match': {
+                    'comments.createdBy': new mongoose.Types.ObjectId(userId)
+                }
+            }, {
+                '$project': {
+                    '_id': 1
+                }
+            }
+        ]);
+    }
+
     async getAllProductsFromCategory(categoryId: string): Promise<Product[]> {
         return await this.productModel.find({ 'category._id': categoryId });
     }
@@ -139,7 +158,7 @@ export class ProductService {
                 }
             }, {
                 '$match': {
-                    'comments.createdBy': new mongoose.Types.ObjectId(userId)
+                    'comments.createdBy': userId
                 }
             }, {
                 '$lookup': {
@@ -331,33 +350,44 @@ export class ProductService {
 
     async getRecommendations(userId: string): Promise<Product[]> {
         const user = await this.userService.getUserById(userId);
-        // GetAllCustomers
         const customers = user.following;
-        // Eerst delete alles customers/producten
-        const deleteAll = this.neo4jService.write('MATCH (n) DETACH DELETE n', {});
-        // Voeg ingelogde user toe ?? relatie
-        const addCurrentUser = this.neo4jService.write(`CREATE (n:Customer {id: '${user._id.toString()}'})`, {})
-        // Alle customers toevoegen ?? relatie
-        if(customers.length > 0) {
-            customers.forEach(customer => {
-                this.neo4jService.write(`CREATE (n:Customer {id: '${customer.toString()}'})`, {})
-            });
-        } else {
-            return null;
+
+        await this.neo4jService.write('MATCH (n) DETACH DELETE n', {});
+
+        await this.neo4jService.write(`CREATE (c:Customer {name: '${user._id.toString()}'})`, {})
+        let products = await this.getAllProductsFromCustomer(user._id.toString())
+        if (products.length > 0) {
+            products.forEach(async (product: any) => {
+                await this.neo4jService.write(`CREATE (p:Product {name: '${product._id.toString()}'})`, {})
+                await this.neo4jService.write(`MATCH (c:Customer {name: '${user._id.toString()}'}) MATCH (p:Product {name: '${product._id.toString()}'}) CREATE(c)-[:COMMENT]->(p)`, {})
+            })
         }
-        // Alle producten toevoegen die volgers hebben gereageerd  ?? relatie
-        // const products = this.
 
-        // Query voor het verkrijgen van een array van producten - 
-        // Deze producten > Stel ik reageer product 1 en Klaas product 1 en 2, dan krijg ik product 2 recommend!
+        if (customers.length > 0) {
+            customers.forEach(async (customer: any) => {
+                await this.neo4jService.write(`CREATE (c:Customer {name: '${customer._id.toString()}'})`, {})
+                await this.neo4jService.write(`MATCH (c1:Customer {name: '${user._id.toString()}'}) MATCH (c2:Customer {name: '${customer._id.toString()}'}) CREATE(c1)-[:FOLLOWING]->(c2)`, {})
+                let products = await this.getAllProductsFromCustomer(customer._id)
+                products.forEach(async (product: any) => {
+                    await this.neo4jService.write(`CREATE (p:Product {name: '${product._id.toString()}'})`, {})
+                    await this.neo4jService.write(`MATCH (c:Customer {name: '${customer._id.toString()}'}) MATCH (p:Product {name: '${product._id.toString()}'}) CREATE(c)-[:COMMENT]->(p)`, {})
+                })
+            });
 
+            let recommendations = await this.neo4jService.read(`MATCH (c1:Customer {name: '${user._id.toString()}'})-[:FOLLOWING]->(c2:Customer) MATCH (c2)-[:COMMENT]->(p:Product) WHERE NOT (c1)-[:COMMENT]->(p) RETURN p.name`, {});
 
-        // if(user.following.length > 0) {
-        //     user.following.forEach(follow => {
-        //         this.neo4jService.write(`CREATE (n:Customer {id: '${user._id.toString()}', name: '${user.name}', following: '${user.following}'})`, {})
-        //     });
-        // }
+            let results: Product[] = [];
 
+            if(recommendations) {
+                recommendations.records.forEach(async (product: any) => {
+                    let fullProduct = await this.getProductById(product.get(0))
+                    results.push(fullProduct)
+                })
+            }
+
+            return results;
+        }
+            
         return null;
     }
 
@@ -386,13 +416,13 @@ export class ProductService {
             }
         ]);
 
-        if(avg[0]?.avg > 8) {
+        if (avg[0]?.avg > 8) {
             advice = 'The customers wants this product right now!'
-        } else if(avg[0]?.avg > 5.1) {
+        } else if (avg[0]?.avg > 5.1) {
             advice = 'Most of the customers wants this product on the market!'
-        } else if(avg[0]?.avg > 3) {
+        } else if (avg[0]?.avg > 3) {
             advice = `Most of the customers don't want this product on the market!`
-        } else if(avg[0]?.avg > 1) {
+        } else if (avg[0]?.avg > 1) {
             advice = `The customers don't want this product!`
         } else {
             advice = `No advice yet, because no comments!`
@@ -435,10 +465,10 @@ export class ProductService {
 
         if (product)
             product.name = newProduct?.name;
-            product.picture = newProduct?.picture;
-            product.price = newProduct?.price;
-            product.description = newProduct?.description;
-            product.category = await this.categoryService.getCategoryById(newProduct.category);
+        product.picture = newProduct?.picture;
+        product.price = newProduct?.price;
+        product.description = newProduct?.description;
+        product.category = await this.categoryService.getCategoryById(newProduct.category);
 
         await this.productModel.findOneAndUpdate({ _id: productId }, product, {
             upsert: true,

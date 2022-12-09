@@ -11,7 +11,7 @@ export class UserService {
 
     async getUserById(userId: string): Promise<User> {
         const user = await this.userModel.findOne({ _id: userId }).populate('following');
-
+        
         if (!user)
             throw new HttpException({ message: `This user doesn't exists!` }, HttpStatus.NOT_FOUND);
 
