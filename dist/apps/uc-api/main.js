@@ -54,6 +54,7 @@ const comment_module_1 = __webpack_require__("./apps/uc-api/src/app/comment/comm
 const product_module_1 = __webpack_require__("./apps/uc-api/src/app/product/product.module.ts");
 const icon_module_1 = __webpack_require__("./apps/uc-api/src/app/icon/icon.module.ts");
 const neo4j_module_1 = __webpack_require__("./apps/uc-api/src/app/neo4j/neo4j.module.ts");
+const environment_1 = __webpack_require__("./apps/uc-api/src/environments/environment.ts");
 let AppModule = class AppModule {
 };
 AppModule = tslib_1.__decorate([
