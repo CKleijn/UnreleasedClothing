@@ -9,7 +9,6 @@ import { ProductDto } from "./product.dto";
 import { Product } from "./product.schema";
 import { CategoryDto } from "../category/category.dto";
 import { IconService } from "../icon/icon.service";
-// import { Neo4jService } from "../neo4j/neo4j.service";
 import { User } from "../user/user.schema";
 
 @Injectable()
@@ -157,7 +156,7 @@ export class ProductService {
                 }
             }, {
                 '$group': {
-                    '_id': '$_id',
+                    '_id': '$comments.createdBy._id',
                     'comments': {
                         '$push': '$comments'
                     }
