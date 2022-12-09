@@ -10,6 +10,7 @@ import { ProductModule } from './product/product.module';
 import { IconModule } from './icon/icon.module';
 import { environment } from '../environments/environment';
 
+
 @Module({
   imports: [MongooseModule.forRoot(environment.MONGO_DB), AuthModule, UserModule, ProductModule, CategoryModule, CommentModule, IconModule],
   controllers: [AppController],
