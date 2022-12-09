@@ -92,6 +92,9 @@ describe('CategoryFormComponent', () => {
 
     it('Should call categoryById', (done) => {
         component.ngOnInit();
+        expect(component.categoryId).toEqual(category._id);
+        expect(component.category).toEqual(category);
+        expect(component.categoryExists).toEqual(true);
         expect(fakeCategoryServiceMock.getCategoryById).toBeCalled();
         expect(fakeCategoryServiceMock.getCategoryById).toBeTruthy();
         done();
@@ -99,6 +102,7 @@ describe('CategoryFormComponent', () => {
 
     it('Should call getIcons', (done) => {
         component.ngOnInit();
+        expect(component.icons).toEqual(icons);
         expect(fakeCategoryServiceMock.getIcons).toBeCalled();
         expect(fakeCategoryServiceMock.getIcons).toBeTruthy();
         done();
