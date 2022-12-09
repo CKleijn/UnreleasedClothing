@@ -175,7 +175,7 @@ export class ProductService {
                 }
             }, {
                 '$group': {
-                    '_id': '$_id',
+                    '_id': '$comments.createdBy._id',
                     'comments': {
                         '$push': '$comments'
                     }

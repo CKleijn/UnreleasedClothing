@@ -43,6 +43,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AppModule = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
+const environment_1 = __webpack_require__("./apps/uc-api/src/environments/environment.ts");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const app_controller_1 = __webpack_require__("./apps/uc-api/src/app/app.controller.ts");
 const app_service_1 = __webpack_require__("./apps/uc-api/src/app/app.service.ts");
@@ -57,7 +58,7 @@ let AppModule = class AppModule {
 };
 AppModule = tslib_1.__decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forRoot('mongodb://127.0.0.1:27017/uc-db'), auth_module_1.AuthModule, user_module_1.UserModule, product_module_1.ProductModule, category_module_1.CategoryModule, comment_module_1.CommentModule, icon_module_1.IconModule,
+        imports: [mongoose_1.MongooseModule.forRoot(environment_1.environment.MONGO_DB), auth_module_1.AuthModule, user_module_1.UserModule, product_module_1.ProductModule, category_module_1.CategoryModule, comment_module_1.CommentModule, icon_module_1.IconModule,
             neo4j_module_1.Neo4jModule.forRoot({
                 scheme: 'bolt',
                 host: '127.0.0.1',
@@ -106,6 +107,7 @@ const common_1 = __webpack_require__("@nestjs/common");
 const jwt_1 = __webpack_require__("@nestjs/jwt");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
 const passport_1 = __webpack_require__("@nestjs/passport");
+const environment_1 = __webpack_require__("./apps/uc-api/src/environments/environment.ts");
 const user_module_1 = __webpack_require__("./apps/uc-api/src/app/user/user.module.ts");
 const user_schema_1 = __webpack_require__("./apps/uc-api/src/app/user/user.schema.ts");
 const auth_service_1 = __webpack_require__("./apps/uc-api/src/app/auth/auth.service.ts");
@@ -116,7 +118,7 @@ let AuthModule = class AuthModule {
 AuthModule = tslib_1.__decorate([
     (0, common_1.Module)({
         imports: [mongoose_1.MongooseModule.forFeature([{ name: user_schema_1.User.name, schema: user_schema_1.UserSchema }]), (0, common_1.forwardRef)(() => user_module_1.UserModule), passport_1.PassportModule, jwt_1.JwtModule.register({
-                secret: 'S1e2C3r4E5t',
+                secret: environment_1.environment.SECRET_KEY,
                 signOptions: { expiresIn: '7d' },
             }),
         ],
@@ -264,6 +266,7 @@ exports.JwtStrategy = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const common_1 = __webpack_require__("@nestjs/common");
 const passport_1 = __webpack_require__("@nestjs/passport");
+const environment_1 = __webpack_require__("./apps/uc-api/src/environments/environment.ts");
 const passport_jwt_1 = __webpack_require__("passport-jwt");
 const user_service_1 = __webpack_require__("./apps/uc-api/src/app/user/user.service.ts");
 let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
@@ -271,7 +274,7 @@ let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(pas
         super({
             jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: 'S1e2C3r4E5t',
+            secretOrKey: environment_1.environment.SECRET_KEY,
         });
         this.userService = userService;
     }
@@ -2674,6 +2677,21 @@ UserService = tslib_1.__decorate([
     tslib_1.__metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object])
 ], UserService);
 exports.UserService = UserService;
+
+
+/***/ }),
+
+/***/ "./apps/uc-api/src/environments/environment.ts":
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.environment = void 0;
+exports.environment = {
+    production: false,
+    SECRET_KEY: 'S1e2C3r4E5t',
+    MONGO_DB: 'mongodb://uc-admin:vVwUjxY99IBe1inK@ac-pkvp1so-shard-00-00.gnxlxzw.mongodb.net:27017,ac-pkvp1so-shard-00-01.gnxlxzw.mongodb.net:27017,ac-pkvp1so-shard-00-02.gnxlxzw.mongodb.net:27017/?ssl=true&replicaSet=atlas-ck1loi-shard-0&authSource=admin&retryWrites=true&w=majority',
+};
 
 
 /***/ }),
