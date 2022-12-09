@@ -10,10 +10,11 @@ import { Product } from "./product.schema";
 import { CategoryDto } from "../category/category.dto";
 import { IconService } from "../icon/icon.service";
 import { User } from "../user/user.schema";
+import { Neo4jService } from "../neo4j/neo4j.service";
 
 @Injectable()
 export class ProductService {
-    constructor(@InjectModel(Product.name) private productModel: Model<Product>, @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService, @Inject(forwardRef(() => UserService)) private userService: UserService, @Inject(IconService) private iconService: IconService) { }
+    constructor(@InjectModel(Product.name) private productModel: Model<Product>, @Inject(forwardRef(() => CategoryService)) private categoryService: CategoryService, @Inject(forwardRef(() => UserService)) private userService: UserService, @Inject(IconService) private iconService: IconService, @Inject(Neo4jService) private neo4jService: Neo4jService) { }
 
     async getAllProducts(): Promise<Product[]> {
         const products = await this.productModel.aggregate([
@@ -88,6 +89,24 @@ export class ProductService {
 
     async getAllProductsFromBrand(brandId: string): Promise<Product[]> {
         return await this.productModel.find({ 'createdBy._id': brandId });
+    }
+
+    async getAllProductsFromCustomer(userId: string): Promise<Product[]> {
+        return await this.productModel.aggregate([
+            {
+                '$unwind': {
+                    'path': '$comments'
+                }
+            }, {
+                '$match': {
+                    'comments.createdBy': new mongoose.Types.ObjectId(userId)
+                }
+            }, {
+                '$project': {
+                    '_id': 1
+                }
+            }
+        ]);
     }
 
     async getAllProductsFromCategory(categoryId: string): Promise<Product[]> {
@@ -329,50 +348,48 @@ export class ProductService {
         return comment[0].comments;
     }
 
+    async getRecommendations(userId: string): Promise<Product[]> {
+        const user = await this.userService.getUserById(userId);
+        const customers = user.following;
 
-    // async getRecommendations(userId: string): Promise<Product[]> {
-    //     const user = await this.userService.getUserById(userId);
-    //     const customers = user.following;
+        await this.neo4jService.write('MATCH (n) DETACH DELETE n', {});
 
-    //     await this.neo4jService.write('MATCH (n) DETACH DELETE n', {});
+        await this.neo4jService.write(`CREATE (c:Customer {name: '${user._id.toString()}'})`, {})
+        let products = await this.getAllProductsFromCustomer(user._id.toString())
+        if (products.length > 0) {
+            products.forEach(async (product: any) => {
+                await this.neo4jService.write(`CREATE (p:Product {name: '${product._id.toString()}'})`, {})
+                await this.neo4jService.write(`MATCH (c:Customer {name: '${user._id.toString()}'}) MATCH (p:Product {name: '${product._id.toString()}'}) CREATE(c)-[:COMMENT]->(p)`, {})
+            })
+        }
 
-    //     await this.neo4jService.write(`CREATE (c:Customer {name: '${user._id.toString()}'})`, {})
-    //     let products = await this.getAllProductsFromCustomer(user._id.toString())
-    //     if (products.length > 0) {
-    //         products.forEach(async (product: any) => {
-    //             await this.neo4jService.write(`CREATE (p:Product {name: '${product._id.toString()}'})`, {})
-    //             await this.neo4jService.write(`MATCH (c:Customer {name: '${user._id.toString()}'}) MATCH (p:Product {name: '${product._id.toString()}'}) CREATE(c)-[:COMMENT]->(p)`, {})
-    //         })
-    //     }
+        if (customers.length > 0) {
+            customers.forEach(async (customer: any) => {
+                await this.neo4jService.write(`CREATE (c:Customer {name: '${customer._id.toString()}'})`, {})
+                await this.neo4jService.write(`MATCH (c1:Customer {name: '${user._id.toString()}'}) MATCH (c2:Customer {name: '${customer._id.toString()}'}) CREATE(c1)-[:FOLLOWING]->(c2)`, {})
+                let products = await this.getAllProductsFromCustomer(customer._id)
+                products.forEach(async (product: any) => {
+                    await this.neo4jService.write(`CREATE (p:Product {name: '${product._id.toString()}'})`, {})
+                    await this.neo4jService.write(`MATCH (c:Customer {name: '${customer._id.toString()}'}) MATCH (p:Product {name: '${product._id.toString()}'}) CREATE(c)-[:COMMENT]->(p)`, {})
+                })
+            });
 
-    //     if (customers.length > 0) {
-    //         customers.forEach(async (customer: any) => {
-    //             await this.neo4jService.write(`CREATE (c:Customer {name: '${customer._id.toString()}'})`, {})
-    //             await this.neo4jService.write(`MATCH (c1:Customer {name: '${user._id.toString()}'}) MATCH (c2:Customer {name: '${customer._id.toString()}'}) CREATE(c1)-[:FOLLOWING]->(c2)`, {})
-    //             let products = await this.getAllProductsFromCustomer(customer._id)
-    //             products.forEach(async (product: any) => {
-    //                 await this.neo4jService.write(`CREATE (p:Product {name: '${product._id.toString()}'})`, {})
-    //                 await this.neo4jService.write(`MATCH (c:Customer {name: '${customer._id.toString()}'}) MATCH (p:Product {name: '${product._id.toString()}'}) CREATE(c)-[:COMMENT]->(p)`, {})
-    //             })
-    //         });
+            let recommendations = await this.neo4jService.read(`MATCH (c1:Customer {name: '${user._id.toString()}'})-[:FOLLOWING]->(c2:Customer) MATCH (c2)-[:COMMENT]->(p:Product) WHERE NOT (c1)-[:COMMENT]->(p) RETURN p.name AS results`, {});
 
-    //         let recommendations = await this.neo4jService.read(`MATCH (c1:Customer {name: '${user._id.toString()}'})-[:FOLLOWING]->(c2:Customer) MATCH (c2)-[:COMMENT]->(p:Product) WHERE NOT (c1)-[:COMMENT]->(p) RETURN p.name`, {});
-
-    //         let results: Product[] = [];
-
-    //         if(recommendations) {
-    //             recommendations.records.forEach(async (product: any) => {
-    //                 let fullProduct = await this.getProductById(product.get(0))
-    //                 results.push(fullProduct)
-    //             })
-    //         }
-
-    //         return results;
-    //     }
+            let results: Product[] = [];
             
-    //     return null;
-    // }
+            if(recommendations) {
+                recommendations.records.forEach(async (product: any) => {
+                    let fullProduct = await this.getProductById(product.get(0))
+                    results.push(fullProduct)
+                })
+            }
 
+            return results;
+        }
+            
+        return null;
+    }
 
     async calculateAdvice(productId: string): Promise<Object> {
         let advice: string;
