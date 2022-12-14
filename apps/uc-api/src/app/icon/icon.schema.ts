@@ -1,10 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ObjectId } from 'mongoose';
+import mongoose from 'mongoose';
 
 @Schema()
 export class Icon {
-    @Prop()
-    _id: ObjectId;
+    _id: mongoose.Types.ObjectId
 
     @Prop({
         required: [true, 'Title is required!']

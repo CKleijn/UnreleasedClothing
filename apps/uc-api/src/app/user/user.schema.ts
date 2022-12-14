@@ -4,7 +4,6 @@ import { Role } from '../auth/roles/role.enum';
 
 @Schema()
 export class User {
-    @Prop()
     _id: ObjectId;
 
     @Prop({

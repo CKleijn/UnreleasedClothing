@@ -128,6 +128,9 @@ export class UserController {
         if (error?.errors?.name)
             throw new HttpException(error.errors.name.message, HttpStatus.CONFLICT);
 
+        if (error?.errors?.age)
+            throw new HttpException(error.errors.age.message, HttpStatus.CONFLICT);
+
         if (error?.errors?.emailAddress)
             throw new HttpException(error.errors.emailAddress.message, HttpStatus.CONFLICT);
 
