@@ -1,12 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ObjectId } from 'mongoose';
+import mongoose, { ObjectId } from 'mongoose';
 import { Category } from '../category/category.schema';
 import { User } from '../user/user.schema';
 
 @Schema()
 export class Product {
     @Prop()
-    _id: ObjectId
+    _id: mongoose.Types.ObjectId
 
     @Prop({
         required: [true, 'Name is required!'],

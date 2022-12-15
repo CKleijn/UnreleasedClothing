@@ -39,7 +39,7 @@ export class CategoryController {
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.BRAND)
     @Post('category')
-    async createCategory(@Request() req: any, @Body() categoryDto: CategoryDto): Promise<Object> {
+    async createCategory(@Request() req: any, @Body() categoryDto: CategoryDto): Promise<any> {
         try {
             await this.categoryService.createCategory(req.user, categoryDto);
 
@@ -55,7 +55,7 @@ export class CategoryController {
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.BRAND)
     @Put('category/:categoryId')
-    async updateCategory(@Request() req: any, @Param('categoryId') categoryId: string, @Body() newCategory: Partial<CategoryDto>): Promise<Object> {
+    async updateCategory(@Request() req: any, @Param('categoryId') categoryId: string, @Body() newCategory: Partial<CategoryDto>): Promise<any> {
         try {
             await this.categoryService.updateCategory(req.user, categoryId, newCategory);
 
@@ -71,7 +71,7 @@ export class CategoryController {
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.BRAND)
     @Delete('category/:categoryId')
-    async deleteCategory(@Request() req: any, @Param('categoryId') categoryId: string): Promise<Object> {
+    async deleteCategory(@Request() req: any, @Param('categoryId') categoryId: string): Promise<any> {
         try {
             await this.categoryService.deleteCategory(req.user, categoryId);
 

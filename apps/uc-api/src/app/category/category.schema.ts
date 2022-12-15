@@ -1,11 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ObjectId } from 'mongoose';
+import mongoose, { ObjectId } from 'mongoose';
 import { Icon } from '../icon/icon.schema';
 
 @Schema()
 export class Category {
     @Prop()
-    _id: ObjectId;
+    _id: mongoose.Types.ObjectId;
 
     @Prop({
         required: [true, 'Title is required!'],
@@ -34,7 +34,7 @@ export class Category {
     @Prop({
         ref: 'User'
     })
-    createdBy: ObjectId;
+    createdBy: mongoose.Types.ObjectId;
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category);
