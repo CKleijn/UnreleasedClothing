@@ -555,7 +555,7 @@ exports.CategoryModule = CategoryModule;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c, _d, _e, _f, _g;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CategorySchema = exports.Category = void 0;
 const tslib_1 = __webpack_require__("tslib");
@@ -566,42 +566,42 @@ let Category = class Category {
 };
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_a = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _a : Object)
+    tslib_1.__metadata("design:type", typeof (_b = typeof mongoose_2.default !== "undefined" && (_a = mongoose_2.default.Types) !== void 0 && _a.ObjectId) === "function" ? _b : Object)
 ], Category.prototype, "_id", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Title is required!'],
     }),
-    tslib_1.__metadata("design:type", typeof (_b = typeof String !== "undefined" && String) === "function" ? _b : Object)
+    tslib_1.__metadata("design:type", typeof (_c = typeof String !== "undefined" && String) === "function" ? _c : Object)
 ], Category.prototype, "title", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Description is required!'],
     }),
-    tslib_1.__metadata("design:type", typeof (_c = typeof String !== "undefined" && String) === "function" ? _c : Object)
+    tslib_1.__metadata("design:type", typeof (_d = typeof String !== "undefined" && String) === "function" ? _d : Object)
 ], Category.prototype, "description", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Icon is required!'],
         default: 'https://www.simplelaw.com/hubfs/Blog_Media/cdn2.hubspot.nethubfs5154887Blog_Mediaimage_not_found.png'
     }),
-    tslib_1.__metadata("design:type", typeof (_d = typeof icon_schema_1.Icon !== "undefined" && icon_schema_1.Icon) === "function" ? _d : Object)
+    tslib_1.__metadata("design:type", typeof (_e = typeof icon_schema_1.Icon !== "undefined" && icon_schema_1.Icon) === "function" ? _e : Object)
 ], Category.prototype, "icon", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'isActive is required!'],
     }),
-    tslib_1.__metadata("design:type", typeof (_e = typeof Boolean !== "undefined" && Boolean) === "function" ? _e : Object)
+    tslib_1.__metadata("design:type", typeof (_f = typeof Boolean !== "undefined" && Boolean) === "function" ? _f : Object)
 ], Category.prototype, "isActive", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_f = typeof Date !== "undefined" && Date) === "function" ? _f : Object)
+    tslib_1.__metadata("design:type", typeof (_g = typeof Date !== "undefined" && Date) === "function" ? _g : Object)
 ], Category.prototype, "createdAt", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         ref: 'User'
     }),
-    tslib_1.__metadata("design:type", typeof (_g = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _g : Object)
+    tslib_1.__metadata("design:type", typeof (_j = typeof mongoose_2.default !== "undefined" && (_h = mongoose_2.default.Types) !== void 0 && _h.ObjectId) === "function" ? _j : Object)
 ], Category.prototype, "createdBy", void 0);
 Category = tslib_1.__decorate([
     (0, mongoose_1.Schema)()
@@ -668,7 +668,7 @@ let CategoryService = class CategoryService {
     }
     getCategoryById(categoryId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const category = yield this.categoryModel.findById({ _id: new mongoose_2.default.Types.ObjectId(categoryId) }).populate('createdBy');
+            const category = yield this.categoryModel.findOne({ _id: new mongoose_2.default.Types.ObjectId(categoryId) }).populate('createdBy');
             if (!category)
                 throw new common_1.HttpException(`This category doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
             return category;
@@ -1087,30 +1087,25 @@ exports.IconModule = IconModule;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c;
+var _a, _b;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.IconSchema = exports.Icon = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
-const mongoose_2 = __webpack_require__("mongoose");
 let Icon = class Icon {
 };
-tslib_1.__decorate([
-    (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_a = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _a : Object)
-], Icon.prototype, "_id", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Title is required!']
     }),
-    tslib_1.__metadata("design:type", typeof (_b = typeof String !== "undefined" && String) === "function" ? _b : Object)
+    tslib_1.__metadata("design:type", typeof (_a = typeof String !== "undefined" && String) === "function" ? _a : Object)
 ], Icon.prototype, "title", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Icon is required!'],
         default: 'https://www.simplelaw.com/hubfs/Blog_Media/cdn2.hubspot.nethubfs5154887Blog_Mediaimage_not_found.png'
     }),
-    tslib_1.__metadata("design:type", typeof (_c = typeof String !== "undefined" && String) === "function" ? _c : Object)
+    tslib_1.__metadata("design:type", typeof (_b = typeof String !== "undefined" && String) === "function" ? _b : Object)
 ], Icon.prototype, "icon", void 0);
 Icon = tslib_1.__decorate([
     (0, mongoose_1.Schema)()
@@ -1376,6 +1371,7 @@ let ProductController = class ProductController {
                 };
             }
             catch (error) {
+                console.log(error);
                 this.generateProductExceptions(error);
             }
         });
@@ -1550,7 +1546,7 @@ exports.ProductModule = ProductModule;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c, _d, _e, _f, _g, _h;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ProductSchema = exports.Product = void 0;
 const tslib_1 = __webpack_require__("tslib");
@@ -1562,35 +1558,35 @@ let Product = class Product {
 };
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_a = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _a : Object)
+    tslib_1.__metadata("design:type", typeof (_b = typeof mongoose_2.default !== "undefined" && (_a = mongoose_2.default.Types) !== void 0 && _a.ObjectId) === "function" ? _b : Object)
 ], Product.prototype, "_id", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Name is required!'],
     }),
-    tslib_1.__metadata("design:type", typeof (_b = typeof String !== "undefined" && String) === "function" ? _b : Object)
+    tslib_1.__metadata("design:type", typeof (_c = typeof String !== "undefined" && String) === "function" ? _c : Object)
 ], Product.prototype, "name", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Picture is required!'],
     }),
-    tslib_1.__metadata("design:type", typeof (_c = typeof String !== "undefined" && String) === "function" ? _c : Object)
+    tslib_1.__metadata("design:type", typeof (_d = typeof String !== "undefined" && String) === "function" ? _d : Object)
 ], Product.prototype, "picture", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Price is required!'],
     }),
-    tslib_1.__metadata("design:type", typeof (_d = typeof Number !== "undefined" && Number) === "function" ? _d : Object)
+    tslib_1.__metadata("design:type", typeof (_e = typeof Number !== "undefined" && Number) === "function" ? _e : Object)
 ], Product.prototype, "price", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Description is required!'],
     }),
-    tslib_1.__metadata("design:type", typeof (_e = typeof String !== "undefined" && String) === "function" ? _e : Object)
+    tslib_1.__metadata("design:type", typeof (_f = typeof String !== "undefined" && String) === "function" ? _f : Object)
 ], Product.prototype, "description", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_f = typeof category_schema_1.Category !== "undefined" && category_schema_1.Category) === "function" ? _f : Object)
+    tslib_1.__metadata("design:type", typeof (_g = typeof category_schema_1.Category !== "undefined" && category_schema_1.Category) === "function" ? _g : Object)
 ], Product.prototype, "category", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
@@ -1598,11 +1594,11 @@ tslib_1.__decorate([
 ], Product.prototype, "comments", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_g = typeof user_schema_1.User !== "undefined" && user_schema_1.User) === "function" ? _g : Object)
+    tslib_1.__metadata("design:type", typeof (_h = typeof user_schema_1.User !== "undefined" && user_schema_1.User) === "function" ? _h : Object)
 ], Product.prototype, "createdBy", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_h = typeof Date !== "undefined" && Date) === "function" ? _h : Object)
+    tslib_1.__metadata("design:type", typeof (_j = typeof Date !== "undefined" && Date) === "function" ? _j : Object)
 ], Product.prototype, "createdAt", void 0);
 Product = tslib_1.__decorate([
     (0, mongoose_1.Schema)()
@@ -2084,7 +2080,7 @@ let ProductService = class ProductService {
     }
     updateProduct(user, productId, newProduct) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const product = yield this.productModel.findById({ _id: productId });
+            const product = yield this.productModel.findOne({ _id: new mongoose_2.default.Types.ObjectId(productId) });
             if (!user._id.equals(product.createdBy._id))
                 throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
             if (product)
@@ -2093,7 +2089,7 @@ let ProductService = class ProductService {
             product.price = newProduct === null || newProduct === void 0 ? void 0 : newProduct.price;
             product.description = newProduct === null || newProduct === void 0 ? void 0 : newProduct.description;
             product.category = yield this.categoryService.getCategoryById(newProduct.category);
-            yield this.productModel.findOneAndUpdate({ _id: productId }, product, {
+            yield this.productModel.updateOne({}, product, {
                 upsert: true,
                 new: true,
                 runValidators: true,
@@ -2132,7 +2128,7 @@ let ProductService = class ProductService {
     }
     deleteProduct(user, productId) {
         return tslib_1.__awaiter(this, void 0, void 0, function* () {
-            const product = yield this.productModel.findById({ _id: productId });
+            const product = yield this.productModel.findOne({ _id: new mongoose_2.default.Types.ObjectId(productId) });
             if (!user._id.equals(product.createdBy._id))
                 throw new common_1.UnauthorizedException({ message: `This user don't have access to this method!` });
             yield this.productModel.findOneAndDelete({ _id: productId });
@@ -2318,7 +2314,7 @@ let UserController = class UserController {
         });
     }
     generateUserExceptions(error) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
         if ((error === null || error === void 0 ? void 0 : error.name) === 'CastError')
             throw new common_1.HttpException(`This user doesn't exists!`, common_1.HttpStatus.NOT_FOUND);
         if ((error === null || error === void 0 ? void 0 : error.response) === 'This user already exists!')
@@ -2331,13 +2327,15 @@ let UserController = class UserController {
             throw new common_1.HttpException(`You already follow this customer!`, common_1.HttpStatus.BAD_REQUEST);
         if ((_d = error === null || error === void 0 ? void 0 : error.errors) === null || _d === void 0 ? void 0 : _d.name)
             throw new common_1.HttpException(error.errors.name.message, common_1.HttpStatus.CONFLICT);
-        if ((_e = error === null || error === void 0 ? void 0 : error.errors) === null || _e === void 0 ? void 0 : _e.emailAddress)
+        if ((_e = error === null || error === void 0 ? void 0 : error.errors) === null || _e === void 0 ? void 0 : _e.age)
+            throw new common_1.HttpException(error.errors.age.message, common_1.HttpStatus.CONFLICT);
+        if ((_f = error === null || error === void 0 ? void 0 : error.errors) === null || _f === void 0 ? void 0 : _f.emailAddress)
             throw new common_1.HttpException(error.errors.emailAddress.message, common_1.HttpStatus.CONFLICT);
-        if ((_f = error === null || error === void 0 ? void 0 : error.errors) === null || _f === void 0 ? void 0 : _f.picture)
+        if ((_g = error === null || error === void 0 ? void 0 : error.errors) === null || _g === void 0 ? void 0 : _g.picture)
             throw new common_1.HttpException(error.errors.picture.message, common_1.HttpStatus.CONFLICT);
-        if ((_g = error === null || error === void 0 ? void 0 : error.errors) === null || _g === void 0 ? void 0 : _g.role)
+        if ((_h = error === null || error === void 0 ? void 0 : error.errors) === null || _h === void 0 ? void 0 : _h.role)
             throw new common_1.HttpException(error.errors.role.message, common_1.HttpStatus.CONFLICT);
-        if ((_h = error === null || error === void 0 ? void 0 : error.errors) === null || _h === void 0 ? void 0 : _h.password)
+        if ((_j = error === null || error === void 0 ? void 0 : error.errors) === null || _j === void 0 ? void 0 : _j.password)
             throw new common_1.HttpException(error.errors.password.message, common_1.HttpStatus.CONFLICT);
     }
 };
@@ -2455,30 +2453,25 @@ exports.UserModule = UserModule;
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
-var _a, _b, _c, _d, _e, _f, _g, _h;
+var _a, _b, _c, _d, _e, _f, _g;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserSchema = exports.User = void 0;
 const tslib_1 = __webpack_require__("tslib");
 const mongoose_1 = __webpack_require__("@nestjs/mongoose");
-const mongoose_2 = __webpack_require__("mongoose");
 const role_enum_1 = __webpack_require__("./apps/uc-api/src/app/auth/roles/role.enum.ts");
 let User = class User {
 };
 tslib_1.__decorate([
-    (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_a = typeof mongoose_2.ObjectId !== "undefined" && mongoose_2.ObjectId) === "function" ? _a : Object)
-], User.prototype, "_id", void 0);
-tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Name is required!'],
     }),
-    tslib_1.__metadata("design:type", typeof (_b = typeof String !== "undefined" && String) === "function" ? _b : Object)
+    tslib_1.__metadata("design:type", typeof (_a = typeof String !== "undefined" && String) === "function" ? _a : Object)
 ], User.prototype, "name", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Age is required!'],
     }),
-    tslib_1.__metadata("design:type", typeof (_c = typeof Number !== "undefined" && Number) === "function" ? _c : Object)
+    tslib_1.__metadata("design:type", typeof (_b = typeof Number !== "undefined" && Number) === "function" ? _b : Object)
 ], User.prototype, "age", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
@@ -2490,14 +2483,14 @@ tslib_1.__decorate([
             message: 'Use a correct emailaddress like j.doe@gmail.com!',
         },
     }),
-    tslib_1.__metadata("design:type", typeof (_d = typeof String !== "undefined" && String) === "function" ? _d : Object)
+    tslib_1.__metadata("design:type", typeof (_c = typeof String !== "undefined" && String) === "function" ? _c : Object)
 ], User.prototype, "emailAddress", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Picture is required!'],
         default: 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
     }),
-    tslib_1.__metadata("design:type", typeof (_e = typeof String !== "undefined" && String) === "function" ? _e : Object)
+    tslib_1.__metadata("design:type", typeof (_d = typeof String !== "undefined" && String) === "function" ? _d : Object)
 ], User.prototype, "picture", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
@@ -2513,17 +2506,17 @@ tslib_1.__decorate([
             message: 'Choose between a customer or a brand as role!'
         }
     }),
-    tslib_1.__metadata("design:type", typeof (_f = typeof String !== "undefined" && String) === "function" ? _f : Object)
+    tslib_1.__metadata("design:type", typeof (_e = typeof String !== "undefined" && String) === "function" ? _e : Object)
 ], User.prototype, "role", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)({
         required: [true, 'Password is required!']
     }),
-    tslib_1.__metadata("design:type", typeof (_g = typeof String !== "undefined" && String) === "function" ? _g : Object)
+    tslib_1.__metadata("design:type", typeof (_f = typeof String !== "undefined" && String) === "function" ? _f : Object)
 ], User.prototype, "password", void 0);
 tslib_1.__decorate([
     (0, mongoose_1.Prop)(),
-    tslib_1.__metadata("design:type", typeof (_h = typeof Date !== "undefined" && Date) === "function" ? _h : Object)
+    tslib_1.__metadata("design:type", typeof (_g = typeof Date !== "undefined" && Date) === "function" ? _g : Object)
 ], User.prototype, "createdAt", void 0);
 User = tslib_1.__decorate([
     (0, mongoose_1.Schema)()
@@ -2692,7 +2685,7 @@ exports.environment = void 0;
 exports.environment = {
     production: false,
     SECRET_KEY: 'S1e2C3r4E5t',
-    MONGO_DB: 'mongodb://uc-admin:vVwUjxY99IBe1inK@ac-pkvp1so-shard-00-00.gnxlxzw.mongodb.net:27017,ac-pkvp1so-shard-00-01.gnxlxzw.mongodb.net:27017,ac-pkvp1so-shard-00-02.gnxlxzw.mongodb.net:27017/?ssl=true&replicaSet=atlas-ck1loi-shard-0&authSource=admin&retryWrites=true&w=majority',
+    MONGO_DB: 'mongodb://127.0.0.1:27017/uc-db',
 };
 
 

@@ -458,7 +458,7 @@ export class ProductService {
     }
 
     async updateProduct(user: any, productId: string, newProduct: Partial<ProductDto>): Promise<void> {
-        const product = await this.productModel.findById({ _id: productId })
+        const product = await this.productModel.findOne({ _id: new mongoose.Types.ObjectId(productId) })
 
         if (!user._id.equals(product.createdBy._id))
             throw new UnauthorizedException({ message: `This user don't have access to this method!` });
@@ -470,7 +470,7 @@ export class ProductService {
             product.description = newProduct?.description;
             product.category = await this.categoryService.getCategoryById(newProduct.category);
 
-        await this.productModel.findOneAndUpdate({ _id: productId }, product, {
+        await this.productModel.updateOne({}, product, {
             upsert: true,
             new: true,
             runValidators: true,
@@ -509,7 +509,7 @@ export class ProductService {
     }
 
     async deleteProduct(user: any, productId: string): Promise<void> {
-        const product = await this.productModel.findById({ _id: productId })
+        const product = await this.productModel.findOne({ _id: new mongoose.Types.ObjectId(productId) })
 
         if (!user._id.equals(product.createdBy._id))
             throw new UnauthorizedException({ message: `This user don't have access to this method!` });

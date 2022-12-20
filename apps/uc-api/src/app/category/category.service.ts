@@ -42,7 +42,7 @@ export class CategoryService {
     }
 
     async getCategoryById(categoryId: string): Promise<Category> {
-        const category = await this.categoryModel.findById({ _id: new mongoose.Types.ObjectId(categoryId) }).populate('createdBy');
+        const category = await this.categoryModel.findOne({ _id: new mongoose.Types.ObjectId(categoryId) }).populate('createdBy');
 
         if (!category)
             throw new HttpException(`This category doesn't exists!`, HttpStatus.NOT_FOUND)
